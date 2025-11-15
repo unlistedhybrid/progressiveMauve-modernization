@@ -1,5 +1,3 @@
-# CMakeLists.txt for libGenome (cleaned version)
-
 # Collect all .cpp and .c source files
 file(GLOB LIBGENOME_SRC
     "${CMAKE_CURRENT_SOURCE_DIR}/libGenome/*.cpp"
