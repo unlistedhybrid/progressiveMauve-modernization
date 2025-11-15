@@ -26,7 +26,7 @@
 #include "libMems/DistanceMatrix.h"
 
 #include <boost/dynamic_bitset.hpp>
-#include <boost/tuple/tuple.hpp>
+#include <tuple>
 #include <boost/graph/graph_traits.hpp>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/johnson_all_pairs_shortest.hpp>
@@ -68,13 +68,13 @@ void mergeUnalignedIntervals( uint seqI, vector< Interval* >& iv_list, vector< I
  * Test code to ensure that an individual LCB is truly collinear
  * @return	true if the LCB is good
  */
-boolean my_validateLCB( MatchList& lcb ){
+bool my_validateLCB( MatchList& lcb ){
 	vector< Match* >::iterator lcb_iter = lcb.begin();
 	if( lcb.size() == 0 )
 		return true;
 	uint seq_count = (*lcb_iter)->SeqCount();
 	uint seqI = 0;
-	boolean complain = false;
+	bool complain = false;
 	for(; seqI < seq_count; seqI++ ){
 		lcb_iter = lcb.begin();
 		int64 prev_coord = 0;
@@ -562,7 +562,7 @@ void ProgressiveAligner::recursiveApplyAncestralBreakpoints( node_id_t ancestor 
 }
 
 
-boolean getInterveningCoordinates( const AbstractMatch* iv, uint oseqI, Match* r_begin, Match* r_end, uint seqI, int64& gap_lend, int64& gap_rend ){
+bool getInterveningCoordinates( const AbstractMatch* iv, uint oseqI, Match* r_begin, Match* r_end, uint seqI, int64& gap_lend, int64& gap_rend ){
 	// skip this sequence if it's undefined
 	if( (r_end != NULL && r_end->Start( seqI ) == NO_MATCH) ||
 		(r_begin != NULL && r_begin->Start( seqI ) == NO_MATCH) ){
@@ -1516,7 +1516,7 @@ void ProgressiveAligner::ConstructSuperIntervalFromMSA( node_id_t ancestor, size
 	}
 }
 
-typedef boost::tuple<CompactGappedAlignment<>*, vector< bitset_t >*, AbstractMatch* > _sort_tracker_type;
+typedef std::tuple<CompactGappedAlignment<>*, vector< bitset_t >*, AbstractMatch* > _sort_tracker_type;
 
 template< class CompType >
 class CgaBsComp
@@ -1599,7 +1599,7 @@ void ProgressiveAligner::constructLcbTrackingMatches(
 		c.SetLeftEnd(child_1, ancestral_matches[mI]->LeftEnd(1));
 		c.SetOrientation(child_1, ancestral_matches[mI]->Orientation(1));
 		c.SetLength(ancestral_matches[mI]->Length(1), child_1);
-		cga_list.push_back(make_tuple(c.Copy(), &bs[mI], ancestral_matches[mI]));
+		cga_list.push_back(std::make_tuple(c.Copy(), &bs[mI], ancestral_matches[mI]));
 	}
 
 	stack<node_id_t> node_stack;
@@ -3101,7 +3101,7 @@ void chooseNextAlignmentPair( PhyloTree< AlignmentTreeNode >& alignment_tree, no
 
 		// skip this node if it's already been completely aligned
 		// or is an extant sequence
-		boolean completely_aligned = true;
+		bool completely_aligned = true;
 		for( uint alignedI = 0; alignedI < cur_node.children_aligned.size(); alignedI++ )
 			completely_aligned = completely_aligned && cur_node.children_aligned[alignedI];
 		for( uint alignedI = 0; alignedI < cur_node.parents_aligned.size(); alignedI++ )
@@ -3111,7 +3111,7 @@ void chooseNextAlignmentPair( PhyloTree< AlignmentTreeNode >& alignment_tree, no
 		
 
 		vector< node_id_t > neighbor_id;
-		vector< boolean > alignable;
+		vector< bool > alignable;
 		vector< double > distance;
 		
 		for( uint parentI = 0; parentI < cur_node.parents.size(); parentI++ )
@@ -3214,9 +3214,9 @@ node_id_t createAlignmentTreeRoot( PhyloTree< AlignmentTreeNode >& alignment_tre
 		// re-root the tree on the new node
 		rerootTree( alignment_tree, alignment_tree.size()-1 );
 
-		new_root.children_aligned = vector< boolean >( new_root.children.size(), false );
-		old_root.children_aligned = vector< boolean >( old_root.children.size(), false );
-		old_root.parents_aligned = vector< boolean >( old_root.parents.size(), false );
+		new_root.children_aligned = vector< bool >( new_root.children.size(), false );
+		old_root.children_aligned = vector< bool >( old_root.children.size(), false );
+		old_root.parents_aligned = vector< bool >( old_root.parents.size(), false );
 		new_root.sequence = NULL;
 
 	return alignment_tree.root;
@@ -3471,8 +3471,8 @@ void makeAlignmentTree( PhyloTree< AlignmentTreeNode >& alignment_tree, MatchLis
 	// initialize all nodes to unaligned
 	for( node_id_t nodeI = 0; nodeI < alignment_tree.size(); nodeI++ )
 	{
-		alignment_tree[nodeI].children_aligned = vector< boolean >( alignment_tree[nodeI].children.size(), false );
-		alignment_tree[nodeI].parents_aligned = vector< boolean >( alignment_tree[nodeI].parents.size(), false );
+		alignment_tree[nodeI].children_aligned = vector< bool >( alignment_tree[nodeI].children.size(), false );
+		alignment_tree[nodeI].parents_aligned = vector< bool >( alignment_tree[nodeI].parents.size(), false );
 		alignment_tree[nodeI].sequence = NULL;
 		alignment_tree[nodeI].refined = false;
 	}
@@ -3707,16 +3707,16 @@ void ProgressiveAligner::alignPP(IntervalList& prof1, IntervalList& prof2, Inter
 				node_sequence_map[nodeI] += prof1.seq_table.size();
 		}
 
-		alignment_tree[nodeI].children_aligned = vector< boolean >( alignment_tree[nodeI].children.size(), true );
-		alignment_tree[nodeI].parents_aligned = vector< boolean >( alignment_tree[nodeI].parents.size(), true );
+		alignment_tree[nodeI].children_aligned = vector< bool >( alignment_tree[nodeI].children.size(), true );
+		alignment_tree[nodeI].parents_aligned = vector< bool >( alignment_tree[nodeI].parents.size(), true );
 		alignment_tree[nodeI].refined = true;
 	}
 
 	alignment_tree.back().children.push_back( tree1.size()-1 );
 	alignment_tree.back().children.push_back( alignment_tree.size()-2 );
 	alignment_tree.back().distance = 100;
-	alignment_tree.back().children_aligned = vector< boolean >( alignment_tree.back().children.size(), true );
-	alignment_tree.back().parents_aligned = vector< boolean >( alignment_tree.back().parents.size(), true );
+	alignment_tree.back().children_aligned = vector< bool >( alignment_tree.back().children.size(), true );
+	alignment_tree.back().parents_aligned = vector< bool >( alignment_tree.back().parents.size(), true );
 	alignment_tree.back().refined = false;
 
 
