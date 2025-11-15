@@ -3,6 +3,14 @@
 #include "libMUSCLE/objscore.h"
 #include "libMUSCLE/profile.h"
 #include "libMUSCLE/enumopts.h"
+#include <cstring>
+#include <cstdlib>
+
+#if defined(_MSC_VER)
+#define stricmp _stricmp
+#else
+#include <strings.h>
+#endif
 
 namespace muscle {
 
@@ -676,4 +684,5 @@ void SetParams()
 		g_uMaxMB.get() = (unsigned) (GetRAMSizeMB()*DEFAULT_MAX_MB_FRACT);
 	}
 } 
+
 
