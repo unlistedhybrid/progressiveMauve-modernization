@@ -198,17 +198,20 @@ uint RemoveLCBandCoalesce( size_t lcbI, uint seq_count, LcbVector& adjacencies, 
 		// find the real slim shady
 		while( left_adj != -1 && adjacencies[ left_adj ].lcb_id != left_adj )
 			left_adj = adjacencies[ left_adj ].left_adjacency[ seqI ];
+		{
 		while( right_adj != -1 && adjacencies[ right_adj ].lcb_id != right_adj )
 			right_adj = adjacencies[ right_adj ].right_adjacency[ seqI ];
 		if( left_adj == -1 || right_adj == -1 )
 			continue;	// can't collapse with a non-existant LCB!
 		if( adjacencies[ left_adj ].lcb_id != left_adj ||
 			adjacencies[ right_adj ].lcb_id != right_adj )
-			if( seqI > 0 )
+			if( seqI > 0 ) {
 				continue;	// already coalesced
 			else
+			}
 				cerr << "trouble on down street\n";
 
+		}
 		// check whether the two LCBs are adjacent in each sequence
 		bool orientation = adjacencies[ left_adj ].left_end[ seqI ] > 0 ? true : false;
 		uint seqJ;
