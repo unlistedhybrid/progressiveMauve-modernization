@@ -86,7 +86,7 @@ void AlignSubFam(SeqVect &vAll, const Tree &GuideTree, unsigned uNodeIndex,
 	fIn.Close();
 
 	char CmdLine[4096];
-	sprintf(CmdLine, "probcons %s > %s 2> /dev/null", InTmp, OutTmp);
+	snprintf(CmdLine, "probcons %s > %s 2> /dev/null", InTmp, OutTmp);
 	int ignore = system(CmdLine);
 	(void)ignore;
 
@@ -106,3 +106,4 @@ void AlignSubFam(SeqVect &vAll, const Tree &GuideTree, unsigned uNodeIndex,
 	delete[] Leaves;
 	}
 }
+
