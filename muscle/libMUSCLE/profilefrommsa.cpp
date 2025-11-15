@@ -20,7 +20,7 @@ static const char *LocalScoreToStr(SCORE s)
 	static TLS<char[16]> str;
 	if (s < -1e10 || s > 1e10)
 		return "    *";
-	snprintf(str.get(), "%5.1f", s);
+	snprintf(str.get(), 16, "%5.1f", s);
 	return str.get();
 	}
 
@@ -321,4 +321,5 @@ ProfPos *ProfileFromMSA(const MSA &a)
 	return Pos;
 	}
 } 
+
 
