@@ -1,27 +1,22 @@
-file(GLOB ALIGNER_SRC
-    "src/*.cpp"
-    "src/*.c"
+file(GLOB MAUVEALIGNER_SRC
+    src/*.cpp
 )
 
-add_library(mauveAligner STATIC ${ALIGNER_SRC})
+add_executable(progressiveMauve ${MAUVEALIGNER_SRC})
 
-target_include_directories(mauveAligner PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
-    ${CMAKE_CURRENT_SOURCE_DIR}
-    ${PROJECT_SOURCE_DIR}/libGenome
-    ${PROJECT_SOURCE_DIR}/libGenome/libGenome
-    ${PROJECT_SOURCE_DIR}/libMems
-    ${PROJECT_SOURCE_DIR}/libMems/libMems
+target_include_directories(progressiveMauve PUBLIC
+    ${PROJECT_SOURCE_DIR}/mauveAligner
+    ${PROJECT_SOURCE_DIR}/mauveAligner/include
+    ${PROJECT_SOURCE_DIR}/mauveAligner/src
 )
 
-add_executable(progressiveMauve src/progressiveMauve.cpp)
-
-target_link_libraries(progressiveMauve
-    PRIVATE
-        mauveAligner
-        libMems
-        libGenome
-        muscle
-        sgEvolver
-        ${Boost_LIBRARIES}
+target_link_libraries(progressiveMauve PUBLIC
+    libGenome
+    libMems
+    muscle
+    sgEvolver
+    Boost::filesystem
+    Boost::iostreams
+    Boost::program_options
+    Boost::regex
 )
