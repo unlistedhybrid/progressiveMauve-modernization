@@ -891,7 +891,7 @@ void createBackboneList( const IntervalList& iv_list, backbone_list_t& ula_list 
 	}
 }
 
-void detectAndApplyBackbone( AbstractMatch* m, vector< gnSequence* >& seq_table, CompactGappedAlignment<>*& result, backbone_list_t& bb_list, const Params& hmm_params, boolean left_homologous, boolean right_homologous )
+void detectAndApplyBackbone( AbstractMatch* m, vector< gnSequence* >& seq_table, CompactGappedAlignment<>*& result, backbone_list_t& bb_list, const Params& hmm_params, bool left_homologous, bool right_homologous )
 {
 	vector< AbstractMatch* > mlist( 1, m );
 	uint seq_count = seq_table.size();
@@ -1200,4 +1200,3 @@ void writeBackboneSeqCoordinates( backbone_list_t& bb_list, IntervalList& iv_lis
 
 
 }  // namespace mems
-
