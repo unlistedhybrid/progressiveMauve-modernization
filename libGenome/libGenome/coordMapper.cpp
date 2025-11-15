@@ -2,11 +2,16 @@
 #include "config.h"
 #endif
 
-#include "libGenome/gnSequence.h"
 #include <iostream>
 #include <fstream>
-#include <algorithm>
+#include <vector>
 #include <list>
+#include <string>
+#include <algorithm>
+
+#include "gnBaseFeature.h"
+#include "gnLocation.h"
+#include "gnSequence.h"
 
 using std::cout;
 using std::cin;
