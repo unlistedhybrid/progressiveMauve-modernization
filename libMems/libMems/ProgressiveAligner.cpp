@@ -1525,7 +1525,7 @@ public:
 	CgaBsComp( CompType& c ) : comp(c) {};
 	bool operator()( const _sort_tracker_type& a, const _sort_tracker_type& b )
 	{
-		return comp( a.get<0>(), b.get<0>() );
+		return comp( std::get<0>(a), std::get<0>(b) );
 	}
 protected:
 	CompType& comp;
@@ -1627,7 +1627,7 @@ void ProgressiveAligner::constructLcbTrackingMatches(
 		size_t sivI = 0;
 		while( mI < cga_list.size() && sivI < siv_list.size() )
 		{
-			CompactGappedAlignment<>* cur_match = cga_list[mI].get<0>();
+			CompactGappedAlignment<>* cur_match = std::get<0>(cga_list[mI]);
 			if( cur_match->Start(cur_node) == 0 )
 			{
 				mI++;
@@ -1682,10 +1682,10 @@ void ProgressiveAligner::constructLcbTrackingMatches(
 			}
 
 			// prepare a cga for translation
-			CompactGappedAlignment<> c(1,(*cga_list[mI].get<1>())[cur_node].size());
+			CompactGappedAlignment<> c(1,(*std::get<1>(cga_list[mI]))[cur_node].size());
 			c.SetLeftEnd(0,1);
-			c.SetLength((*cga_list[mI].get<1>())[cur_node].count(),0);
-			vector<bitset_t> bivouac(1, (*cga_list[mI].get<1>())[cur_node]);
+			c.SetLength((*std::get<1>(cga_list[mI]))[cur_node].count(),0);
+			vector<bitset_t> bivouac(1, (*std::get<1>(cga_list[mI]))[cur_node]);
 			c.SetAlignment(bivouac);
 
 			// now translate each child
@@ -1701,10 +1701,10 @@ void ProgressiveAligner::constructLcbTrackingMatches(
 				bs.resize(c.GetAlignment()[0].size(), false);
 				bs <<= c.GetAlignment()[0].find_first();
 				node_id_t sweet_child = alignment_tree[cur_node].children[cur_child];
-				swap( (*cga_list[mI].get<1>())[sweet_child], bs );
+				swap( (*std::get<1>(cga_list[mI]))[sweet_child], bs );
 				for( size_t testI = 0; testI < cga_tmp.SeqCount(); ++testI )
 				{
-					if( ((*cga_list[mI].get<1>())[testI].size() != 0 && (*cga_list[mI].get<1>())[testI].size() != (*cga_list[mI].get<1>())[sweet_child].size() ) )
+					if( ((*std::get<1>(cga_list[mI]))[testI].size() != 0 && (*std::get<1>(cga_list[mI]))[testI].size() != (*std::get<1>(cga_list[mI]))[sweet_child].size() ) )
 					{
 						cerr << "bj0rk3l\n";
 						genome::breakHere();
@@ -1720,11 +1720,11 @@ void ProgressiveAligner::constructLcbTrackingMatches(
 	// finally, construct CompactGappedAlignments out of the bitsets
 	for( size_t bsI = 0; bsI < cga_list.size(); ++bsI )
 	{
-		cga_list[bsI].get<0>()->SetAlignment(*cga_list[bsI].get<1>());
-		cga_list[bsI].get<0>()->validate();
+		std::get<0>(cga_list[bsI])->SetAlignment(*std::get<1>(cga_list[bsI]));
+		std::get<0>(cga_list[bsI])->validate();
 		TrackingMatch& ltm = tracking_matches[bsI];
-		ltm.node_match = cga_list[bsI].get<0>();
-		ltm.original_match = cga_list[bsI].get<2>();
+		ltm.node_match = std::get<0>(cga_list[bsI]);
+		ltm.original_match = std::get<2>(cga_list[bsI]);
 		ltm.match_id = bsI;
 
 		bool found_extant = false;
