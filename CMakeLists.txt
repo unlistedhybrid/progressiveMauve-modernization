@@ -14,11 +14,19 @@ find_package(Boost 1.83 REQUIRED COMPONENTS
 
 include_directories(${Boost_INCLUDE_DIRS})
 
+# Global include dirs exported to all targets
 include_directories(
+    ${Boost_INCLUDE_DIRS}
+    ${PROJECT_SOURCE_DIR}
+    ${PROJECT_SOURCE_DIR}/libGenome
     ${PROJECT_SOURCE_DIR}/libGenome/libGenome
+    ${PROJECT_SOURCE_DIR}/libMems
     ${PROJECT_SOURCE_DIR}/libMems/libMems
+    ${PROJECT_SOURCE_DIR}/muscle
     ${PROJECT_SOURCE_DIR}/muscle/libMUSCLE
+    ${PROJECT_SOURCE_DIR}/sgEvolver
     ${PROJECT_SOURCE_DIR}/sgEvolver/src
+    ${PROJECT_SOURCE_DIR}/mauveAligner
     ${PROJECT_SOURCE_DIR}/mauveAligner/src
 )
 
