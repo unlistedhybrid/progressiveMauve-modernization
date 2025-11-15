@@ -18,7 +18,7 @@
 #include "libMems/PairwiseMatchAdapter.h"
 
 #include <boost/dynamic_bitset.hpp>
-#include <boost/tuple/tuple.hpp>
+#include <tuple>
 
 #include <map>
 #include <fstream>	// for debugging
@@ -210,10 +210,10 @@ uint RemoveLCBandCoalesce( size_t lcbI, uint seq_count, LcbVector& adjacencies, 
 				cerr << "trouble on down street\n";
 
 		// check whether the two LCBs are adjacent in each sequence
-		boolean orientation = adjacencies[ left_adj ].left_end[ seqI ] > 0 ? true : false;
+		bool orientation = adjacencies[ left_adj ].left_end[ seqI ] > 0 ? true : false;
 		uint seqJ;
 		for( seqJ = 0; seqJ < seq_count; seqJ++ ){
-			boolean j_orientation = adjacencies[ left_adj ].left_end[ seqJ ] > 0;
+			bool j_orientation = adjacencies[ left_adj ].left_end[ seqJ ] > 0;
 			if( j_orientation == orientation &&
 				adjacencies[ left_adj ].right_adjacency[ seqJ ] != right_adj )
 				break;
@@ -241,7 +241,7 @@ uint RemoveLCBandCoalesce( size_t lcbI, uint seq_count, LcbVector& adjacencies, 
 		// unlink right_adj from the adjacency list and
 		// update left and right ends of left_adj
 		for( seqJ = 0; seqJ < seq_count; seqJ++ ){
-			boolean j_orientation = adjacencies[ left_adj ].left_end[ seqJ ] > 0;
+			bool j_orientation = adjacencies[ left_adj ].left_end[ seqJ ] > 0;
 			uint rr_adj = adjacencies[ right_adj ].right_adjacency[ seqJ ];
 			uint rl_adj = adjacencies[ right_adj ].left_adjacency[ seqJ ];
 			if( j_orientation == orientation ){
@@ -991,4 +991,3 @@ void GreedyRemovalScorer::remove( uint lcbI, vector< pair< double, size_t > >& n
 
 
 }	// namespace mems
-
