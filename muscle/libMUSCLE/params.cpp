@@ -486,7 +486,7 @@ void SetPPScore(bool bRespectFlagOpts)
 			{
 			size_t n = strlen(Path) + 1 + strlen(FileName) + 1;
 			char *NewFileName = new char[n];
-			sprintf(NewFileName, "%s/%s", Path, FileName);
+			snprintf(NewFileName, sizeof(NewFileName), "%s/%s", Path, FileName);
 			FileName = NewFileName;
 			}
 		TextFile File(FileName);
@@ -684,5 +684,6 @@ void SetParams()
 		g_uMaxMB.get() = (unsigned) (GetRAMSizeMB()*DEFAULT_MAX_MB_FRACT);
 	}
 } 
+
 
 
