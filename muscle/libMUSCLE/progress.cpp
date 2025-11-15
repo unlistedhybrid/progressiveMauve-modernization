@@ -130,7 +130,7 @@ void Progress(const char *szFormat, ...)
 	char szStr[4096];
 	va_list ArgList;
 	va_start(ArgList, szFormat);
-	vsprintf(szStr, szFormat, ArgList);
+	vsnprintf(szStr, szFormat, ArgList);
 
 	fprintf(g_fProgress, "%8.8s  %12s  %s",
 	  ElapsedTimeAsStr(),
@@ -192,3 +192,4 @@ void ProgressStepsDone()
 	g_nPrevDescLength = (int) strlen(g_strDesc);
 	}
 } 
+
