@@ -12,7 +12,7 @@ const char *SecsToStr(unsigned long Secs)
 	mm = (Secs/60)%60;
 	ss = Secs%60;
 
-	sprintf(Str.get(), "%02d:%02d:%02d", hh, mm, ss);
+	sprintf(Str.get(), "%02ld:%02ld:%02ld", hh, mm, ss);
 	return Str.get();
 	}
 
@@ -25,8 +25,6 @@ const char *ScoreToStr(SCORE Score)
 	{
 	if (MINUS_INFINITY >= Score)
 		return "       *";
-// Hack to use "circular" buffer so when called multiple
-// times in a printf-like argument list it works OK.
 	const int iBufferCount = 16;
 	const int iBufferLength = 16;
 	static TLS<char[iBufferCount*iBufferLength]> szStr;
@@ -37,13 +35,10 @@ const char *ScoreToStr(SCORE Score)
 	return pStr;
 	}
 
-// Left-justified version of ScoreToStr
 const char *ScoreToStrL(SCORE Score)
 	{
 	if (MINUS_INFINITY >= Score)
 		return "*";
-// Hack to use "circular" buffer so when called multiple
-// times in a printf-like argument list it works OK.
 	const int iBufferCount = 16;
 	const int iBufferLength = 16;
 	static TLS<char[iBufferCount*iBufferLength]> szStr;
@@ -58,4 +53,4 @@ const char *WeightToStr(WEIGHT w)
 	{
 	return ScoreToStr(w);
 	}
-} 
+}
