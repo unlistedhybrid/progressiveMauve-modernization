@@ -1,34 +1,33 @@
-# Collect all .cpp and .c source files
+# Gather all real library sources
 file(GLOB LIBGENOME_SRC
     "${CMAKE_CURRENT_SOURCE_DIR}/libGenome/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/libGenome/*.c"
 )
 
-# Remove obsolete test/debug programs that should NOT be built
-list(REMOVE_ITEM LIBGENOME_SRC
+# Explicitly remove ALL legacy test/utility programs by exact name
+foreach(f
     "${CMAKE_CURRENT_SOURCE_DIR}/libGenome/testTests.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/libGenome/test-o-matic.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/libGenome/testSource.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/libGenome/testSourceSeq.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/libGenome/testgnSequence.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/libGenome/testgnSeqConverter.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/libGenome/coordMapper.cpp"  # optional: remove coordMapper too
+    "${CMAKE_CURRENT_SOURCE_DIR}/libGenome/gnSeqStringTest.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/libGenome/gnFastTranslator.cpp"        # safe to remove if unused
+    "${CMAKE_CURRENT_SOURCE_DIR}/libGenome/coordMapper.cpp"             # REMOVE THIS TOO
 )
+    list(REMOVE_ITEM LIBGENOME_SRC "${f}")
+endforeach()
 
-# list(REMOVE_ITEM LIBGENOME_SRC "${CMAKE_CURRENT_SOURCE_DIR}/libGenome/coordMapper.cpp")
-
-# Build libGenome as a static library
+# Build the core libGenome library
 add_library(libGenome STATIC ${LIBGENOME_SRC})
 
-# Include directories used across libGenome
+# Include directories
 target_include_directories(libGenome PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/libGenome
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-# Link dependencies if needed
-target_link_libraries(libGenome
-    PUBLIC
-        ${Boost_LIBRARIES}
-)
+# Link dependencies
+target_link_libraries(libGenome PUBLIC ${Boost_LIBRARIES})
