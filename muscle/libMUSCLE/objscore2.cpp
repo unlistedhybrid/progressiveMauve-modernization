@@ -20,9 +20,9 @@ TLS<SCORE> g_SPScoreLetters;
 TLS<SCORE> g_SPScoreGaps;
 
 SCORE TermGapScore(bool Gap)
-	{
+{
 	switch (g_TermGaps.get())
-		{
+	{
 	case TERMGAPS_Full:
 		return 0;
 
@@ -35,14 +35,17 @@ SCORE TermGapScore(bool Gap)
 		if (Gap)
 			return g_scoreGapExtend.get();
 		return 0;
-		}
-	Quit("TermGapScore?!");
-	return 0;
+
+	case TERMGAPS_Undefined:
+	default:
+		Quit("TermGapScore?! Invalid g_TermGaps.get()=%d", g_TermGaps.get());
+		return 0;
 	}
+}
 
 SCORE ScoreSeqPairLetters(const MSA &msa1, unsigned uSeqIndex1,
   const MSA &msa2, unsigned uSeqIndex2)
-	{
+{
 	const unsigned uColCount = msa1.GetColCount();
 	const unsigned uColCount2 = msa2.GetColCount();
 	if (uColCount != uColCount2)
@@ -68,39 +71,39 @@ SCORE ScoreSeqPairLetters(const MSA &msa1, unsigned uSeqIndex1,
 	unsigned uColStart = 0;
 	bool bLeftTermGap = false;
 	for (unsigned uColIndex = 0; uColIndex < uColCount; ++uColIndex)
-		{
+	{
 		bool bGap1 = msa1.IsGap(uSeqIndex1, uColIndex);
 		bool bGap2 = msa2.IsGap(uSeqIndex2, uColIndex);
 		if (!bGap1 || !bGap2)
-			{
+		{
 			if (bGap1 || bGap2)
 				bLeftTermGap = true;
 			uColStart = uColIndex;
 			break;
-			}
 		}
+	}
 
 	unsigned uColEnd = uColCount - 1;
 	bool bRightTermGap = false;
 	for (int iColIndex = (int) uColCount - 1; iColIndex >= 0; --iColIndex)
-		{
+	{
 		bool bGap1 = msa1.IsGap(uSeqIndex1, iColIndex);
 		bool bGap2 = msa2.IsGap(uSeqIndex2, iColIndex);
 		if (!bGap1 || !bGap2)
-			{
+		{
 			if (bGap1 || bGap2)
 				bRightTermGap = true;
 			uColEnd = (unsigned) iColIndex;
 			break;
-			}
 		}
+	}
 
 #if	TRACE_SEQPAIR
 	Log("LeftTermGap=%d RightTermGap=%d\n", bLeftTermGap, bRightTermGap);
 #endif
 
 	for (unsigned uColIndex = uColStart; uColIndex <= uColEnd; ++uColIndex)
-		{
+	{
 		unsigned uLetter1 = msa1.GetLetterEx(uSeqIndex1, uColIndex);
 		if (uLetter1 >= g_AlphaSize.get())
 			continue;
@@ -110,13 +113,13 @@ SCORE ScoreSeqPairLetters(const MSA &msa1, unsigned uSeqIndex1,
 
 		SCORE scoreMatch = (*g_ptrScoreMatrix.get())[uLetter1][uLetter2];
 		scoreLetters += scoreMatch;
-		}
-	return scoreLetters;
 	}
+	return scoreLetters;
+}
 
 SCORE ScoreSeqPairGaps(const MSA &msa1, unsigned uSeqIndex1,
   const MSA &msa2, unsigned uSeqIndex2)
-	{
+{
 	const unsigned uColCount = msa1.GetColCount();
 	const unsigned uColCount2 = msa2.GetColCount();
 	if (uColCount != uColCount2)
@@ -141,39 +144,39 @@ SCORE ScoreSeqPairGaps(const MSA &msa1, unsigned uSeqIndex1,
 	unsigned uColStart = 0;
 	bool bLeftTermGap = false;
 	for (unsigned uColIndex = 0; uColIndex < uColCount; ++uColIndex)
-		{
+	{
 		bool bGap1 = msa1.IsGap(uSeqIndex1, uColIndex);
 		bool bGap2 = msa2.IsGap(uSeqIndex2, uColIndex);
 		if (!bGap1 || !bGap2)
-			{
+		{
 			if (bGap1 || bGap2)
 				bLeftTermGap = true;
 			uColStart = uColIndex;
 			break;
-			}
 		}
+	}
 
 	unsigned uColEnd = uColCount - 1;
 	bool bRightTermGap = false;
 	for (int iColIndex = (int) uColCount - 1; iColIndex >= 0; --iColIndex)
-		{
+	{
 		bool bGap1 = msa1.IsGap(uSeqIndex1, iColIndex);
 		bool bGap2 = msa2.IsGap(uSeqIndex2, iColIndex);
 		if (!bGap1 || !bGap2)
-			{
+		{
 			if (bGap1 || bGap2)
 				bRightTermGap = true;
 			uColEnd = (unsigned) iColIndex;
 			break;
-			}
 		}
+	}
 
 #if	TRACE_SEQPAIR
 	Log("LeftTermGap=%d RightTermGap=%d\n", bLeftTermGap, bRightTermGap);
 #endif
 
 	for (unsigned uColIndex = uColStart; uColIndex <= uColEnd; ++uColIndex)
-		{
+	{
 		bool bGap1 = msa1.IsGap(uSeqIndex1, uColIndex);
 		bool bGap2 = msa2.IsGap(uSeqIndex2, uColIndex);
 
@@ -181,9 +184,9 @@ SCORE ScoreSeqPairGaps(const MSA &msa1, unsigned uSeqIndex1,
 			continue;
 
 		if (bGap1)
-			{
+		{
 			if (!bGapping1)
-				{
+			{
 #if	TRACE_SEQPAIR
 				Log("Gap open seq 1 col %d\n", uColIndex);
 #endif
@@ -192,16 +195,16 @@ SCORE ScoreSeqPairGaps(const MSA &msa1, unsigned uSeqIndex1,
 				else
 					scoreGaps += g_scoreGapOpen.get();
 				bGapping1 = true;
-				}
+			}
 			else
 				scoreGaps += g_scoreGapExtend.get();
 			continue;
-			}
+		}
 
 		else if (bGap2)
-			{
+		{
 			if (!bGapping2)
-				{
+			{
 #if	TRACE_SEQPAIR
 				Log("Gap open seq 2 col %d\n", uColIndex);
 #endif
@@ -210,28 +213,26 @@ SCORE ScoreSeqPairGaps(const MSA &msa1, unsigned uSeqIndex1,
 				else
 					scoreGaps += g_scoreGapOpen.get();
 				bGapping2 = true;
-				}
+			}
 			else
 				scoreGaps += g_scoreGapExtend.get();
 			continue;
-			}
+		}
 
 		bGapping1 = false;
 		bGapping2 = false;
-		}
-
-	if (bGapping1 || bGapping2)
-		{
-		scoreGaps -= g_scoreGapOpen.get();
-		scoreGaps += TermGapScore(true);
-		}
-	return scoreGaps;
 	}
 
-// The usual sum-of-pairs objective score: sum the score
-// of the alignment of each pair of sequences.
-SCORE ObjScoreSP(const MSA &msa, SCORE MatchScore[])
+	if (bGapping1 || bGapping2)
 	{
+		scoreGaps -= g_scoreGapOpen.get();
+		scoreGaps += TermGapScore(true);
+	}
+	return scoreGaps;
+}
+
+SCORE ObjScoreSP(const MSA &msa, SCORE MatchScore[])
+{
 #if	TRACE
 	Log("==================ObjScoreSP==============\n");
 	Log("msa=\n");
@@ -241,11 +242,11 @@ SCORE ObjScoreSP(const MSA &msa, SCORE MatchScore[])
 	g_SPScoreGaps = 0;
 
 	if (0 != MatchScore)
-		{
+	{
 		const unsigned uColCount = msa.GetColCount();
 		for (unsigned uColIndex = 0; uColIndex < uColCount; ++uColIndex)
 			MatchScore[uColIndex] = 0;
-		}
+	}
 
 	const unsigned uSeqCount = msa.GetSeqCount();
 	SCORE scoreTotal = 0;
@@ -255,10 +256,10 @@ SCORE ObjScoreSP(const MSA &msa, SCORE MatchScore[])
 	Log("----  ----  ------  ------  ----------  ----------  ----------  ----------  ----------\n");
 #endif
 	for (unsigned uSeqIndex1 = 0; uSeqIndex1 < uSeqCount; ++uSeqIndex1)
-		{
+	{
 		const WEIGHT w1 = msa.GetSeqWeight(uSeqIndex1);
 		for (unsigned uSeqIndex2 = uSeqIndex1 + 1; uSeqIndex2 < uSeqCount; ++uSeqIndex2)
-			{
+		{
 			const WEIGHT w2 = msa.GetSeqWeight(uSeqIndex2);
 			const WEIGHT w = w1*w2;
 
@@ -285,8 +286,8 @@ SCORE ObjScoreSP(const MSA &msa, SCORE MatchScore[])
 			  msa.GetSeqName(uSeqIndex1),
 			  msa.GetSeqName(uSeqIndex2));
 #endif
-			}
 		}
+	}
 #if	TEST_SPFAST
 	{
 	SCORE f = ObjScoreSPFast(msa);
@@ -298,16 +299,11 @@ SCORE ObjScoreSP(const MSA &msa, SCORE MatchScore[])
 		Log("** DISAGREE **\n");
 	}
 #endif
-//	return scoreTotal / uPairCount;
 	return scoreTotal;
-	}
+}
 
-// Objective score defined as the dynamic programming score.
-// Input is two alignments, which must be of the same length.
-// Result is the same profile-profile score that is optimized
-// by dynamic programming.
 SCORE ObjScoreDP(const MSA &msa1, const MSA &msa2, SCORE MatchScore[])
-	{
+{
 	const unsigned uColCount = msa1.GetColCount();
 	if (msa2.GetColCount() != uColCount)
 		Quit("ObjScoreDP, must be same length");
@@ -319,49 +315,36 @@ SCORE ObjScoreDP(const MSA &msa1, const MSA &msa2, SCORE MatchScore[])
 	const ProfPos *PB = ProfileFromMSA(msa2);
 
 	return ObjScoreDP_Profs(PA, PB, uColCount1, MatchScore);
-	}
+}
 
 SCORE ObjScoreDP_Profs(const ProfPos *PA, const ProfPos *PB, unsigned uColCount,
   SCORE MatchScore[])
-	{
-//#if	TRACE
-//	Log("Profile 1:\n");
-//	ListProfile(PA, uColCount, &msa1);
-//
-//	Log("Profile 2:\n");
-//	ListProfile(PB, uColCount, &msa2);
-//#endif
-
+{
 	SCORE scoreTotal = 0;
 
 	for (unsigned uColIndex = 0; uColIndex < uColCount; ++uColIndex)
-		{
+	{
 		const ProfPos &PPA = PA[uColIndex];
 		const ProfPos &PPB = PB[uColIndex];
 
 		SCORE scoreGap = 0;
 		SCORE scoreMatch = 0;
-	// If gapped column...
 		if (PPA.m_bAllGaps && PPB.m_bAllGaps)
 			scoreGap = 0;
 		else if (PPA.m_bAllGaps)
-			{
+		{
 			if (uColCount - 1 == uColIndex || !PA[uColIndex+1].m_bAllGaps)
 				scoreGap = PPB.m_scoreGapClose;
 			if (0 == uColIndex || !PA[uColIndex-1].m_bAllGaps)
 				scoreGap += PPB.m_scoreGapOpen;
-			//if (0 == scoreGap)
-			//	scoreGap = PPB.m_scoreGapExtend;
-			}
+		}
 		else if (PPB.m_bAllGaps)
-			{
+		{
 			if (uColCount - 1 == uColIndex || !PB[uColIndex+1].m_bAllGaps)
 				scoreGap = PPA.m_scoreGapClose;
 			if (0 == uColIndex || !PB[uColIndex-1].m_bAllGaps)
 				scoreGap += PPA.m_scoreGapOpen;
-			//if (0 == scoreGap)
-			//	scoreGap = PPA.m_scoreGapExtend;
-			}
+		}
 		else
 			scoreMatch = ScoreProfPos2(PPA, PPB);
 
@@ -374,7 +357,7 @@ SCORE ObjScoreDP_Profs(const ProfPos *PA, const ProfPos *PB, unsigned uColCount,
 		extern TLS<MSA *> g_ptrPPScoreMSA1;
 		extern TLS<MSA *> g_ptrPPScoreMSA2;
 		if (g_bTracePPScore.get())
-			{
+		{
 			const MSA &msa1 = *g_ptrPPScoreMSA1.get();
 			const MSA &msa2 = *g_ptrPPScoreMSA2.get();
 			const unsigned uSeqCount1 = msa1.GetSeqCount();
@@ -389,27 +372,17 @@ SCORE ObjScoreDP_Profs(const ProfPos *PA, const ProfPos *PB, unsigned uColCount,
 			if (scoreGap != 0)
 				Log("  %10.3f", scoreGap);
 			Log("\n");
-			}
 		}
+	}
 
 	delete[] PA;
 	delete[] PB;
 
 	return scoreTotal;
-	}
+}
 
-// Objective score defined as the sum of profile-sequence
-// scores for each sequence in the alignment. The profile
-// is computed from the entire alignment, so this includes
-// the score of each sequence against itself. This is to
-// avoid recomputing the profile each time, so we reduce
-// complexity but introduce a questionable approximation.
-// The goal is to see if we can exploit the apparent
-// improvement in performance of log-expectation score
-// over the usual sum-of-pairs by optimizing this
-// objective score in the iterative refinement stage.
 SCORE ObjScorePS(const MSA &msa, SCORE MatchScore[])
-	{
+{
 	if (g_PPScore.get() != PPSCORE_LE)
 		Quit("FastScoreMSA_LASimple: LA");
 
@@ -424,14 +397,14 @@ SCORE ObjScorePS(const MSA &msa, SCORE MatchScore[])
 
 	SCORE scoreTotal = 0;
 	for (unsigned uSeqIndex = 0; uSeqIndex < uSeqCount; ++uSeqIndex)
-		{
+	{
 		const WEIGHT weightSeq = msa.GetSeqWeight(uSeqIndex);
 		SCORE scoreSeq = 0;
 		for (unsigned uColIndex = 0; uColIndex < uColCount; ++uColIndex)
-			{
+		{
 			const ProfPos &PP = Prof[uColIndex];
 			if (msa.IsGap(uSeqIndex, uColIndex))
-				{
+			{
 				bool bOpen = (0 == uColIndex ||
 				  !msa.IsGap(uSeqIndex, uColIndex - 1));
 				bool bClose = (uColCount - 1 == uColIndex ||
@@ -441,36 +414,27 @@ SCORE ObjScorePS(const MSA &msa, SCORE MatchScore[])
 					scoreSeq += PP.m_scoreGapOpen;
 				if (bClose)
 					scoreSeq += PP.m_scoreGapClose;
-				//if (!bOpen && !bClose)
-				//	scoreSeq += PP.m_scoreGapExtend;
-				}
+			}
 			else if (msa.IsWildcard(uSeqIndex, uColIndex))
 				continue;
 			else
-				{
+			{
 				unsigned uLetter = msa.GetLetter(uSeqIndex, uColIndex);
 				const SCORE scoreMatch = PP.m_AAScores[uLetter];
 				if (0 != MatchScore)
 					MatchScore[uColIndex] += weightSeq*scoreMatch;
 				scoreSeq += scoreMatch;
-				}
 			}
-		scoreTotal += weightSeq*scoreSeq;
 		}
+		scoreTotal += weightSeq*scoreSeq;
+	}
 
 	delete[] Prof;
 	return scoreTotal;
-	}
+}
 
-// The XP score is the sum of the score of each pair of
-// sequences between two profiles which are aligned to
-// each other. Notice that for two given profiles aligned
-// in different ways, the difference in XP score must be
-// the same as the difference in SP score because the
-// score of a pair of sequences in one profile doesn't
-// depend on the alignment.
 SCORE ObjScoreXP(const MSA &msa1, const MSA &msa2)
-	{
+{
 	const unsigned uColCount1 = msa1.GetColCount();
 	const unsigned uColCount2 = msa2.GetColCount();
 	if (uColCount1 != uColCount2)
@@ -487,10 +451,10 @@ SCORE ObjScoreXP(const MSA &msa1, const MSA &msa2)
 	SCORE scoreTotal = 0;
 	unsigned uPairCount = 0;
 	for (unsigned uSeqIndex1 = 0; uSeqIndex1 < uSeqCount1; ++uSeqIndex1)
-		{
+	{
 		const WEIGHT w1 = msa1.GetSeqWeight(uSeqIndex1);
 		for (unsigned uSeqIndex2 = 0; uSeqIndex2 < uSeqCount2; ++uSeqIndex2)
-			{
+		{
 			const WEIGHT w2 = msa2.GetSeqWeight(uSeqIndex2);
 			const WEIGHT w = w1*w2;
 			SCORE scoreLetters = ScoreSeqPairLetters(msa1, uSeqIndex1, msa2, uSeqIndex2);
@@ -507,8 +471,8 @@ SCORE ObjScoreXP(const MSA &msa1, const MSA &msa2)
 			  msa1.GetSeqName(uSeqIndex1),
 			  msa2.GetSeqName(uSeqIndex2));
 #endif
-			}
 		}
+	}
 	if (0 == uPairCount)
 		Quit("0 == uPairCount");
 
@@ -519,7 +483,7 @@ SCORE ObjScoreXP(const MSA &msa1, const MSA &msa2)
 	msa2.LogMe();
 	Log("XP=%g\n", scoreTotal);
 #endif
-//	return scoreTotal / uPairCount;
 	return scoreTotal;
-	}
-} 
+}
+
+}
