@@ -62,7 +62,7 @@ void checkForAllGapColumns( IntervalList& iv_list );
  * @param	right_homologous	Set to true if the detection code should assume that sequence beyond the right-most alignment
  *							column is homologous sequence
  */
-void detectAndApplyBackbone( AbstractMatch* m, std::vector< genome::gnSequence* >& seq_table, CompactGappedAlignment<>*& result, backbone_list_t& bb_list, const Params& hmm_params, boolean left_homologous = false, boolean right_homologous = false );
+void detectAndApplyBackbone( AbstractMatch* m, std::vector< genome::gnSequence* >& seq_table, CompactGappedAlignment<>*& result, backbone_list_t& bb_list, const Params& hmm_params, bool left_homologous = false, bool right_homologous = false );
 
 /**
  * Applies pairwise transitive homology statistics to detect backbone in a genome alignment
@@ -237,4 +237,3 @@ void mergePairwiseHomologyPredictions( 	std::vector< CompactGappedAlignment<>* >
 }
 
 #endif	// __Backbone_h__
-
