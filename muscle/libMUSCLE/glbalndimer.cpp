@@ -1,6 +1,6 @@
 #include "libMUSCLE/muscle.h"
 #include <math.h>
-#include <stdio.h>	// for sprintf
+#include <stdio.h>
 #include "libMUSCLE/pwpath.h"
 #include "libMUSCLE/profile.h"
 #include "libMUSCLE/gapscoredimer.h"
@@ -15,13 +15,13 @@ static SCORE TraceBackDimer(  const SCORE *DPM_, const SCORE *DPD_, const SCORE 
   unsigned uLengthA, unsigned uLengthB, PWPath &Path);
 
 static const char *LocalScoreToStr(SCORE s)
-	{
-	static TLS<char[16]> str;
-	if (MINUS_INFINITY == s)
-		return "     *";
-	sprintf(str.get(), "%6.3g", s);
-	return str.get();
-	}
+{
+    static TLS<char[16]> str;
+    if (MINUS_INFINITY == s)
+        return "     *";
+    snprintf(str.get(), 16, "%6.3g", s);
+    return str.get();
+}
 
 #if	TRACE
 static void ListDP(const SCORE *DPM_, const ProfPos *PA, const ProfPos *PB,
@@ -122,19 +122,22 @@ static SCORE ScoreProfPosDimerPSP(const ProfPos &PPA, const ProfPos &PPB)
 	}
 
 static SCORE ScoreProfPosDimer(const ProfPos &PPA, const ProfPos &PPB)
-	{
-	switch (g_PPScore.get())
-		{
-	case PPSCORE_LE:
-		return ScoreProfPosDimerLE(PPA, PPB);
+{
+    switch (g_PPScore.get())
+    {
+    case PPSCORE_LE:
+        return ScoreProfPosDimerLE(PPA, PPB);
 
-	case PPSCORE_SP:
-	case PPSCORE_SV:
-		return ScoreProfPosDimerPSP(PPA, PPB);
-		}
-	Quit("Invalid g_PPScore.get()");
-	return 0;
-	}
+    case PPSCORE_SP:
+    case PPSCORE_SV:
+        return ScoreProfPosDimerPSP(PPA, PPB);
+
+    case PPSCORE_Undefined:
+    default:
+        Quit("Invalid g_PPScore.get()");
+        return 0;
+    }
+}
 
 // Global alignment dynamic programming
 // This variant optimizes the profile-profile SP score under the
@@ -392,3 +395,4 @@ static SCORE TraceBackDimer(  const SCORE *DPM_, const SCORE *DPD_, const SCORE 
 	return scoreMax;
 	}
 } 
+
