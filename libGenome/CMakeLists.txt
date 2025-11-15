@@ -13,8 +13,8 @@ foreach(f
     "${CMAKE_CURRENT_SOURCE_DIR}/libGenome/testgnSequence.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/libGenome/testgnSeqConverter.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/libGenome/gnSeqStringTest.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/libGenome/gnFastTranslator.cpp"        # safe to remove if unused
-    "${CMAKE_CURRENT_SOURCE_DIR}/libGenome/coordMapper.cpp"             # REMOVE THIS TOO
+    "${CMAKE_CURRENT_SOURCE_DIR}/libGenome/gnFastTranslator.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/libGenome/coordMapper.cpp"
 )
     list(REMOVE_ITEM LIBGENOME_SRC "${f}")
 endforeach()
