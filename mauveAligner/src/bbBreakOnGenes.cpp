@@ -335,11 +335,11 @@ int main( int argc, char* argv[] )
 		for( ; gI < gene_bounds[seqI].size() && bI < bb_seq_list.size(); gI++ )
 		{
 			cout << "checking " << bb_seq_list[bI][seqI].first << ", " <<bb_seq_list[bI][seqI].second << endl;  
-			while( bI < bb_seq_list.size() && gene_bounds[seqI][gI] > abs(bb_seq_list[bI][seqI].second) )
+			while( bI < bb_seq_list.size() && gene_bounds[seqI][gI] > abs_int64(bb_seq_list[bI][seqI].second) )
 				bI++;
 			if( bI == bb_seq_list.size() )
 				break;
-			if(abs(bb_seq_list[bI][seqI].first) + 1 < gene_bounds[seqI][gI] && gene_bounds[seqI][gI] < abs(bb_seq_list[bI][seqI].second) - 1)
+			if(abs_int64(bb_seq_list[bI][seqI].first) + 1 < gene_bounds[seqI][gI] && gene_bounds[seqI][gI] < abs_int64(bb_seq_list[bI][seqI].second) - 1)
 			{
 				cerr << "segment " <<bb_seq_list[bI][seqI].first << ", " <<bb_seq_list[bI][seqI].second << " violates gene boundary " << gene_bounds[seqI][gI] << " in seq " << seqI << endl;  
 			}else
@@ -354,5 +354,6 @@ int main( int argc, char* argv[] )
 	writeBackboneSeqFile( bb_output, bb_seq_list );
 
 	return 0;
+
 }
 
