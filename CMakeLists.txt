@@ -14,6 +14,14 @@ find_package(Boost 1.83 REQUIRED COMPONENTS
 
 include_directories(${Boost_INCLUDE_DIRS})
 
+include_directories(
+    ${PROJECT_SOURCE_DIR}/libGenome/libGenome
+    ${PROJECT_SOURCE_DIR}/libMems/libMems
+    ${PROJECT_SOURCE_DIR}/muscle/libMUSCLE
+    ${PROJECT_SOURCE_DIR}/sgEvolver/src
+    ${PROJECT_SOURCE_DIR}/mauveAligner/src
+)
+
 add_subdirectory(libGenome)
 add_subdirectory(libMems)
 add_subdirectory(muscle)
