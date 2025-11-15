@@ -12,7 +12,6 @@
 #include "config.h"
 #endif
 
-// for CreateTempFileName
 #ifdef _WIN32
 #include <windows.h>
 #else
@@ -25,14 +24,14 @@
 #include <sstream>
 #include <iostream>
 #include <iomanip>
-#include <cstdlib> // getenv, std::getenv
+#include <cstdlib> // getenv
 #include <cstdio>  // close
 #include <mutex>
 
 #include "boost/filesystem.hpp"
 #include "boost/algorithm/string.hpp"
 
-// Thread safety for critical section
+// --- Thread-safe file deletion registration ---
 inline std::vector<std::string>& registerFileToDelete(const std::string& fname = "") {
     static std::vector<std::string>* files = new std::vector<std::string>();
     static std::mutex files_mutex;
@@ -52,7 +51,7 @@ inline void deleteRegisteredFiles() {
     del_files.clear();
 }
 
-// Create a temporary file name (returns only the path, does NOT create file!)
+// --- Cross-platform temporary file name creation (does NOT create file) ---
 inline std::string CreateTempFileName(const std::string& prefix) {
     std::string dir, name, ret_path;
     boost::filesystem::path path(prefix);
@@ -112,11 +111,12 @@ inline std::string CreateTempFileName(const std::string& prefix) {
 #endif
         }
     }
+
     // Compose a path for mkstemp
     boost::filesystem::path tmppath = boost::filesystem::path(dir) / (name.empty() ? "file" : name);
     std::string path_str = tmppath.string() + "XXXXXX";
     char buf[PATH_MAX + 1];
-    std::strncpy(buf, path_str.c_str(), sizeof(buf));
+    std::snprintf(buf, sizeof(buf), "%s", path_str.c_str());
     buf[sizeof(buf) - 1] = '\0';
 
 #if defined(HAVE_MKSTEMP)
@@ -134,7 +134,6 @@ inline std::string CreateTempFileName(const std::string& prefix) {
     if (tmpname) {
         ret_path = tmpname;
     } else {
-        // fallback
         unsigned my_pid = 0;
 #ifndef __DOS__
         my_pid = getpid();
