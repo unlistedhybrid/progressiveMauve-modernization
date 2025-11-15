@@ -379,9 +379,9 @@ static void EnumParam(const char *OptName, EnumOpt *Opts, int *Param)
 	}
 
 static void SetPPDefaultParams()
-	{
+{
 	switch (g_PPScore.get())
-		{
+	{
 	case PPSCORE_SP:
 		SetDefaultsSP();
 		break;
@@ -396,22 +396,24 @@ static void SetPPDefaultParams()
 
 	case PPSCORE_SPN:
 		switch (g_Alpha.get())
-			{
+		{
 		case ALPHA_DNA:
 			SetDefaultsSPN_DNA();
 			break;
 		case ALPHA_RNA:
 			SetDefaultsSPN_RNA();
 			break;
+		case ALPHA_Undefined:
 		default:
 			Quit("Invalid alpha %d", g_Alpha.get());
-			}
+		}
 		break;
 
+	case PPSCORE_Undefined:
 	default:
 		Quit("Invalid g_PPScore.get()");
-		}
 	}
+}
 
 static void SetPPCommandLineParams()
 	{
@@ -447,7 +449,7 @@ void SetPPScore(bool bRespectFlagOpts)
 		}
 
 	switch (g_PPScore.get())
-		{
+	{
 	case PPSCORE_LE:
 	case PPSCORE_SP:
 	case PPSCORE_SV:
@@ -458,7 +460,11 @@ void SetPPScore(bool bRespectFlagOpts)
 		if (ALPHA_Amino == g_Alpha.get())
 			g_PPScore.get() = PPSCORE_LE;
 		break;
-		}
+	case PPSCORE_Undefined:
+	default:
+		break;
+	}
+
 
 	SetPPDefaultParams();
 	SetPPCommandLineParams();
@@ -670,3 +676,4 @@ void SetParams()
 		g_uMaxMB.get() = (unsigned) (GetRAMSizeMB()*DEFAULT_MAX_MB_FRACT);
 	}
 } 
+
