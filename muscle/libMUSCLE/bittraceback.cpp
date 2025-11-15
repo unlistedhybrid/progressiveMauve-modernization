@@ -17,7 +17,8 @@ static char XlatEdgeType(char c)
 
 static const char *BitsToStr(char Bits)
 	{
-	static TLSstr<char[9]> Str("xM xD xI");
+	static TLSstr<char[9]> Str;
+	strcpy(Str.get(), "xM xD xI");
 
 	switch (Bits & BIT_xM)
 		{
@@ -207,4 +208,4 @@ void BitTraceBack(char **TraceBack, unsigned uLengthA, unsigned uLengthB,
 	Path.LogMe();
 #endif
 	}
-} 
+}
