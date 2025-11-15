@@ -24,7 +24,7 @@ static const char *LocalScoreToStr(SCORE s)
 	static TLS<char[16]> str;
 	if (s < -100000)
 		return "     *";
-	sprintf(str.get(), "%6.1f", s);
+	snprintf(str.get(), "%6.1f", s);
 	return str.get();
 	}
 
@@ -370,3 +370,4 @@ SCORE GlobalAlignSimple(const ProfPos *PA, unsigned uLengthA, const ProfPos *PB,
 
 #endif // SINLGLE_AFFINE
 } 
+
