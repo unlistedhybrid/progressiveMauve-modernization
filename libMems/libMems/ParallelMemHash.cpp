@@ -13,12 +13,14 @@ namespace mems {
 
 ParallelMemHash::ParallelMemHash() : MemHash() {}
 
-ParallelMemHash::ParallelMemHash(const ParallelMemHash& mh) : MemHash(mh) {
-    *this = mh;
-}
+ParallelMemHash::ParallelMemHash(const ParallelMemHash& mh)
+    : MemHash(mh), thread_mem_table(mh.thread_mem_table) {}
 
 ParallelMemHash& ParallelMemHash::operator=(const ParallelMemHash& mh) {
-    thread_mem_table = mh.thread_mem_table;
+    if (this != &mh) {
+        MemHash::operator=(mh);
+        thread_mem_table = mh.thread_mem_table;
+    }
     return *this;
 }
 
@@ -27,7 +29,7 @@ ParallelMemHash* ParallelMemHash::Clone() const {
 }
 
 void ParallelMemHash::FindMatches(MatchList& ml) {
-    for (uint32 seqI = 0; seqI < ml.seq_table.size(); ++seqI) {
+    for (uint32_t seqI = 0; seqI < ml.seq_table.size(); ++seqI) {
         if (!AddSequence(ml.sml_table[seqI], ml.seq_table[seqI])) {
             ErrorMsg("Error adding " + ml.seq_filename[seqI] + "\n");
             return;
@@ -49,7 +51,7 @@ void ParallelMemHash::FindMatches(MatchList& ml) {
     for (size_t i = 0; i < ml.sml_table.size(); i++) {
         if (ml.sml_table[i]->Length() > maxlen) {
             maxlen = ml.sml_table[i]->Length();
-            max_length_sml = i;
+            max_length_sml = static_cast<int>(i);
         }
     }
 
@@ -61,6 +63,7 @@ void ParallelMemHash::FindMatches(MatchList& ml) {
         chunk_starts.push_back(tmp);
     }
 
+    // Parallel section
 #pragma omp parallel for schedule(dynamic)
     for (int i = 0; i < static_cast<int>(chunk_starts.size()); i++) {
         if (thread_mem_table.get().size() != mem_table.size())
@@ -70,8 +73,9 @@ void ParallelMemHash::FindMatches(MatchList& ml) {
         if (i + 1 < static_cast<int>(chunk_starts.size())) {
             for (size_t j = 0; j < seq_count; j++)
                 chunk_lens[j] = chunk_starts[i + 1][j] - chunk_starts[i][j];
-        } else
+        } else {
             chunk_lens = vector<gnSeqI>(seq_count, GNSEQI_END);
+        }
         SearchRange(chunk_starts[i], chunk_lens);
         MergeTable();
     }
@@ -85,7 +89,7 @@ void ParallelMemHash::MergeTable() {
         for (size_t bI = 0; bI < buckets; bI++) {
             vector<MatchHashEntry*>& bucket = thread_mem_table.get()[bI];
             for (size_t mI = 0; mI < bucket.size(); mI++) {
-                MemHash::AddHashEntry((*(bucket[mI])), mem_table);
+                MemHash::AddHashEntry(*(bucket[mI]), mem_table);
             }
         }
         thread_mem_table.get() = mem_table;
