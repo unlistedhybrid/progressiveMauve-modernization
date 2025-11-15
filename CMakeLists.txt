@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-find_package(Boost 1.89.0 REQUIRED COMPONENTS
+find_package(Boost 1.83.0 REQUIRED COMPONENTS
     filesystem
     iostreams
     program_options
