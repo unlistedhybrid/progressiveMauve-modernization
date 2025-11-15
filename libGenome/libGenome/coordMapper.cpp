@@ -13,6 +13,8 @@
 #include "gnLocation.h"
 #include "gnSequence.h"
 
+using namespace genome;
+
 using std::cout;
 using std::cin;
 using std::endl;
