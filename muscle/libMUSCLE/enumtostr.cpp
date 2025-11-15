@@ -1,5 +1,4 @@
 #include "libMUSCLE/muscle.h"
-#include "libMUSCLE/enums.h"
 #include <cstring>
 #include <cstdio>
 #include <cstdlib>
