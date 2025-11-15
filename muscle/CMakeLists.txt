@@ -1,11 +1,10 @@
 file(GLOB MUSCLE_SRC
-    "libMUSCLE/*.cpp"
-    "libMUSCLE/*.c"
+    libMUSCLE/*.cpp
 )
 
-add_library(muscle ${MUSCLE_SRC})
+add_library(muscle STATIC ${MUSCLE_SRC})
 
 target_include_directories(muscle PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}/libMUSCLE
+    ${PROJECT_SOURCE_DIR}/muscle
+    ${PROJECT_SOURCE_DIR}/muscle/libMUSCLE
 )
