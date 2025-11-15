@@ -7,4 +7,5 @@ add_library(sgEvolver ${SGEVOLVER_SRC})
 
 target_include_directories(sgEvolver PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${CMAKE_CURRENT_SOURCE_DIR}
 )
