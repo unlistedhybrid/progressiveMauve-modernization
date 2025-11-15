@@ -68,7 +68,7 @@ class BFloat {
   BFloat() {};
   ~BFloat() {};
   inline double Value() const { 
-    if (abs(e) < cBFloatDoubleConvTableSize/2) {
+    if (abs_int64(e) < cBFloatDoubleConvTableSize/2) {
       return (double)f * aDoubleConversionLookup[ e + cBFloatDoubleConvTableSize/2 ];
     } else if (e < cBFloatDoubleConvTableSize/2) {
       return 0.0;
