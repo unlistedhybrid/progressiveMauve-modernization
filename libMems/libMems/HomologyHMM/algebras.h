@@ -27,11 +27,10 @@
 #ifndef _algebras_h_
 #define _algebras_h_
 
-
 #include <cstdlib>
 #include <cmath>
 #include <iostream>
-
+#include <limits>
 
 using namespace std;
 
@@ -39,119 +38,99 @@ using namespace std;
 // typedefs
 
 typedef float BFMantissa;
-const BFMantissa cBFloatRange = 20282409603651670423947251286016.0;  // 2.03e+31; 2^104
-const BFMantissa cBFloatRangeInv = 1.0/cBFloatRange;
-// Aaron E. Darling 6/7/7: need to typecast to avoid compiler warnings about imprecise FP representations
-const BFMantissa cBFloatRangeSqrt    = (BFMantissa)1.0e+18;          // Value between square root of the exponent, and the exponent
-const BFMantissa cBFloatRangeInvSqrt = (BFMantissa)1.0e-18;          // Square of this should still be representable, with full mantissa!
+const BFMantissa cBFloatRange = 20282409603651670423947251286016.0f;  // 2^104
+const BFMantissa cBFloatRangeInv = 1.0f / cBFloatRange;
+const BFMantissa cBFloatRangeSqrt    = 1.0e+18f;          // ~sqrt(cBFloatRange)
+const BFMantissa cBFloatRangeInvSqrt = 1.0e-18f;          // Square of this should still be representable, with full mantissa!
 const BFMantissa logcBFloatRange     = log(cBFloatRange);
-const int cBFloatDigits              = 7;                 // Number of significant digits for printing (7 for floats, 16 for doubles?)
+const int cBFloatDigits              = 7;                 // Printing precision
 const int cBFloatInfinity            = 1000000000;        // Tiniest number representable is cBFloatRangeInv ^ BFloatInfinity
-const int cBFloatConvTableSize       = 100;               // This includes many zero entries, it makes additions a bit faster
-const int cBFloatDoubleConvTableSize = 50;                // Table size for bfloat -> double conversion; cBFloatRange^(-size/2) is double 0
-//#define BFLOAT_CHECK_UOFLOW                             // Don't bother with under- and overflow checking.
+const int cBFloatConvTableSize       = 100;
+const int cBFloatDoubleConvTableSize = 50;
 
-
-//
-// BFloats: more buoyant floats.
-//
-// struct{ float + int } is 8 bytes; nice size makes noticable speed difference
-//
-class BFloat {                   
+class BFloat {
  public:
-  static BFMantissa* aConversionLookup;              // used by addition
-  static double* aDoubleConversionLookup;       // used by Value()
+  static BFMantissa* aConversionLookup;        // used by addition
+  static double* aDoubleConversionLookup;      // used by Value()
   BFMantissa f;
   int e;
+
  public:
-  BFloat(BFMantissa iF, int iE) : f(iF), e(iE) {};
-  BFloat() {};
-  ~BFloat() {};
-  inline double Value() const { 
-    if (abs_int64(e) < cBFloatDoubleConvTableSize/2) {
-      return (double)f * aDoubleConversionLookup[ e + cBFloatDoubleConvTableSize/2 ];
-    } else if (e < cBFloatDoubleConvTableSize/2) {
+  BFloat(BFMantissa iF, int iE) : f(iF), e(iE) {}
+  BFloat() : f(0.0f), e(-cBFloatInfinity) {}
+  ~BFloat() = default;
+
+  inline double Value() const {
+    int idx = e + cBFloatDoubleConvTableSize / 2;
+    if (std::abs(e) < cBFloatDoubleConvTableSize / 2) {
+      return static_cast<double>(f) * aDoubleConversionLookup[idx];
+    } else if (e < -cBFloatDoubleConvTableSize / 2) {
       return 0.0;
     } else {
-      return (double)f * exp((double)e * logcBFloatRange);
+      return static_cast<double>(f) * exp(static_cast<double>(e) * logcBFloatRange);
     }
   }
-  void clear() { f=0; e=-cBFloatInfinity; }
+
+  void clear() { f = 0.0f; e = -cBFloatInfinity; }
 };
 
-
-//
-// dummy class to initialise BFloat lookup table
-//
-
+// Dummy class to initialise BFloat lookup table
 class _BFloatInitialize {
 public:
   _BFloatInitialize();
 };
 
-
-
-
-//
-// Finally, all implementations of BFloat calculations
-//
-
-
-// Normalization of BFloat result of a single operation
 #ifdef BFLOAT_CHECK_UOFLOW
 static inline void BFloatNormalise(BFloat& a)
-     //#define BFloatNormalise(a)
-{\
-  if (a.f > cBFloatRangeSqrt) {\
-    a.f *= cBFloatRangeInv;\
-    a.e++;\
-  } else if (a.f < cBFloatRangeInvSqrt) {\
-    if (a.f == 0.0) {\
-      a.e = -cBFloatInfinity;\
-    } else {\
-      a.f *= cBFloatRange;\
-      a.e--;\
-    }\
-  }\
-  if (a.e > cBFloatInfinity) {\
-    cerr << "BFloat: Overflow" << endl;\
-    a.e = cBFloatInfinity;\
-  } else if (a.e < -cBFloatInfinity) {\
-    cerr << "BFloat: Underflow" << endl;\
-    a.e = -cBFloatInfinity;\
-    a.f = 0.0;\
-  }\
-};
+{
+  if (a.f > cBFloatRangeSqrt) {
+    a.f *= cBFloatRangeInv;
+    a.e++;
+  } else if (a.f < cBFloatRangeInvSqrt) {
+    if (a.f == 0.0f) {
+      a.e = -cBFloatInfinity;
+    } else {
+      a.f *= cBFloatRange;
+      a.e--;
+    }
+  }
+  if (a.e > cBFloatInfinity) {
+    cerr << "BFloat: Overflow" << endl;
+    a.e = cBFloatInfinity;
+  } else if (a.e < -cBFloatInfinity) {
+    cerr << "BFloat: Underflow" << endl;
+    a.e = -cBFloatInfinity;
+    a.f = 0.0f;
+  }
+}
 #else
-static inline void BFloatNormDown(BFloat& a) { 
+static inline void BFloatNormDown(BFloat& a) {
   a.f *= cBFloatRangeInv;
   a.e++;
 }
-static inline void BFloatNormUp(BFloat& a) { 
-  if (a.f == 0.0) {
+static inline void BFloatNormUp(BFloat& a) {
+  if (a.f == 0.0f) {
     a.e = -cBFloatInfinity;
   } else {
     a.f *= cBFloatRange;
     a.e--;
   }
 }
-static inline void BFloatNormalise(BFloat& a)
-     //#define BFloatNormalise(a) 
-{
+static inline void BFloatNormalise(BFloat& a) {
   if (a.f > cBFloatRangeSqrt) {
     BFloatNormDown(a);
   } else if (a.f < cBFloatRangeInvSqrt) {
     BFloatNormUp(a);
   }
-};
+}
 #endif
 
 static inline void DoubleNormalise(double& f, int& e)
 {
   if (f <= 0.0) {
     if (f != 0.0) cerr << "BFloat: Negative number: " << f << endl;
-    f = 0.0; 
-    e=-cBFloatInfinity;
+    f = 0.0;
+    e = -cBFloatInfinity;
   } else {
     while (f > cBFloatRangeSqrt) {
       f *= cBFloatRangeInv;
@@ -162,112 +141,102 @@ static inline void DoubleNormalise(double& f, int& e)
       e--;
     }
   }
-};
+}
 
 // Logarithm of a BFloat
-static inline double bfloat_doublelog( const BFloat& a ) { return a.e*logcBFloatRange+log(a.f); }
+static inline double bfloat_doublelog(const BFloat& a) { return a.e * logcBFloatRange + log(a.f); }
 
 // BFloat exp of a double
-static inline BFloat bfloat_doubleexp( double iA ) 
+static inline BFloat bfloat_doubleexp(double iA)
 {
-  int iE = (int)floor( iA / log(cBFloatRange) );
-  iA -= iE * log(cBFloatRange);
-  BFloat iX( exp(iA), iE );
-  BFloatNormalise( iX );
+  int iE = static_cast<int>(floor(iA / logcBFloatRange));
+  iA -= iE * logcBFloatRange;
+  BFloat iX(exp(iA), iE);
+  BFloatNormalise(iX);
   return iX;
 }
 
 // Returns a double value - or underflow/overflow if it does not fit.
-static inline double bfloat2double( const BFloat bfloat) { return bfloat.Value(); }
+static inline double bfloat2double(const BFloat& bfloat) { return bfloat.Value(); }
 
-// Brain-dead version of double-to-BFloat conversion - can be slow if mantisse is a float
-static inline BFloat double2bfloat( double prob) { 
+// Brain-dead version of double-to-BFloat conversion
+static inline BFloat double2bfloat(double prob) {
   if (prob <= 0.0) {
     if (prob != 0.0)
       cerr << "BFloat: Negative number: " << prob << endl;
-    return BFloat (0.0, -cBFloatInfinity );
+    return BFloat(0.0f, -cBFloatInfinity);
   } else {
-    register BFloat a( 0.0, 0 );
+    BFloat a(0.0f, 0);
     while (prob > cBFloatRangeSqrt) {
       prob *= cBFloatRangeInv;
       a.e++;
     }
-    //if (prob == 0.0) {
-    //  a.e = -cBFloatInfinity;
-    //} else {
-    while ((prob < cBFloatRangeInvSqrt)) {
+    while (prob < cBFloatRangeInvSqrt) {
       prob *= cBFloatRange;
       a.e--;
     }
-    a.f = prob; 
+    a.f = static_cast<BFMantissa>(prob);
     return a;
   }
 }
 
-static inline BFloat bfloat_pr_product (const BFloat& a, const BFloat& b) 
-{ 
-  register BFloat sf(a.f*b.f,a.e+b.e); 
-  BFloatNormalise(sf); 
-  return sf; 
-}
-
-static inline BFloat bfloat_pr_double_product (const BFloat& a, double b) 
-{ 
-  register double mantisse = a.f*b;
-  int exponent = a.e;
-  DoubleNormalise(mantisse, exponent);
-  return BFloat(mantisse, exponent);
-}
-
-static inline void bfloat_pr_product_accum( BFloat& a, const BFloat& b) { 
-  a.f *= b.f; a.e += b.e; 
-  BFloatNormalise( a ); 
-}
-
-static inline void bfloat_pr_double_product_accum (BFloat& a, double b) 
-{ 
-  register double mantisse = a.f*b;
-  DoubleNormalise(mantisse, a.e);
-  a.f = mantisse;
-}
-
-static inline BFloat bfloat_pr_quotient( const BFloat& a, const BFloat& b) 
-{ 
-  register BFloat sf(a.f/b.f, a.e-b.e); 
-  BFloatNormalise(sf); 
+static inline BFloat bfloat_pr_product(const BFloat& a, const BFloat& b) {
+  BFloat sf(a.f * b.f, a.e + b.e);
+  BFloatNormalise(sf);
   return sf;
 }
-  
-static inline void bfloat_pr_quotient_accum( BFloat& a, const BFloat& b) 
-{ 
-  a.f /= b.f; 
-  a.e -= b.e; 
-  BFloatNormalise( a ); 
+
+static inline BFloat bfloat_pr_double_product(const BFloat& a, double b) {
+  double mantisse = a.f * b;
+  int exponent = a.e;
+  DoubleNormalise(mantisse, exponent);
+  return BFloat(static_cast<BFMantissa>(mantisse), exponent);
 }
 
-static inline BFloat bfloat_pr_sum(const BFloat& a, const BFloat& b) 
-{
+static inline void bfloat_pr_product_accum(BFloat& a, const BFloat& b) {
+  a.f *= b.f; a.e += b.e;
+  BFloatNormalise(a);
+}
+
+static inline void bfloat_pr_double_product_accum(BFloat& a, double b) {
+  double mantisse = a.f * b;
+  DoubleNormalise(mantisse, a.e);
+  a.f = static_cast<BFMantissa>(mantisse);
+}
+
+static inline BFloat bfloat_pr_quotient(const BFloat& a, const BFloat& b) {
+  BFloat sf(a.f / b.f, a.e - b.e);
+  BFloatNormalise(sf);
+  return sf;
+}
+
+static inline void bfloat_pr_quotient_accum(BFloat& a, const BFloat& b) {
+  a.f /= b.f;
+  a.e -= b.e;
+  BFloatNormalise(a);
+}
+
+static inline BFloat bfloat_pr_sum(const BFloat& a, const BFloat& b) {
   if (a.e > b.e) {
     if (a.e >= b.e + cBFloatConvTableSize)
       return a;
     else
-      return BFloat( a.f + b.f * BFloat::aConversionLookup[ a.e - b.e ], a.e );
+      return BFloat(a.f + b.f * BFloat::aConversionLookup[a.e - b.e], a.e);
   } else {
     if (a.e <= b.e - cBFloatConvTableSize)
       return b;
     else
-      return BFloat( b.f + a.f * BFloat::aConversionLookup[ b.e - a.e ], b.e );
+      return BFloat(b.f + a.f * BFloat::aConversionLookup[b.e - a.e], b.e);
   }
 }
- 
-static inline void bfloat_pr_sum_accum( BFloat& a, const BFloat& b) 
-{
+
+static inline void bfloat_pr_sum_accum(BFloat& a, const BFloat& b) {
   if (a.e >= b.e) {
     if (a.e < b.e + cBFloatConvTableSize)
-      a.f += b.f * BFloat::aConversionLookup[ a.e - b.e ];
+      a.f += b.f * BFloat::aConversionLookup[a.e - b.e];
   } else {
     if (a.e > b.e - cBFloatConvTableSize) {
-      a.f = b.f + a.f * BFloat::aConversionLookup[ b.e - a.e ];
+      a.f = b.f + a.f * BFloat::aConversionLookup[b.e - a.e];
       a.e = b.e;
     } else {
       a = b;
@@ -275,79 +244,68 @@ static inline void bfloat_pr_sum_accum( BFloat& a, const BFloat& b)
   }
 }
 
-static inline bool bfloat_less( const BFloat& a, const BFloat& b) 
-{
+static inline bool bfloat_less(const BFloat& a, const BFloat& b) {
   if (a.e > b.e) {
     if (a.e >= b.e + cBFloatConvTableSize)
       return false;
     else
-      return a.f < b.f * BFloat::aConversionLookup[ a.e - b.e ];
+      return a.f < b.f * BFloat::aConversionLookup[a.e - b.e];
   }
   if (a.e <= b.e - cBFloatConvTableSize)
     return true;
   else
-    return a.f * BFloat::aConversionLookup[ b.e - a.e ] < b.f;
-};
-  
-static inline bool bfloat_equal( const BFloat& a, const BFloat& b) 
-{
+    return a.f * BFloat::aConversionLookup[b.e - a.e] < b.f;
+}
+
+static inline bool bfloat_equal(const BFloat& a, const BFloat& b) {
   if (a.e > b.e) {
     if (a.e >= b.e + cBFloatConvTableSize)
       return false;
     else
-      return a.f == b.f * BFloat::aConversionLookup[ a.e - b.e ];
+      return a.f == b.f * BFloat::aConversionLookup[a.e - b.e];
   }
   if (a.e <= b.e - cBFloatConvTableSize)
     return false;
   else
-    return a.f * BFloat::aConversionLookup[ b.e - a.e ] == b.f;
-};
+    return a.f * BFloat::aConversionLookup[b.e - a.e] == b.f;
+}
 
-static inline bool bfloat_lessequal( const BFloat& a, const BFloat& b) 
-{
+static inline bool bfloat_lessequal(const BFloat& a, const BFloat& b) {
   if (a.e > b.e) {
     if (a.e >= b.e + cBFloatConvTableSize)
       return false;
     else
-      return a.f <= b.f * BFloat::aConversionLookup[ a.e - b.e ];
+      return a.f <= b.f * BFloat::aConversionLookup[a.e - b.e];
   }
   if (a.e <= b.e - cBFloatConvTableSize)
     return true;
   else
-    return a.f * BFloat::aConversionLookup[ b.e - a.e ] <= b.f;
-};
+    return a.f * BFloat::aConversionLookup[b.e - a.e] <= b.f;
+}
 
-static inline ostream& bfloat_print( ostream& out, const BFloat& x ) 
-{
-  static const double log10 = log(10.0);
-  static const double maxmantisse = 10.0 * (1.0 - 0.55 * exp(-cBFloatDigits * log10));
-  //out.setf(ios::fixed,ios::floatfield);
-  out.precision( cBFloatDigits );
+static inline ostream& bfloat_print(ostream& out, const BFloat& x) {
+  static const double log10v = log(10.0);
+  static const double maxmantisse = 10.0 * (1.0 - 0.55 * exp(-cBFloatDigits * log10v));
+  out.precision(cBFloatDigits);
   if (x.e == cBFloatInfinity) {
     out << 1.0 << "e+Inf";
-  }
-  if (x.e == -cBFloatInfinity) {
+  } else if (x.e == -cBFloatInfinity) {
     out << 1.0 << "e-Inf";
   } else {
-    double iM = (log(x.f) + log(cBFloatRange)*(double)x.e) / log10;
-    long iExp = long(floor(iM));
-    iM = exp((iM - iExp) * log10);
+    double iM = (log(x.f) + log(cBFloatRange) * (double)x.e) / log10v;
+    long iExp = static_cast<long>(floor(iM));
+    iM = exp((iM - iExp) * log10v);
     if (iM > maxmantisse) {
       iExp += 1;
       iM = 1.0;
     }
-    out << iM << ( iExp<0 ? "e" : "e+" ) << iExp;
+    out << iM << (iExp < 0 ? "e" : "e+") << iExp;
   }
-  //out.setf(ios::fixed,ios::floatfield);  // default  // ****** first arg should be 0
-  out.precision( 6 );           // default
+  out.precision(6);
   return out;
 }
 
-
-
-//
 // Wrapper to allow BFloats to be used by Algebra template
-//
 struct BFloatMethods
 {
   typedef BFloat Value;
@@ -357,14 +315,14 @@ struct BFloatMethods
   static inline BFloat pmuldouble( BFloat iX, double iY) { return bfloat_pr_double_product(iX,iY); }
   static inline BFloat pdiv( BFloat iX, BFloat iY) { return bfloat_pr_quotient(iX,iY); }
   static inline BFloat psum( BFloat iX, BFloat iY) { return bfloat_pr_sum(iX,iY); }
-  static inline BFloat pdiff( BFloat iX, BFloat iY) { cerr << "Bfloat pdiff: Not implemented." << endl; return BFloat(0,0); }
+  static inline BFloat pdiff( BFloat, BFloat ) { cerr << "Bfloat pdiff: Not implemented." << endl; return BFloat(0,0); }
   static inline BFloat doubleexp( double iX) { return bfloat_doubleexp(iX); }
   static inline double doublelog( BFloat iX) { return bfloat_doublelog(iX); }
   static inline void pmulacc( BFloat& iX, BFloat iY) { bfloat_pr_product_accum(iX,iY); }
   static inline void pmulaccdouble( BFloat& iX, double iY) { bfloat_pr_double_product_accum(iX,iY); }
   static inline void pdivacc( BFloat& iX, BFloat iY) { bfloat_pr_quotient_accum(iX,iY); }
   static inline void psumacc( BFloat& iX, BFloat iY) { bfloat_pr_sum_accum(iX,iY); }
-  static inline void pdiffacc( BFloat& iX, BFloat iY) { cerr << "Bfloat pdiffacc: Not implemented." << endl; }
+  static inline void pdiffacc( BFloat&, BFloat ) { cerr << "Bfloat pdiffacc: Not implemented." << endl; }
   static inline bool less( BFloat iX, BFloat iY) { return bfloat_less(iX,iY); }
   static inline bool equal( BFloat iX, BFloat iY) { return bfloat_equal(iX,iY); }
   static inline bool lessequal( BFloat iX, BFloat iY) { return bfloat_lessequal(iX,iY); }
@@ -417,7 +375,6 @@ struct LogspaceMethods
   static inline bool lessequal( Value iX, Value iY) { return iX<=iY; }
   static inline ostream& print( ostream& iOut, Value iX ) { return bfloat_print( iOut, bfloat_doubleexp(iX) ); }
 };
-
 
 
 //
@@ -552,7 +509,6 @@ public:
 //
 
 #define bfloat Algebra<BFloatMethods>
-
 #define logspace Algebra<LogspaceMethods>
 
 #endif
