@@ -1,47 +1,42 @@
 set(LIBGENOME_SRC
-    libGenome/gnAlgebra.cpp
-    libGenome/gnBaseContig.cpp
+    libGenome/gnABISource.cpp
     libGenome/gnBaseFeature.cpp
-    libGenome/gnBaseSource.cpp
-    libGenome/gnBaseSpreadsheet.cpp
-    libGenome/gnBaseSpec.cpp
-    libGenome/gnBaseUtilities.cpp
-    libGenome/gnCmdLine.cpp
-    libGenome/gnContigSequence.cpp
+    libGenome/gnCompare.cpp
     libGenome/gnContigSpec.cpp
-    libGenome/gnDNA.cpp
-    libGenome/gnDataRow.cpp
-    libGenome/gnDebug.cpp
+    libGenome/gnDefs.cpp
+    libGenome/gnException.cpp
+    libGenome/gnFASSource.cpp
+    libGenome/gnFastTranslator.cpp
     libGenome/gnFeature.cpp
-    libGenome/gnFeatureList.cpp
-    libGenome/gnFeaturePosList.cpp
     libGenome/gnFileContig.cpp
     libGenome/gnFileSource.cpp
-    libGenome/gnFileSpec.cpp
     libGenome/gnFilter.cpp
-    libGenome/gnFragmentSequence.cpp
     libGenome/gnFragmentSpec.cpp
+    libGenome/gnGBKSource.cpp
     libGenome/gnGenomeSpec.cpp
     libGenome/gnLocation.cpp
-    libGenome/gnProtein.cpp
-    libGenome/gnParser.cpp
+    libGenome/gnPosSpecificTranslator.cpp
+    libGenome/gnRAWSource.cpp
+    libGenome/gnSEQSource.cpp
     libGenome/gnSequence.cpp
-    libGenome/gnSeqConverter.cpp
-    libGenome/gnSpreadsheet.cpp
+    libGenome/gnSourceFactory.cpp
+    libGenome/gnSourceHeader.cpp
+    libGenome/gnSourceQualifier.cpp
+    libGenome/gnSourceSpec.cpp
+    libGenome/gnStringSpec.cpp
     libGenome/gnStringTools.cpp
-    libGenome/gnTranslatedSequence.cpp
+    libGenome/gnTranslator.cpp
 )
 
-# Build the library
+# Build the static library
 add_library(libGenome STATIC ${LIBGENOME_SRC})
 
+# Include directories
 target_include_directories(libGenome PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/libGenome
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-target_link_libraries(libGenome
-    PUBLIC
-        ${Boost_LIBRARIES}
-)
+# Link dependencies (Boost already found by top-level CMake)
+target_link_libraries(libGenome PUBLIC ${Boost_LIBRARIES})
