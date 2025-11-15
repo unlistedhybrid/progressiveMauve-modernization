@@ -13,7 +13,7 @@ enum
 	GG = 3,
 	};
 
-static char *GapTypeToStr(int GapType)
+static const char *GapTypeToStr(int GapType)
 	{
 	switch (GapType)
 		{
@@ -40,7 +40,7 @@ static void InitGapScoreMatrix()
 	GapScoreMatrix.get()[LG][LL] = g_scoreGapOpen.get();
 	GapScoreMatrix.get()[LG][LG] = 0;
 	GapScoreMatrix.get()[LG][GL] = g_scoreGapOpen.get();
-	GapScoreMatrix.get()[LG][GG] = t*g_scoreGapOpen.get();	// approximation!
+	GapScoreMatrix.get()[LG][GG] = t*g_scoreGapOpen.get();
 
 	GapScoreMatrix.get()[GL][LL] = 0;
 	GapScoreMatrix.get()[GL][LG] = g_scoreGapOpen.get();
@@ -48,7 +48,7 @@ static void InitGapScoreMatrix()
 	GapScoreMatrix.get()[GL][GG] = 0;
 
 	GapScoreMatrix.get()[GG][LL] = 0;
-	GapScoreMatrix.get()[GG][LG] = t*g_scoreGapOpen.get();	// approximation!
+	GapScoreMatrix.get()[GG][LG] = t*g_scoreGapOpen.get();
 	GapScoreMatrix.get()[GG][GL] = 0;
 	GapScoreMatrix.get()[GG][GG] = 0;
 
@@ -184,89 +184,4 @@ static SCORE SPFreqs(const FCOUNT Freqs[])
 		TotalOffDiag += fi*Sum;
 		}
 #if TRACE
-	Log("SPF TotalOffDiag=%.3g + TotalDiag=%.3g = %.3g\n",
-	  TotalOffDiag, TotalDiag, TotalOffDiag + TotalDiag);
-#endif
-	return TotalOffDiag*2 + TotalDiag;
-	}
-
-static SCORE ObjScoreSPCol(const MSA &msa, unsigned uColIndex)
-	{
-	FCOUNT Freqs[20];
-	FCOUNT GapFreqs[4];
-
-	memset(Freqs, 0, sizeof(Freqs));
-	memset(GapFreqs, 0, sizeof(GapFreqs));
-
-	const unsigned uSeqCount = msa.GetSeqCount();
-#if	TRACE
-	Log("Weights=");
-	for (unsigned uSeqIndex = 0; uSeqIndex < uSeqCount; ++uSeqIndex)
-		Log(" %u=%.3g", uSeqIndex, msa.GetSeqWeight(uSeqIndex));
-	Log("\n");
-#endif
-	SCORE SelfOverCount = 0;
-	SCORE GapSelfOverCount = 0;
-	for (unsigned uSeqIndex = 0; uSeqIndex < uSeqCount; ++uSeqIndex)
-		{
-		WEIGHT w = msa.GetSeqWeight(uSeqIndex);
-
-		bool bGapThisCol = msa.IsGap(uSeqIndex, uColIndex);
-		bool bGapPrevCol = (uColIndex == 0 ? false : msa.IsGap(uSeqIndex, uColIndex - 1));
-		int GapType = bGapThisCol + 2*bGapPrevCol;
-		assert(GapType >= 0 && GapType < 4);
-		GapFreqs[GapType] += w;
-		SCORE gapt = w*w*GapScoreMatrix.get()[GapType][GapType];
-		GapSelfOverCount += gapt;
-
-		if (bGapThisCol)
-			continue;
-		unsigned uLetter = msa.GetLetterEx(uSeqIndex, uColIndex);
-		if (uLetter >= 20)
-			continue;
-		Freqs[uLetter] += w;
-		SCORE t = w*w*(*g_ptrScoreMatrix.get())[uLetter][uLetter];
-#if	TRACE
-		Log("FastCol compute freqs & SelfOverCount %c w=%.3g M=%.3g SelfOverCount += %.3g\n",
-		  LetterToCharAmino(uLetter), w, (*g_ptrScoreMatrix.get())[uLetter][uLetter], t);
-#endif
-		SelfOverCount += t;
-		}
-	SCORE SPF = SPFreqs(Freqs);
-	SCORE Col = SPF - SelfOverCount;
-
-	SCORE SPFGaps = SPGapFreqs(GapFreqs);
-	SCORE ColGaps = SPFGaps - GapSelfOverCount;
-#if	TRACE
-	Log("SPF=%.3g - SelfOverCount=%.3g = %.3g\n", SPF, SelfOverCount, Col);
-	Log("SPFGaps=%.3g - GapsSelfOverCount=%.3g = %.3g\n", SPFGaps, GapSelfOverCount, ColGaps);
-#endif
-	return Col + ColGaps;
-	}
-
-SCORE ObjScoreSPDimer(const MSA &msa)
-	{
-	static TLS<bool> bGapScoreMatrixInit(false);
-	if (!bGapScoreMatrixInit.get())
-		InitGapScoreMatrix();
-
-	SCORE Total = 0;
-	const unsigned uSeqCount = msa.GetSeqCount();
-	const unsigned uColCount = msa.GetColCount();
-	for (unsigned uColIndex = 0; uColIndex < uColCount; ++uColIndex)
-		{
-		SCORE Col = ObjScoreSPCol(msa, uColIndex);
-#if	TRACE
-		{
-		SCORE ColCheck = SPColBrute(msa, uColIndex);
-		Log("FastCol=%.3g CheckCol=%.3g\n", Col, ColCheck);
-		}
-#endif
-		Total += Col;
-		}
-#if TRACE
-	Log("Total/2 = %.3g (final result from fast)\n", Total/2);
-#endif
-	return Total/2;
-	}
-} 
+	Log("SPF TotalOffDiag=%.3g + TotalDiag=%.3g = %.3
