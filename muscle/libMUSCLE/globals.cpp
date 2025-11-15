@@ -199,13 +199,13 @@ bool IsValidInteger(const char *Str)
 
 bool isidentf(char c)
 {
-    return std::isalpha(static_cast<unsigned char>(c)) || c == '_';
+    return isalpha((unsigned char)(c)) || c == '_';
 }
 
 bool isident(char c)
 {
-    return std::isalpha(static_cast<unsigned char>(c)) ||
-           std::isdigit(static_cast<unsigned char>(c)) ||
+    return isalpha((unsigned char)(c)) ||
+           isdigit((unsigned char)(c)) ||
            c == '_';
 }
 
@@ -260,7 +260,7 @@ char *strsave(const char *s)
 
 bool IsValidFloatChar(char c)
 {
-    return std::isdigit(static_cast<unsigned char>(c)) || c == '.' || c == 'e' || c == 'E' ||
+    return isdigit((unsigned char)(c)) || c == '.' || c == 'e' || c == 'E' ||
            c == 'd' || c == 'D' || c == '+' || c == '-';
 }
 
