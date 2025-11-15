@@ -1,11 +1,12 @@
 file(GLOB LIBMEMS_SRC
-    "libMems/*.cpp"
-    "libMems/*.c"
+    libMems/*.cpp
 )
 
-add_library(libMems ${LIBMEMS_SRC})
+add_library(libMems STATIC ${LIBMEMS_SRC})
 
 target_include_directories(libMems PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}/libMems
+    ${PROJECT_SOURCE_DIR}/libMems
+    ${PROJECT_SOURCE_DIR}/libMems/libMems
 )
+
+target_link_libraries(libMems PUBLIC libGenome)
