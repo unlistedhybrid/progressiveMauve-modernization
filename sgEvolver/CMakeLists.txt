@@ -1,11 +1,16 @@
 file(GLOB SGEVOLVER_SRC
-    "src/*.cpp"
-    "src/*.c"
+    src/*.cpp
 )
 
-add_library(sgEvolver ${SGEVOLVER_SRC})
+add_library(sgEvolver STATIC ${SGEVOLVER_SRC})
 
 target_include_directories(sgEvolver PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
-    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${PROJECT_SOURCE_DIR}/sgEvolver
+    ${PROJECT_SOURCE_DIR}/sgEvolver/include
+    ${PROJECT_SOURCE_DIR}/sgEvolver/src
+)
+
+target_link_libraries(sgEvolver PUBLIC
+    libGenome
+    libMems
 )
