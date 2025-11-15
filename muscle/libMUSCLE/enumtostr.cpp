@@ -8,7 +8,7 @@ static TLS<char[64]> szMsg;
 // Define XXXToStr(XXX x) functions for each enum type XXX.
 #define s(t)	const char *t##ToStr(t x) { switch (x) { case t##_Undefined: return "Undefined";
 #define c(t, x)	case t##_##x: return #x;
-#define e(t)	} sprintf(szMsg.get(), #t "_%d", x); return szMsg.get(); }
+#define e(t)	} snprintf(szMsg.get(), #t "_%d", x); return szMsg.get(); }
 #include "libMUSCLE/enums.h"
 
 // Define StrToXXX(const char *Str) functions for each enum type XXX.
@@ -17,3 +17,4 @@ static TLS<char[64]> szMsg;
 #define e(t)	Quit("Invalid value %s for type %s", Str, #t); return t##_Undefined; }
 #include "libMUSCLE/enums.h"
 } 
+
