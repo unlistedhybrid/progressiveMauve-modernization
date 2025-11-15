@@ -85,7 +85,7 @@ void map_list_coordinates(list<gnLocation>& loc_list, list<gnLocation>& map_list
 		curStart += cur_len;
 	}
 }
-
+/*
 void print_feature(ostream& os, gnBaseFeature* cur_feat){
 	os << cur_feat->GetName() << ": \n";
 	for(uint32 i=0; i < cur_feat->GetQualifierListLength(); i++)
@@ -93,6 +93,7 @@ void print_feature(ostream& os, gnBaseFeature* cur_feat){
 	os << "\n";
 
 }
+*/
 
 uint32 loc_binary_search(vector<gnLocation>& loc_list, uint32 startI, uint32 endI, gnLocation& query_loc){
 	uint32 midI = ((endI - startI) / 2) + startI;
@@ -316,6 +317,7 @@ int main(int argc, char* argv[]){
 		}
 
 		//now print out all the complementary features
+		/*
 		if((ex_forward.size() > 0 && in_reverse.size() > 0) || (in_forward.size() > 0 && ex_reverse.size() > 0)){
 			net_file << "================================\n";
 			net_file << "Mem: " << mem_list[memI].length << "\n";
@@ -337,6 +339,7 @@ int main(int argc, char* argv[]){
 			for(uint32 featI = 0; featI < in_forward.size(); featI++)
 				print_feature(net_file, in_forward[featI]);
 		}
+		*/
 		
 		//release memory
 		for(uint32 featI = 0; featI < ex_feat_list.size(); featI++)
