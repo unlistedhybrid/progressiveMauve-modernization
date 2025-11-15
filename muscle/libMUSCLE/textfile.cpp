@@ -128,7 +128,7 @@ void TextFile::PutFormat(const char szFormat[], ...)
 	char szStr[4096];
 	va_list ArgList;
 	va_start(ArgList, szFormat);
-	vsnprintf(szStr, szFormat, ArgList);
+	vsnprintf(szStr, sizeof(szStr), szFormat, ArgList);
 	PutString(szStr);
 	}
 
@@ -354,4 +354,5 @@ bool TextFile::SkipWhiteX()
 	return false;
 	}
 } 
+
 
