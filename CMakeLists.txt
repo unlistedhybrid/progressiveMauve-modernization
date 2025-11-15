@@ -12,9 +12,7 @@ find_package(Boost 1.83 REQUIRED COMPONENTS
     regex
 )
 
-include_directories(${Boost_INCLUDE_DIRS})
-
-# Global include dirs exported to all targets
+# Global include dirs so old code builds without modification
 include_directories(
     ${Boost_INCLUDE_DIRS}
     ${PROJECT_SOURCE_DIR}
