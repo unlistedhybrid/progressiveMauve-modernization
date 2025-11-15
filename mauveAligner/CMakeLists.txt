@@ -1,20 +1,15 @@
 file(GLOB ALIGNER_SRC
-    "*.cpp"
-    "*.c"
+    "src/*.cpp"
+    "src/*.c"
 )
 
-# Build mauveAligner as a library
 add_library(mauveAligner STATIC ${ALIGNER_SRC})
 
-target_include_directories(mauveAligner PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(mauveAligner
-    PUBLIC libGenome libMems muscle sgEvolver ${Boost_LIBRARIES}
+target_include_directories(mauveAligner PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-# --- Build the progressiveMauve CLI ---
-# progressiveMauve.cpp is inside this folder
-
-add_executable(progressiveMauve progressiveMauve.cpp)
+add_executable(progressiveMauve src/progressiveMauve.cpp)
 
 target_link_libraries(progressiveMauve
     PRIVATE
