@@ -17,8 +17,6 @@ list(REMOVE_ITEM LIBGENOME_SRC
     "${CMAKE_CURRENT_SOURCE_DIR}/libGenome/coordMapper.cpp"  # optional: remove coordMapper too
 )
 
-# Optional: remove coordMapper.cpp if you prefer to avoid building the standalone mapping tool
-# Comment/uncomment this line as needed:
 # list(REMOVE_ITEM LIBGENOME_SRC "${CMAKE_CURRENT_SOURCE_DIR}/libGenome/coordMapper.cpp")
 
 # Build libGenome as a static library
