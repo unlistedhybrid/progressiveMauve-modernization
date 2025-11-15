@@ -204,11 +204,13 @@ void SetAlpha(ALPHA Alpha)
 
 	case ALPHA_DNA:
 		SetAlphaDNA();
+		break;
 
 	case ALPHA_RNA:
 		SetAlphaRNA();
 		break;
 
+	case ALPHA_Undefined:
 	default:
 		Quit("Invalid Alpha=%d", Alpha);
 		}
@@ -284,3 +286,4 @@ void ReportInvalidLetters()
 	  ALPHAToStr(g_Alpha.get()), Str);
 	}
 } 
+
