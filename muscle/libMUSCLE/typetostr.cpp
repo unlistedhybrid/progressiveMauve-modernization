@@ -12,7 +12,7 @@ const char *SecsToStr(unsigned long Secs)
 	mm = (Secs/60)%60;
 	ss = Secs%60;
 
-	snprintf(Str.get(), "%02ld:%02ld:%02ld", hh, mm, ss);
+	snprintf(Str.get(), 16, "%02ld:%02ld:%02ld", hh, mm, ss);
 	return Str.get();
 	}
 
@@ -31,7 +31,7 @@ const char *ScoreToStr(SCORE Score)
 	static TLS<int> iBufferIndex(0);
 	iBufferIndex.get() = (iBufferIndex.get() + 1)%iBufferCount;
 	char *pStr = szStr.get() + iBufferIndex.get()*iBufferLength;
-	snprintf(pStr, "%8g", Score);
+	snprintf(pStr, 16, "%8g", Score);
 	return pStr;
 	}
 
@@ -45,7 +45,7 @@ const char *ScoreToStrL(SCORE Score)
 	static TLS<int> iBufferIndex(0);
 	iBufferIndex.get() = (iBufferIndex.get() + 1)%iBufferCount;
 	char *pStr = szStr.get() + iBufferIndex.get()*iBufferLength;
-	snprintf(pStr, "%.3g", Score);
+	snprintf(pStr, 16, "%.3g", Score);
 	return pStr;
 	}
 
@@ -54,4 +54,5 @@ const char *WeightToStr(WEIGHT w)
 	return ScoreToStr(w);
 	}
 }
+
 
