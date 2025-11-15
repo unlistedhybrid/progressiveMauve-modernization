@@ -1,6 +1,8 @@
 #include "libMUSCLE/muscle.h"
 #include <stdio.h>
 #include <time.h>
+#include <string.h>
+#include <stdarg.h>
 
 namespace muscle {
 
@@ -46,7 +48,7 @@ const char *MemToStr(double MB)
     if (MB < 0)
         return "";
 
-    static char Str[11];
+    static char Str[32];
     static double MaxMB = 0;
     static double RAMMB = 0;
 
@@ -58,7 +60,7 @@ const char *MemToStr(double MB)
     double Pct = (MaxMB*100.0)/RAMMB;
     if (Pct > 100)
         Pct = 100;
-    sprintf(Str, "%.0f MB(%.0f%%)", MaxMB, Pct);
+    snprintf(Str, sizeof(Str), "%.0f MB(%.0f%%)", MaxMB, Pct);
     return Str;
 }
 
@@ -128,7 +130,7 @@ void Progress(const char *szFormat, ...)
     char szStr[4096];
     va_list ArgList;
     va_start(ArgList, szFormat);
-    vsnprintf(szStr, sizeof(szStr), szFormat, ArgList);   // FIXED
+    vsnprintf(szStr, sizeof(szStr), szFormat, ArgList);
     va_end(ArgList);
 
     fprintf(g_fProgress, "%8.8s  %12s  %s",
