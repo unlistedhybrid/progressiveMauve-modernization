@@ -164,8 +164,8 @@ protected:
 	GisNode* recursiveSeqFind( size_type& point, GisNode* node ) const;
 	static void increment( const GisNode*& x);
 	static void increment( GisNode*& x);
-	void decrement( const GisNode*& x);
-	void decrement( GisNode*& x);
+	static void decrement( const GisNode*& x);
+	static void decrement( GisNode*& x);
 	void deleteTree();
 	size_type recursiveGetSequenceStart( const GisNode* node ) const;
 	size_type recursiveGetStart( const GisNode* node ) const;
