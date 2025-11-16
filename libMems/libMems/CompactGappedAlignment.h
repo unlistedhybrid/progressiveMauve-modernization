@@ -808,12 +808,12 @@ void CompactGappedAlignment<BaseType>::CondenseGapColumns()
 
 namespace std {
 template<> inline
-void swap( mems::CompactGappedAlignment<>& a, mems::CompactGappedAlignment<>& b )
+void swap( mems::CompactGappedAlignment<>& a, mems::CompactGappedAlignment<>& b ) noexcept
 {
 	a.swap(b);
+}
 }
 }
 
 
 #endif // __CompactGappedAlignment_h__
-
