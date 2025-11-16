@@ -13,13 +13,13 @@ jobs:
       if: runner.os == 'Linux'
       run: |
         sudo apt update
-        sudo apt install -y cmake g++ libboost1.80-all-dev
+        sudo apt install -y cmake g++ libboost1.83-all-dev
     
     - name: Install dependencies (macOS)
       if: runner.os == 'macOS'
       run: |
-        brew install boost@1.80 cmake
-        brew link boost@1.80 --force
+        brew install boost@1.85 cmake
+        brew link boost@1.85 --force
     
     - name: Install dependencies (Windows)
       if: runner.os == 'Windows'
