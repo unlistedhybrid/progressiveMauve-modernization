@@ -5,7 +5,12 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-find_package(Boost 1.89 REQUIRED COMPONENTS
+set(Boost_NO_BOOST_CMAKE ON)
+set(Boost_USE_STATIC_LIBS OFF)
+set(Boost_USE_MULTITHREADED ON)
+
+find_package(Boost 1.89 REQUIRED 
+    COMPONENTS
     system
     filesystem
     iostreams
@@ -20,7 +25,7 @@ message(STATUS "Boost libraries: ${Boost_LIBRARIES}")
 
 if(NOT Boost_FOUND)
     message(FATAL_ERROR "Boost 1.89 not found. Install with:")
-    message(FATAL_ERROR "  macOS: brew install boost@1.89 or brew install boost")
+    message(FATAL_ERROR "  macOS: brew install boost")
     message(FATAL_ERROR "  Linux: sudo apt-get install libboost-all-dev")
 endif()
 
