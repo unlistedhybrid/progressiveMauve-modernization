@@ -1,29 +1,43 @@
 name: Build
-
 on: [push, pull_request]
-
 jobs:
   build:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
-
+        os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
     - uses: actions/checkout@v4
-
-    - name: Install dependencies
+    
+    - name: Install dependencies (Linux)
+      if: runner.os == 'Linux'
       run: |
-        if [[ "$RUNNER_OS" == "Linux" ]]; then
-          sudo apt update
-          sudo apt install -y cmake g++ libboost-all-dev
-        else
-          brew install boost cmake
-        fi
-
-    - name: Build
+        sudo apt update
+        sudo apt install -y cmake g++ libboost-all-dev
+    
+    - name: Install dependencies (macOS)
+      if: runner.os == 'macOS'
+      run: |
+        brew install boost@1.89 cmake
+        brew link boost@1.89 --force
+    
+    - name: Install dependencies (Windows)
+      if: runner.os == 'Windows'
+      run: |
+        choco install cmake boost-msvc-14.3 -y
+    
+    - name: Build (Linux/macOS)
+      if: runner.os != 'Windows'
       run: |
         mkdir build
         cd build
         cmake .. -DCMAKE_BUILD_TYPE=Release
         cmake --build . --parallel
+    
+    - name: Build (Windows)
+      if: runner.os == 'Windows'
+      run: |
+        mkdir build
+        cd build
+        cmake .. -DCMAKE_BUILD_TYPE=Release
+        cmake --build . --config Release --parallel
