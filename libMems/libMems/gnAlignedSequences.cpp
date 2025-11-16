@@ -269,7 +269,7 @@ bool gnAlignedSequences::outputMSF(ostream& os) const
 	os << "//" << endl;
 	
 	list <pair <string*, string*> >::const_iterator sequenceItr = alignedSequences.begin();
-	int longestSeqNameLength = 0;
+	size_t longestSeqNameLength = 0;
 	for ( ; sequenceItr!=alignedSequences.end(); sequenceItr++)
 	{
 		if ((*(*sequenceItr).first).length() > longestSeqNameLength)
@@ -730,7 +730,7 @@ bool gnAlignedSequences::removeAlignedSeq(string seqName)
 bool gnAlignedSequences::removeAlignedSeq(unsigned index)
 {
 	list <pair <string*, string*> >::iterator sequenceItr = alignedSequences.begin();
-	int i = 0;
+	unsigned int i = 0;
 	
 	for ( ; sequenceItr != alignedSequences.end(); sequenceItr++)
 	{
@@ -787,8 +787,7 @@ void gnAlignedSequences::extractVariableSites(gnAlignedSequences &variableSites,
 	int alignedSeqSize = (*((*originalItr).second)).size();
 	
 	char positionBase;
-	int matchStart = alignedSeqSize,
-		matchStop = alignedSeqSize;
+	int matchStart = alignedSeqSize;
 		
 	bool mismatch = false;
 	
@@ -827,7 +826,6 @@ void gnAlignedSequences::extractVariableSites(gnAlignedSequences &variableSites,
 		else
 		{
 			matchStart--;
-			matchStop = matchStart;
 			
 			//variableSites.indexPositions.resize(variableSites.indexPositions.size()+1);
 			variableSites.indexPositions.push_back(position);//[indexPositions.size()-1]=position;
@@ -1098,7 +1096,7 @@ bool gnAlignedSequences::constructClustalWAlignedSequenceList(ifstream& alignmen
 				
 			const gnFilter* newFilter = gnFilter::fullDNASeqFilter();
 			string sequenceBases;
-			for(int i=sequenceName.size(); i < line.length(); i++){
+			for(size_t i=sequenceName.size(); i < line.length(); i++){
 				if ((*newFilter).IsValid(line[i]))
 			    	sequenceBases += line[i];
 			}
