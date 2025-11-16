@@ -18,8 +18,8 @@ jobs:
     - name: Install dependencies (macOS)
       if: runner.os == 'macOS'
       run: |
-        brew install boost@1.85 cmake
-        brew link boost@1.85 --force
+        brew install boost@1.89 cmake
+        brew link boost@1.89 --force
     
     - name: Install dependencies (Windows)
       if: runner.os == 'Windows'
