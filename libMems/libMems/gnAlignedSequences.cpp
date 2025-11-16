@@ -866,7 +866,7 @@ bool gnAlignedSequences::collapseIdenticalSequences()
 }
 
 
-vector <char> gnAlignedSequences::operator[]( const int offset ) //const
+vector <char> gnAlignedSequences::operator[]( size_t offset ) //const
 {
 	vector <char> toReturn;
 	list <pair <string*, string*> >::iterator itr;
