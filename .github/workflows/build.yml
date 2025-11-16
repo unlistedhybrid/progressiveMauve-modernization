@@ -15,11 +15,12 @@ jobs:
         sudo apt update
         sudo apt install -y cmake g++ wget
         cd /tmp
-        wget https://boostorg.jfrog.io/artifactory/main/release/1.89.0/source/boost_1_89_0.tar.gz
-        tar xzf boost_1_89_0.tar.gz
-        cd boost_1_89_0
-        ./bootstrap.sh --prefix=/usr/local
-        sudo ./b2 install -j$(nproc)
+        wget https://github.com/boostorg/boost/releases/download/boost-1.89.0/boost-1.89.0-cmake.tar.gz
+        tar xzf boost-1.89.0-cmake.tar.gz
+        cd boost-1.89.0
+        mkdir build && cd build
+        cmake .. -DCMAKE_INSTALL_PREFIX=/usr/local
+        sudo cmake --build . --target install -j$(nproc)
     
     - name: Install dependencies (macOS)
       if: runner.os == 'macOS'
