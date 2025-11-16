@@ -5,13 +5,12 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-set(Boost_NO_BOOST_CMAKE ON)
+set(Boost_DEBUG OFF)
 set(Boost_USE_STATIC_LIBS OFF)
 set(Boost_USE_MULTITHREADED ON)
 
 find_package(Boost 1.89 REQUIRED 
     COMPONENTS
-    system
     filesystem
     iostreams
     program_options
