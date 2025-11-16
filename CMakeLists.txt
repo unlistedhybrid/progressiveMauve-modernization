@@ -5,8 +5,8 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-# Require Boost 1.89+ on all platforms for consistency
 find_package(Boost 1.89 REQUIRED COMPONENTS
+    system
     filesystem
     iostreams
     program_options
@@ -15,18 +15,41 @@ find_package(Boost 1.89 REQUIRED COMPONENTS
 
 message(STATUS "Boost version: ${Boost_VERSION}")
 message(STATUS "Boost include dir: ${Boost_INCLUDE_DIRS}")
+message(STATUS "Boost library dir: ${Boost_LIBRARY_DIRS}")
+message(STATUS "Boost libraries: ${Boost_LIBRARIES}")
 
-# Create a wrapper target for Boost that suppresses its deprecation warnings
-add_library(boost_interface INTERFACE)
-target_include_directories(boost_interface SYSTEM INTERFACE ${Boost_INCLUDE_DIRS})
-target_link_libraries(boost_interface INTERFACE ${Boost_LIBRARIES})
-
-# System headers don't trigger warnings
-if(NOT MSVC)
-    target_compile_options(boost_interface INTERFACE -Wno-deprecated-declarations)
+if(NOT Boost_FOUND)
+    message(FATAL_ERROR "Boost 1.89 not found. Install with:")
+    message(FATAL_ERROR "  macOS: brew install boost@1.89 or brew install boost")
+    message(FATAL_ERROR "  Linux: sudo apt-get install libboost-all-dev")
 endif()
 
-# Global include dirs so old code builds without modification
+add_library(BoostInterface INTERFACE IMPORTED)
+set_target_properties(BoostInterface PROPERTIES
+    INTERFACE_INCLUDE_DIRECTORIES "${Boost_INCLUDE_DIRS}"
+    INTERFACE_LINK_DIRECTORIES "${Boost_LIBRARY_DIRS}"
+    INTERFACE_LINK_LIBRARIES "${Boost_LIBRARIES}"
+)
+
+if(NOT MSVC)
+    target_compile_options(BoostInterface INTERFACE
+        -Wno-deprecated-declarations
+        -Wno-unused-parameter
+    )
+endif()
+
+if(MSVC)
+    add_compile_options(/W3 /permissive- /std:c++17)
+    add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
+else()
+    add_compile_options(
+        -Wall
+        -Wextra
+        -pedantic
+    )
+endif()
+
+include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 include_directories(
     ${PROJECT_SOURCE_DIR}
     ${PROJECT_SOURCE_DIR}/libGenome
@@ -41,12 +64,7 @@ include_directories(
     ${PROJECT_SOURCE_DIR}/mauveAligner/src
 )
 
-# Platform-specific compiler flags (for your own code)
-if(MSVC)
-    add_compile_options(/W3 /permissive- /std:c++17)
-else()
-    add_compile_options(-Wall -Wextra -pedantic -Wdeprecated-declarations)
-endif()
+link_directories(${Boost_LIBRARY_DIRS})
 
 add_subdirectory(libGenome)
 add_subdirectory(libMems)
