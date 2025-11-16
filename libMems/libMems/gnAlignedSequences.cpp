@@ -1254,7 +1254,7 @@ bool gnAlignedSequences::constructNexusAlignedSequenceList(ifstream& alignmentFi
 				
 			const gnFilter* newFilter = gnFilter::fullDNASeqFilter();
 			string sequenceBases;
-			for(int i=sequenceName.size(); i < line.length(); i++){
+			for(size_t i=sequenceName.size(); i < line.length(); i++){
 				if ( line[i] != '\r' && line[i] != '\n' && line[i] != ' ' )
 			    	sequenceBases += line[i];
 			}
@@ -1310,7 +1310,7 @@ bool gnAlignedSequences::constructMegaAlignedSequenceList(ifstream& alignmentFil
 			if (alignedSequences.size()>0)// && consensusSequenceBases.size()>0)
 				consensusSequenceBases = (*(*alignedSequencesItr).second);
 				
-			for(int i=sequenceName.size(); i < line.length(); i++)
+			for(size_t i=sequenceName.size(); i < line.length(); i++)
 			{
 				// allow only valid characters to be placed - if '.' replace leter
 				// with consensus data
@@ -1374,23 +1374,21 @@ bool gnAlignedSequences::sequenceNameInList(string sequenceName, list <pair <str
 
 bool gnAlignedSequences::buildConsensus()
 {
-	char consensusBase = '-';
-
 	consensus = "";
 	
 	vector <char> crossAlignmentBases;
-	for (int index=0; index<(*(*alignedSequences.begin()).second).size(); index++)
+	for (size_t index=0; index<(*(*alignedSequences.begin()).second).size(); index++)
 	{
 		vector <int> baseCounts(26, 0);
 		crossAlignmentBases = (*this)[index];
 		/*list <pair <string*, string*> >::iterator itr = alignedSequences.begin();
 		itr++;*/
-		for (int i=0; i<crossAlignmentBases.size(); i++)
+		for (size_t i=0; i<crossAlignmentBases.size(); i++)
 		{
 			// to hold knowledge of consensus if MEGA '.' format employed
 			// ('.'==same as base in 1st sequence)
 			if (i == 0)
-				consensusBase=crossAlignmentBases[i];
+				;
 			
 			// consensus already established if in MEGA '.' format - the 1st seq	
 			if (i>0 && crossAlignmentBases[i]=='.')
@@ -1404,7 +1402,7 @@ bool gnAlignedSequences::buildConsensus()
 		}
 		
 		int toAppendToConsensus = 0;
-		for (int i=1; i<baseCounts.size(); i++)
+		for (size_t i=1; i<baseCounts.size(); i++)
 		{
 			// strictly alphabetic - count ties are broken lexigraphically
 			if (baseCounts[i] > baseCounts[toAppendToConsensus])
@@ -1472,7 +1470,7 @@ void gnAlignedSequences::addSequence(gnSequence seqToAdd, string seqName, int co
 		toAdd.second = new string( seq );
 		(*toAdd.second).erase();
 		
-		for (int i=0; i<(*toAdd.second).size(); i++)
+		for (size_t i=0; i<(*toAdd.second).size(); i++)
 		{
 			if (seq[i] == '-')
 				seq[i] = originalConsensus[consensusStart+i-1];
@@ -1487,7 +1485,7 @@ void gnAlignedSequences::addSequence(gnSequence seqToAdd, string seqName, int co
 	{
 		string seq = (*((*itr).second));
 		seq += seqToAdd.ToString();
-		for (int i=0; i<seq.size(); i++)
+		for (size_t i=0; i<seq.size(); i++)
 		{
 			if (seq[i+(*((*itr).second)).size()]=='-' && originalConsensus.size()>0)
 				seq[i+(*((*itr).second)).size()] = originalConsensus[consensusStart+i-1];
