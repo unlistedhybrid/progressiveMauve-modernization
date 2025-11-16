@@ -179,7 +179,7 @@ protected:
 	static void propogateChanges( IstNode* cur_node, int64 length_diff, int64 subtree_diff );
 	static IstNode* recursiveFind( size_type& point, IstNode* node );
 	static void increment( IstNode*& x);
-	void decrement( IstNode*& x) const;
+	static void decrement( IstNode*& x);
 	static void deleteSubtree( IstNode*& istn );
 	static void checkTree( node_pointer cur_node );
 };
