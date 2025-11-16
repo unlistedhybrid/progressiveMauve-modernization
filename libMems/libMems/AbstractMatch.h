@@ -25,57 +25,25 @@ namespace mems {
 
 static const gnSeqI NO_MATCH = 0;
 
-
-#ifdef WIN32 
-/** define this to force all matches to use boost allocators instead of new/delete */
-//#define _USE_BOOST_MATCH_ALLOCATOR
-//typedef boost::dynamic_bitset<unsigned, boost::pool_allocator<unsigned> > bitset_t;
-
-// slot allocator turns out to have the fastest new/free implementation for single object allocations
 #define _USE_SLOT_ALLOCATOR
-#else
-#define _USE_SLOT_ALLOCATOR
-#endif
 typedef boost::dynamic_bitset<> bitset_t;
 
-#ifdef _USE_SLOT_ALLOCATOR
 #include "libMems/SlotAllocator.h"
-#elif defined(_USE_BOOST_MATCH_ALLOCATOR)
-#include <boost/pool/pool_alloc.hpp>
-#endif
 
 template< typename T >
 T* m_allocateAndCopy( const T& t )
 {
-#ifdef _USE_SLOT_ALLOCATOR
 	SlotAllocator<T>& sat = SlotAllocator<T>::GetSlotAllocator();
 	T* newt = sat.Allocate();
-	newt = new(newt) T(t);	// construct a new T at the address given by newt
-//	*newt = t;
+	newt = new(newt) T(t);
 	return newt;
-#elif defined(_USE_BOOST_MATCH_ALLOCATOR)
-	boost::fast_pool_allocator< T > fpa;
-	T* newt = boost::fast_pool_allocator< T >::allocate();
-	fpa.construct(newt, t);
-	return newt;
-#else
-	return new T(t);
-#endif
 }
 
 template< typename T >
 void m_free( T* t )
 {
-#ifdef _USE_SLOT_ALLOCATOR
 	SlotAllocator<T>& sat = SlotAllocator<T>::GetSlotAllocator();
 	sat.Free(t);
-#elif defined(_USE_BOOST_MATCH_ALLOCATOR)
-	boost::fast_pool_allocator< T > fpa;
-	fpa.destroy(t);
-	boost::fast_pool_allocator< T >::deallocate(t);
-#else
-	delete t;
-#endif
 }
 
 /**
@@ -92,10 +60,10 @@ public:
 		undefined	/**< there is no alignment on either strand */
 	};
 
-	/** creates a copy of this using a boost::pool::fast_pool_allocator */
+	/** creates a copy of this using SlotAllocator */
 	virtual AbstractMatch* Copy() const = 0;
 
-	/** frees storage used by this object in a boost::pool::fast_pool_allocator */
+	/** frees storage used by this object managed by SlotAllocator */
 	virtual void Free() = 0;
 	
 	/** Returns the length of this match */
