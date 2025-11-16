@@ -16,8 +16,7 @@
 #include "libGenome/gnClone.h"
 #include <vector>
 #include <algorithm>
-#include <boost/type_traits/remove_pointer.hpp>
-#include <boost/type_traits/add_pointer.hpp>
+#include <type_traits>
 #include <boost/dynamic_bitset.hpp>
 #include <libMems/SlotAllocator.h>
 #include <libMems/configuration.h>
@@ -364,16 +363,16 @@ public:
 	{
 		m_seq = msc.m_seq;
 	}
-	boolean operator()( const typename boost::add_pointer<MatchType>::type& a, 
-		const typename boost::add_pointer<MatchType>::type& b) const
+	boolean operator()( const typename std::add_pointer<MatchType>::type& a, 
+		const typename std::add_pointer<MatchType>::type& b) const
 	{
 		return operator()(*a,*b);
 	}
 	/**
 	 * Compare on only one sequence.  Undefined matches are less than defined matches
 	 */
-	boolean operator()(const typename boost::remove_pointer<MatchType>::type& a, 
-		const typename boost::remove_pointer<MatchType>::type& b) const{
+	boolean operator()(const typename std::remove_pointer<MatchType>::type& a, 
+		const typename std::remove_pointer<MatchType>::type& b) const{
 		int64 a_start = a.LeftEnd( m_seq ), b_start = b.LeftEnd( m_seq );
 		if( a_start == NO_MATCH || b_start == NO_MATCH ){
 			if( b_start != NO_MATCH )
