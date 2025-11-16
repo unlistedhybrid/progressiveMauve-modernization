@@ -813,7 +813,5 @@ void swap( mems::CompactGappedAlignment<>& a, mems::CompactGappedAlignment<>& b 
 	a.swap(b);
 }
 }
-}
-
 
 #endif // __CompactGappedAlignment_h__
