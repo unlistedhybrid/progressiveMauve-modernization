@@ -247,7 +247,7 @@ void MatchFinder::ExtendMatch(UngappedMatchType& mhe, std::vector<UngappedMatchT
 			maxlen = GetSar(0)->SeedLength();
 		for(uint32 maxI = 0; maxI < used_seqs; ++maxI)
 			if(GetSar(cur_seqs[maxI])->IsCircular()){
-				if(GetSar(cur_seqs[maxI])->Length() < maxlen)
+				if(static_cast<int64>(GetSar(cur_seqs[maxI])->Length()) < maxlen)
 					maxlen = GetSar(cur_seqs[maxI])->Length();
 			}else if(mhe[cur_seqs[maxI]] < 0){
 				int64 rc_len = GetSar(cur_seqs[maxI])->Length() - mhe.Length() + mhe[cur_seqs[maxI]] + 1;
