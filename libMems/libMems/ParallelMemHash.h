@@ -12,7 +12,7 @@
 #include "config.h"
 #endif
 
-#include "libMems/MemHash.h"        // MUST be included before using MemHash
+#include "libMems/MemHash.h"
 #include "libMUSCLE/threadstorage.h"
 
 #ifdef _OPENMP
@@ -23,64 +23,48 @@
 
 namespace mems {
 
+#ifdef _OPENMP
+
 /**
  * ParallelMemHash implements an algorithm for finding exact matches of a certain minimal
- * length in several sequences.
+ * length in several sequences using OpenMP parallelism.
  *
- * The OpenMP version uses thread‑local hash tables for parallel match discovery.
+ * Uses thread-local hash tables for parallel match discovery.
  */
 class ParallelMemHash : public MemHash {
 public:
 
-    // ────────────────────────────────────────────────────────────────
-    // Constructors / Assignment
-    // ────────────────────────────────────────────────────────────────
+	ParallelMemHash() : MemHash() {}
 
-    ParallelMemHash() : MemHash() {}
+	ParallelMemHash(const ParallelMemHash& mh)
+		: MemHash(mh),
+		  thread_mem_table(mh.thread_mem_table)
+	{}
 
-    ParallelMemHash(const ParallelMemHash& mh)
-        : MemHash(mh),
-          thread_mem_table(mh.thread_mem_table)
-    {}
+	ParallelMemHash& operator=(const ParallelMemHash& mh)
+	{
+		if (this != &mh) {
+			MemHash::operator=(mh);
+			thread_mem_table = mh.thread_mem_table;
+		}
+		return *this;
+	}
 
-    ParallelMemHash& operator=(const ParallelMemHash& mh)
-    {
-        if (this != &mh) {
-            MemHash::operator=(mh);
-            thread_mem_table = mh.thread_mem_table;
-        }
-        return *this;
-    }
+	virtual ParallelMemHash* Clone() const override {
+		return new ParallelMemHash(*this);
+	}
 
-    // Clone
-    virtual ParallelMemHash* Clone() const override {
-        return new ParallelMemHash(*this);
-    }
-
-    // ────────────────────────────────────────────────────────────────
-    // Main API
-    // ────────────────────────────────────────────────────────────────
-    virtual void FindMatches(MatchList& match_list) override;
+	virtual void FindMatches(MatchList& match_list) override;
 
 protected:
 
-    // Thread-local override versions of AddHashEntry / MergeTable
-    virtual MatchHashEntry* AddHashEntry(MatchHashEntry& mhe) override;
-    virtual void MergeTable() override;
+	virtual MatchHashEntry* AddHashEntry(MatchHashEntry& mhe) override;
+	virtual void MergeTable() override;
 
-    // Each thread gets its own temporary hash table
-    TLS<std::vector<std::vector<MatchHashEntry*>>> thread_mem_table;
+	TLS<std::vector<std::vector<MatchHashEntry*>>> thread_mem_table;
 };
 
-} // namespace mems
-
-
-// ======================================================================
-// Non-OpenMP fallback
-// ======================================================================
-#ifndef _OPENMP
-
-namespace mems {
+#else
 
 /**
  * When built without OpenMP, ParallelMemHash behaves exactly like MemHash,
@@ -89,28 +73,26 @@ namespace mems {
 class ParallelMemHash : public MemHash {
 public:
 
-    ParallelMemHash() : MemHash() {}
+	ParallelMemHash() : MemHash() {}
 
-    ParallelMemHash(const ParallelMemHash& mh)
-        : MemHash(mh)
-    {}
+	ParallelMemHash(const ParallelMemHash& mh)
+		: MemHash(mh)
+	{}
 
-    ParallelMemHash& operator=(const ParallelMemHash& mh)
-    {
-        if (this != &mh)
-            MemHash::operator=(mh);
-        return *this;
-    }
+	ParallelMemHash& operator=(const ParallelMemHash& mh)
+	{
+		if (this != &mh)
+			MemHash::operator=(mh);
+		return *this;
+	}
 
-    virtual ParallelMemHash* Clone() const override {
-        return new ParallelMemHash(*this);
-    }
-
-    // Uses base class implementation
+	virtual ParallelMemHash* Clone() const override {
+		return new ParallelMemHash(*this);
+	}
 };
 
-} // namespace mems
+#endif
 
-#endif // !_OPENMP
+}
 
-#endif // _ParallelMemHash_h_
+#endif
