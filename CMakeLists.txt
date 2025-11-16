@@ -5,8 +5,8 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-# Require Boost 1.80+ on all platforms for consistency
-find_package(Boost 1.80 REQUIRED COMPONENTS
+# Require Boost 1.89+ on all platforms for consistency
+find_package(Boost 1.89 REQUIRED COMPONENTS
     filesystem
     iostreams
     program_options
