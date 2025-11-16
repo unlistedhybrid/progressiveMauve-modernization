@@ -232,7 +232,7 @@ public:
 	 * @param offset the position in the alignment to access.
 	 * @return a vector of characters at position offset.
 	 */
-	std::vector <char> operator[]( const int offset ); //const;
+	std::vector <char> operator[]( size_t offset );
 	
 	/**
 	 * Adds a sequence to the alignment.
