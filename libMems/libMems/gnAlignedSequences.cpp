@@ -44,7 +44,7 @@ void gnAlignedSequences::constructFromClustalW(string alignedFileName)
 	buildConsensus();
 	
 	indexPositions.resize(consensus.size());
-	for (int i=0; i<consensus.size(); i++)
+	for (size_t i=0; i<consensus.size(); i++)
 		indexPositions[i] = i+1;
 }
 
@@ -57,7 +57,7 @@ void gnAlignedSequences::constructFromPhylip(string alignedFileName)
 	buildConsensus();
 	
 	indexPositions.resize(consensus.size());
-	for (int i=0; i<consensus.size(); i++)
+	for (size_t i=0; i<consensus.size(); i++)
 		indexPositions[i] = i+1;
 }
 
@@ -70,7 +70,7 @@ void gnAlignedSequences::constructFromMSF(string alignedFileName)
 	buildConsensus();
 	
 	indexPositions.resize(consensus.size());
-	for (int i=0; i<consensus.size(); i++)
+	for (size_t i=0; i<consensus.size(); i++)
 		indexPositions[i] = i+1;
 }
 
@@ -92,7 +92,7 @@ void gnAlignedSequences::constructFromNexus(string alignedFileName)
 	buildConsensus();
 	
 	indexPositions.resize(consensus.size());
-	for (int i=0; i<consensus.size(); i++)
+	for (size_t i=0; i<consensus.size(); i++)
 		indexPositions[i] = i+1;
 }
 
@@ -105,7 +105,7 @@ void gnAlignedSequences::constructFromMega(string alignedFileName)
 	buildConsensus();
 	
 	indexPositions.resize(consensus.size());
-	for (int i=0; i<consensus.size(); i++)
+	for (size_t i=0; i<consensus.size(); i++)
 		indexPositions[i] = i+1;
 }
 
@@ -126,7 +126,7 @@ const vector< string >& gnAlignedSequences::getSupportedFormats()
 boolean gnAlignedSequences::isSupportedFormat( const string& format_name )
 {
 	const vector< string >& formats = getSupportedFormats();
-	for( int formatI = 0; formatI < formats.size(); formatI++ ){
+	for( size_t formatI = 0; formatI < formats.size(); formatI++ ){
 		if( formats[ formatI ] == format_name )
 			return true;
 	}
@@ -317,7 +317,7 @@ bool gnAlignedSequences::outputMSF(ostream& os) const
 			os << " ";
 		
 		os << pos+1;
-		for (int i=0; i<(*(*alignedSequences.begin()).second).size()-pos; i++) // output appropriate number of spaces on ordinate line
+		for (size_t i=0; i<(*(*alignedSequences.begin()).second).size()-pos; i++) // output appropriate number of spaces on ordinate line
 			os << " ";
 		os << (*(*alignedSequences.begin()).second).size() << endl;
 		
@@ -330,7 +330,7 @@ bool gnAlignedSequences::outputMSF(ostream& os) const
 			os << (*(*sequenceItr).first) << "  ";
 			
 			string seq = (*(*sequenceItr).second).substr(pos, (*(*alignedSequences.begin()).second).size()-pos );
-			for (int i=0; i<seq.length(); i++)
+			for (size_t i=0; i<seq.length(); i++)
 			{
 				if (seq[i]=='-')
 					os << ".";
@@ -565,7 +565,7 @@ bool gnAlignedSequences::outputCodon(ostream& os) const
 		string seqName = (*(*sequenceItr).first);
 		if (seqName.size() <= offset) 
 		{
-			for (int i=seqName.size(); i<offset; i++)
+			for (size_t i=seqName.size(); i<offset; i++)
 				seqName += " ";
 		}
 		
@@ -586,7 +586,7 @@ bool gnAlignedSequences::outputCodon(ostream& os) const
 				count = 0;
 				os << endl;
 			}
-			for (int i=position; i<position+3; i++)
+			for (size_t i=position; i<position+3; i++)
 			   os << seq[i];
 			   
 			os << ' ';
@@ -617,7 +617,7 @@ bool gnAlignedSequences::outputWithConsensus(ostream& os)
 		string seqName = (*(*sequenceItr).first);
 		if (seqName.size() <= offset) 
 		{
-			for (int i=seqName.size(); i<offset; i++)
+			for (size_t i=seqName.size(); i<offset; i++)
 				seqName += " ";
 		}
 		
@@ -638,7 +638,7 @@ bool gnAlignedSequences::outputWithConsensus(ostream& os)
 				count = 0;
 				os << endl;
 			}
-			for (int i=position; i<position+10; i++)
+			for (size_t i=position; i<position+10; i++)
 			   os << seq[i];
 			   
 			os << ' ';
@@ -693,7 +693,7 @@ gnAlignedSequences gnAlignedSequences::getCodons(int readingFrame, int startCodo
 	gnAlignedSequences toReturn;
 	int startBase = ((startCodon*3)-2)+(readingFrame-1);
 	
-	for (int index=startBase; (index+2)<(*(*alignedSequences.begin()).second).size(); index+=(codonMultiple*3))
+	for (size_t index=startBase; (index+2)<(*(*alignedSequences.begin()).second).size(); index+=(codonMultiple*3))
 		addAllSegmentsReplaceGaps(toReturn, index, index+2);
 		
 	toReturn.buildConsensus();
