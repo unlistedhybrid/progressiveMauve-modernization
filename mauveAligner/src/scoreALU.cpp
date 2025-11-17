@@ -437,8 +437,8 @@ try{
 							for ( int i = 0; i < alus.size(); i++)
 							{	
 								//is this ok for reverse strand?
-								if( (abs_int64((int)align_list.at(j).at(k).first) >= alus.at(i)->start) && (abs_int64((int)align_list.at(j).at(k).first) < alus.at(i)->end ) 
-								||  (abs_int64((int)align_list.at(j).at(k).second) > alus.at(i)->start) && (abs_int64((int)align_list.at(j).at(k).second) < alus.at(i)->end ) )
+								if( (std::abs((int)align_list.at(j).at(k).first) >= alus.at(i)->start) && (std::abs((int)align_list.at(j).at(k).first) < alus.at(i)->end ) 
+								||  (std::abs((int)align_list.at(j).at(k).second) > alus.at(i)->start) && (std::abs((int)align_list.at(j).at(k).second) < alus.at(i)->end ) )
 								{
 									//the repeat #
 									if (rnum != i+1 && rnum != 0)
@@ -468,8 +468,8 @@ try{
 							for ( int i = 0; i < alus.size(); i++)
 							{
 								
-								if( (abs_int64((int)align_list.at(j).at(k).first) >= alus.at(i)->start) && (abs_int64((int)align_list.at(j).at(k).first) < alus.at(i)->end )
-								||  (abs_int64((int)align_list.at(j).at(k).second) > alus.at(i)->start) && (abs_int64((int)align_list.at(j).at(k).second) <= alus.at(i)->end ) )
+								if( (std::abs((int)align_list.at(j).at(k).first) >= alus.at(i)->start) && (std::abs((int)align_list.at(j).at(k).first) < alus.at(i)->end )
+								||  (std::abs((int)align_list.at(j).at(k).second) > alus.at(i)->start) && (std::abs((int)align_list.at(j).at(k).second) <= alus.at(i)->end ) )
 								{
 									//the repeat #
 									//cout << rnum << " " << i+1 <<  endl;
@@ -519,17 +519,17 @@ try{
 						for ( int i = 0; i < alus.size(); i++)
 						{
 							//is this ok for reverse strand?
-							if( (abs_int64((int)align_list.at(j).at(k).first) >= alus.at(i)->start) && (abs_int64((int)align_list.at(j).at(k).first) < alus.at(i)->end ) 
-							||  (abs_int64((int)align_list.at(j).at(k).second) > alus.at(i)->start) && (abs_int64((int)align_list.at(j).at(k).second) <= alus.at(i)->end ) )
+							if( (std::abs((int)align_list.at(j).at(k).first) >= alus.at(i)->start) && (std::abs((int)align_list.at(j).at(k).first) < alus.at(i)->end ) 
+							||  (std::abs((int)align_list.at(j).at(k).second) > alus.at(i)->start) && (std::abs((int)align_list.at(j).at(k).second) <= alus.at(i)->end ) )
 							{
 								//the repeat #
 								rnum = i+1;
 								//find overlap
 								int leftend = 0;
 								int rightend = 0;
-								leftend = abs_int64((int)alus.at(i)->start)-abs_int64((int)align_list.at(j).at(k).first);
-								rightend =   abs_int64((int)alus.at(i)->end)-abs_int64((int)align_list.at(j).at(k).second);
-								if (debug_pos && (abs_int64(leftend)>500 || abs_int64(rightend)>500))
+								leftend = std::abs((int)alus.at(i)->start)-std::abs((int)align_list.at(j).at(k).first);
+								rightend =   std::abs((int)alus.at(i)->end)-std::abs((int)align_list.at(j).at(k).second);
+								if (debug_pos && (std::abs(leftend)>500 || std::abs(rightend)>500))
 								{
 									cout << "alu\talignment" << endl;
 									cout << alus.at(i)->start << "\t" << align_list.at(j).at(k).first << endl;
@@ -540,13 +540,13 @@ try{
 								if ( worst_borders.find( rnum ) != worst_borders.end() )
 								{
 									// if component has worse boundaries for this alu, record them
-									if ( abs_int64((int)worst_borders[rnum].first) < abs_int64((int)leftend) )
+									if ( std::abs((int)worst_borders[rnum].first) < std::abs((int)leftend) )
 										worst_borders[rnum].first = leftend;
-									if ( abs_int64((int)worst_borders[rnum].second) < abs_int64((int)rightend) )
+									if ( std::abs((int)worst_borders[rnum].second) < std::abs((int)rightend) )
 										worst_borders[rnum].second = rightend;
-									if ( abs_int64((int)best_borders[rnum].first) > abs_int64((int)leftend) )
+									if ( std::abs((int)best_borders[rnum].first) > std::abs((int)leftend) )
 										best_borders[rnum].first = leftend;
-									if ( abs_int64((int)best_borders[rnum].second) > abs_int64((int)rightend) )
+									if ( std::abs((int)best_borders[rnum].second) > std::abs((int)rightend) )
 										best_borders[rnum].second = rightend;
 								}
 								else
@@ -564,12 +564,12 @@ try{
 						//find out which alu is hit
 						for ( int i = 0; i < alus.size(); i++)
 						{
-							//if( (abs_int64((int)align_list.at(j).at(k).first) <= alus.at(i)->start) && (abs_int64((int)align_list.at(j).at(k).second) >= alus.at(i)->end ) )
-							//if( (abs_int64((int)align_list.at(j).at(k).first) >= alus.at(i)->start) && (abs_int64((int)align_list.at(j).at(k).second) <= alus.at(i)->end ) )
-							//if( ((abs_int64((int)align_list.at(j).at(k).first) >= alus.at(i)->start) && (abs_int64((int)align_list.at(j).at(k).first) < alus.at(i)->end ) && (abs_int64((int)align_list.at(j).at(k).second) > alus.at(i)->end) )
-							//||  ((abs_int64((int)align_list.at(j).at(k).second) > alus.at(i)->start) && (abs_int64((int)align_list.at(j).at(k).second) <= alus.at(i)->end ) && (abs_int64((int)align_list.at(j).at(k).first) < alus.at(i)->start) ) )
-							if( (abs_int64((int)align_list.at(j).at(k).first) >= alus.at(i)->start) && (abs_int64((int)align_list.at(j).at(k).first) < alus.at(i)->end ) 
-							||  (abs_int64((int)align_list.at(j).at(k).second) > alus.at(i)->start) && (abs_int64((int)align_list.at(j).at(k).second) <= alus.at(i)->end ) )
+							//if( (std::abs((int)align_list.at(j).at(k).first) <= alus.at(i)->start) && (std::abs((int)align_list.at(j).at(k).second) >= alus.at(i)->end ) )
+							//if( (std::abs((int)align_list.at(j).at(k).first) >= alus.at(i)->start) && (std::abs((int)align_list.at(j).at(k).second) <= alus.at(i)->end ) )
+							//if( ((std::abs((int)align_list.at(j).at(k).first) >= alus.at(i)->start) && (std::abs((int)align_list.at(j).at(k).first) < alus.at(i)->end ) && (std::abs((int)align_list.at(j).at(k).second) > alus.at(i)->end) )
+							//||  ((std::abs((int)align_list.at(j).at(k).second) > alus.at(i)->start) && (std::abs((int)align_list.at(j).at(k).second) <= alus.at(i)->end ) && (std::abs((int)align_list.at(j).at(k).first) < alus.at(i)->start) ) )
+							if( (std::abs((int)align_list.at(j).at(k).first) >= alus.at(i)->start) && (std::abs((int)align_list.at(j).at(k).first) < alus.at(i)->end ) 
+							||  (std::abs((int)align_list.at(j).at(k).second) > alus.at(i)->start) && (std::abs((int)align_list.at(j).at(k).second) <= alus.at(i)->end ) )
 							{
 								//the repeat #
 								rnum = i+1;
@@ -577,10 +577,10 @@ try{
 								int leftend = 0;
 								int rightend = 0;
 								
-								leftend = abs_int64((int)alus.at(i)->start) -abs_int64((int)align_list.at(j).at(k).first);
-								rightend =   abs_int64((int)alus.at(i)->end)-abs_int64((int)align_list.at(j).at(k).second);
+								leftend = std::abs((int)alus.at(i)->start) -std::abs((int)align_list.at(j).at(k).first);
+								rightend =   std::abs((int)alus.at(i)->end)-std::abs((int)align_list.at(j).at(k).second);
 
-								if (debug_pos && (abs_int64(leftend)>500 || abs_int64(rightend)>500))
+								if (debug_pos && (std::abs(leftend)>500 || std::abs(rightend)>500))
 								{
 									cout << "alu\talignment" << endl;
 									cout << alus.at(i)->start << "\t" << align_list.at(j).at(k).first << endl;
@@ -591,15 +591,15 @@ try{
 								if ( worst_borders.find( rnum ) != worst_borders.end() )
 								{
 									// if component has worse boundaries for this alu, record them		
-									if ( abs_int64((int)worst_borders[rnum].first) < abs_int64((int)leftend) )
+									if ( std::abs((int)worst_borders[rnum].first) < std::abs((int)leftend) )
 										worst_borders[rnum].first = leftend;
-									if ( abs_int64((int)worst_borders[rnum].second) < abs_int64((int)rightend) )
+									if ( std::abs((int)worst_borders[rnum].second) < std::abs((int)rightend) )
 										worst_borders[rnum].second = rightend;
 
 									// if component has better boundaries for this alu, record them
-									if ( abs_int64((int)best_borders[rnum].first) > abs_int64((int)leftend) )
+									if ( std::abs((int)best_borders[rnum].first) > std::abs((int)leftend) )
 										best_borders[rnum].first = leftend;
-									if ( abs_int64((int)best_borders[rnum].second) > abs_int64((int)rightend) )
+									if ( std::abs((int)best_borders[rnum].second) > std::abs((int)rightend) )
 										best_borders[rnum].second = rightend;
 									
 								}
@@ -635,14 +635,14 @@ try{
 	uint avg_best_right = 0;
 	for( iter = worst_borders.begin(); iter != worst_borders.end(); iter++ ) 
 	{
-		avg_worst_left += abs_int64(iter->second.first);
-		avg_worst_right += abs_int64(iter->second.second);
+		avg_worst_left += std::abs(iter->second.first);
+		avg_worst_right += std::abs(iter->second.second);
 		boundary_file << "worst boundaries for repeat copy #" << iter->first << "\t left: " << iter->second.first << "\t right: " << iter->second.second << endl;
 	}
 	for( iter = best_borders.begin(); iter != best_borders.end(); iter++ ) 
 	{
-		avg_best_left += abs_int64( iter->second.first);
-		avg_best_right += abs_int64(iter->second.second);
+		avg_best_left += std::abs( iter->second.first);
+		avg_best_right += std::abs(iter->second.second);
 		boundary_file << "best boundaries for repeat copy #" << iter->first << "\t left: " << iter->second.first << "\t right: " << iter->second.second << endl;
 	}
 
@@ -726,5 +726,3 @@ try{
 }
 
 }
-
-
