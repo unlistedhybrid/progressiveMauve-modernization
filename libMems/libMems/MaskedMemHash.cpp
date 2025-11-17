@@ -35,7 +35,7 @@ MaskedMemHash* MaskedMemHash::Clone() const{
 	return new MaskedMemHash(*this);
 }
 
-boolean MaskedMemHash::HashMatch(list<idmer>& match_list){
+bool MaskedMemHash::HashMatch(list<idmer>& match_list){
 	//check that there is at least one forward component
 	match_list.sort(&idmer_id_lessthan);
 	// initialize the hash entry
