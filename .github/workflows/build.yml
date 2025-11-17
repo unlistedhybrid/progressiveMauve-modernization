@@ -31,7 +31,13 @@ jobs:
     - name: Install dependencies (Windows)
       if: runner.os == 'Windows'
       run: |
-        choco install cmake boost-msvc-14.3 -y
+        choco install cmake -y
+        # Setup vcpkg for Boost installation
+        git clone https://github.com/Microsoft/vcpkg.git
+        cd vcpkg
+        .\bootstrap-vcpkg.bat
+        .\vcpkg install boost-filesystem:x64-windows boost-iostreams:x64-windows boost-program-options:x64-windows boost-regex:x64-windows
+        echo "CMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake" >> $env:GITHUB_ENV
     
     - name: Build (Linux/macOS)
       if: runner.os != 'Windows'
@@ -46,5 +52,5 @@ jobs:
       run: |
         mkdir build
         cd build
-        cmake .. -DCMAKE_BUILD_TYPE=Release
+        cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE="${{ env.CMAKE_TOOLCHAIN_FILE }}"
         cmake --build . --config Release --parallel
