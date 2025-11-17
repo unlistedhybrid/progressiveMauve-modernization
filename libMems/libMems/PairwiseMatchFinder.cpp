@@ -34,7 +34,7 @@ PairwiseMatchFinder* PairwiseMatchFinder::Clone() const{
 
 
 // enumerate out every pairwise match
-boolean PairwiseMatchFinder::EnumerateMatches( IdmerList& match_list ){
+bool PairwiseMatchFinder::EnumerateMatches( IdmerList& match_list ){
 
 	match_list.sort(&idmer_id_lessthan);
 	IdmerList::iterator iter = match_list.begin();
