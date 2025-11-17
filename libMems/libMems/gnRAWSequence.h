@@ -82,29 +82,29 @@ public:
 	virtual gnSequence contigByName( std::string& contigName) const {
 		Throw_gnEx(FragmentIndexOutOfBounds());
 	}
-	virtual void merge(const gnSeqI startI, const gnSeqI endI){ throw; }
-	virtual void mergeContigs(const uint32 startC, const uint32 endC){ throw; }
-	virtual void splitContig(const gnSeqI splitI, [[maybe_unused]] const uint32 contigI=ALL_CONTIGS) { throw; }
+	virtual void merge([[maybe_unused]] const gnSeqI startI, [[maybe_unused]] const gnSeqI endI){ throw; }
+	virtual void mergeContigs([[maybe_unused]] const uint32 startC, [[maybe_unused]] const uint32 endC){ throw; }
+	virtual void splitContig([[maybe_unused]] const gnSeqI splitI, [[maybe_unused]] const uint32 contigI=ALL_CONTIGS) { throw; }
 
-	virtual void setContigName( const uint32 contigI, const std::string& contig_name) { throw; }
+	virtual void setContigName( [[maybe_unused]] const uint32 contigI, [[maybe_unused]] const std::string& contig_name) { throw; }
 
 	virtual uint32 getFeatureListLength() const {
 		return 0;
 	}
-	virtual gnBaseFeature* getFeature(const uint32 featureI) const{ Throw_gnEx(FeatureIndexOutOfBounds()); }
-	virtual void getContainedFeatures(const gnLocation& lt, std::vector<gnBaseFeature*>& feature_vector, std::vector<uint32>& index_vector) const {}
-	virtual void getIntersectingFeatures(const gnLocation& lt, std::vector<gnBaseFeature*>& feature_vector, std::vector<uint32>& index_vector) const {}
-	virtual uint32 addFeature(gnBaseFeature* feature) { throw; }
-	virtual void removeFeature(const uint32 featureI){ Throw_gnEx(FeatureIndexOutOfBounds()); }
-	virtual void getBrokenFeatures(const gnLocation& lt, std::vector<gnBaseFeature*>& feature_vector) const{};
-	virtual uint32 getHeaderListLength(const uint32 contigI) const{ return 0; }
-	virtual gnBaseHeader* getHeader(const uint32 contigI, const uint32 headerI) const{Throw_gnEx(HeaderIndexOutOfBounds());};
-	virtual void addHeader(const uint32 contigI, gnBaseHeader* header, const uint32 headerI){Throw_gnEx(FragmentIndexOutOfBounds());}
-	virtual void removeHeader(const uint32 contigI, const uint32 headerI){ Throw_gnEx(HeaderIndexOutOfBounds()); }
-	virtual void setReverseComplement( const boolean revComp, const uint32 contigI=ALL_CONTIGS){Throw_gnEx(FragmentIndexOutOfBounds());};
-	virtual boolean isReverseComplement( const uint32 contigI=ALL_CONTIGS ){return false;}
-	virtual boolean isCircular() const{ return false; }
-	virtual void setCircular( const boolean value ) {}
+	virtual gnBaseFeature* getFeature([[maybe_unused]] const uint32 featureI) const{ Throw_gnEx(FeatureIndexOutOfBounds()); }
+	virtual void getContainedFeatures([[maybe_unused]] const gnLocation& lt, [[maybe_unused]] std::vector<gnBaseFeature*>& feature_vector, [[maybe_unused]] std::vector<uint32>& index_vector) const {}
+	virtual void getIntersectingFeatures([[maybe_unused]] const gnLocation& lt, [[maybe_unused]] std::vector<gnBaseFeature*>& feature_vector, [[maybe_unused]] std::vector<uint32>& index_vector) const {}
+	virtual uint32 addFeature([[maybe_unused]] gnBaseFeature* feature) { throw; }
+	virtual void removeFeature([[maybe_unused]] const uint32 featureI){ Throw_gnEx(FeatureIndexOutOfBounds()); }
+	virtual void getBrokenFeatures([[maybe_unused]] const gnLocation& lt, [[maybe_unused]] std::vector<gnBaseFeature*>& feature_vector) const{};
+	virtual uint32 getHeaderListLength([[maybe_unused]] const uint32 contigI) const{ return 0; }
+	virtual gnBaseHeader* getHeader([[maybe_unused]] const uint32 contigI, [[maybe_unused]] const uint32 headerI) const{Throw_gnEx(HeaderIndexOutOfBounds());};
+	virtual void addHeader([[maybe_unused]] const uint32 contigI, [[maybe_unused]] gnBaseHeader* header, [[maybe_unused]] const uint32 headerI){Throw_gnEx(FragmentIndexOutOfBounds());}
+	virtual void removeHeader([[maybe_unused]] const uint32 contigI, [[maybe_unused]] const uint32 headerI){ Throw_gnEx(HeaderIndexOutOfBounds()); }
+	virtual void setReverseComplement( const bool revComp, const uint32 contigI=ALL_CONTIGS){Throw_gnEx(FragmentIndexOutOfBounds());};
+	virtual bool isReverseComplement( const uint32 contigI=ALL_CONTIGS ){return false;}
+	virtual bool isCircular() const{ return false; }
+	virtual void setCircular( const bool value ) {}
 	
 	virtual void globalToLocal(uint32& contigI, gnSeqI& baseI) const{};
 	virtual void localToGlobal(const uint32 contigI, gnSeqI& baseI) const {};
@@ -159,13 +159,13 @@ public:
 		return asdf;
 	}
 
-	virtual boolean ToString( std::string& str, const gnSeqI length=GNSEQI_END, const gnSeqI offset=1 ) const
+	virtual bool ToString( std::string& str, const gnSeqI length=GNSEQI_END, const gnSeqI offset=1 ) const
 	{
 		gnSeqI len = length == GNSEQI_END ? data.size() - offset - 1 : length;
 		str.assign(data.data()+offset-1,len);
 		return true;
 	}
-	virtual boolean ToArray( gnSeqC* pSeqC, gnSeqI length, const gnSeqI offset=1 ) const
+	virtual bool ToArray( gnSeqC* pSeqC, gnSeqI length, const gnSeqI offset=1 ) const
 	{
 		gnSeqI len = length == GNSEQI_END ? data.size() - offset - 1 : length;
 		memcpy(pSeqC, data.data()+offset-1, len);
@@ -180,6 +180,7 @@ public:
 		return *(data.data()+(offset-1));
 	}
 
+	virtual gnSeqI find([[maybe_unused]] const gnSequence& search, [[maybe_unused]] const gnSeqI offset=0) const override {return GNSEQI_ERROR;}
 	virtual gnSeqI find([[maybe_unused]] const gnRAWSequence& search, [[maybe_unused]] const gnSeqI offset=0) const {return GNSEQI_ERROR;}
 	
 private:
