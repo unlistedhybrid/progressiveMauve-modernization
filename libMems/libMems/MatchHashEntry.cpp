@@ -56,7 +56,7 @@ void MatchFinder::LogProgress( ostream* os ){
 	log_stream = os;
 }
 
-boolean MatchFinder::AddSequence( SortedMerList* sar, gnSequence* seq ){
+bool MatchFinder::AddSequence( SortedMerList* sar, gnSequence* seq ){
 	if(sar == NULL){
 		Throw_gnExMsg( NullPointer(), "Null SortedMerList pointer" );
 	}
@@ -169,7 +169,7 @@ void MatchFinder::FindMatchSeeds( const vector<gnSeqI>& start_offsets ){
 boolean print_sp = false;
 //startI must be 0
 //At most search_length mers in any one genome will be checked.
-boolean MatchFinder::SearchRange(vector<gnSeqI>& start_points, vector<gnSeqI>& search_len){
+bool MatchFinder::SearchRange(vector<gnSeqI>& start_points, vector<gnSeqI>& search_len){
 	//picked a semi-arbitrary number for buffer size.
 	uint32 MER_BUFFER_SIZE = 10000;
 	vector<uint32> mer_index;   // stores the indexes of the current mers in mer_vector
@@ -339,7 +339,7 @@ boolean MatchFinder::SearchRange(vector<gnSeqI>& start_points, vector<gnSeqI>& s
 	return true;
 }
 
-boolean MatchFinder::EnumerateMatches( IdmerList& match_list ){
+bool MatchFinder::EnumerateMatches( IdmerList& match_list ){
 	//this must call HashMatch on every possible combination of matches in the list.
 	if(match_list.size() == 2){
 		//this is the smallest possible match.  simply hash it.
