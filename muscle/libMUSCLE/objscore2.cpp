@@ -486,4 +486,9 @@ SCORE ObjScoreXP(const MSA &msa1, const MSA &msa2)
 	return scoreTotal;
 }
 
+SCORE ObjScoreSPDimer(const MSA &msa)
+{
+	return ObjScoreSP(msa);
+}
+
 }
