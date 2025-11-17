@@ -331,7 +331,7 @@ public:
 	 * @param sourcename The location of the data to load.
 	 * @return True if successful.  False otherwise.
 	 */
-	virtual bool LoadSource(const std::string sourcename);
+	[[nodiscard]] virtual bool LoadSource(const std::string sourcename);
 
 	/** Assigns a filter which all sequence data must pass through when
 	 *  read from the object.
@@ -462,7 +462,7 @@ public:
 	 * @param offset The base pair index to start converting.
 	 * @return True if successful, false otherwise.
 	 */
-	virtual bool ToString( std::string& str, const gnSeqI length=GNSEQI_END, const gnSeqI offset=1 ) const;
+	[[nodiscard]] virtual bool ToString( std::string& str, const gnSeqI length=GNSEQI_END, const gnSeqI offset=1 ) const;
 	/**
 	 * Converts the "length" bases starting at "offset" into the character array "pSeqC"..
 	 * After converting, "length" will be set to the actual length of the sequence.
@@ -472,7 +472,7 @@ public:
 	 * @param offset The base pair index to start converting.
 	 * @return True if successful, false otherwise.
 	 */
-	virtual bool ToArray( gnSeqC* pSeqC, gnSeqI length, const gnSeqI offset=1 ) const;
+	[[nodiscard]] virtual bool ToArray( gnSeqC* pSeqC, gnSeqI length, const gnSeqI offset=1 ) const;
 	/**
 	 * Returns the base at "offset".
 	 * @param offset The index of the base to get.
