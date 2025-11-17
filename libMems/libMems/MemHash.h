@@ -58,7 +58,7 @@ public:
 	/**
 	 * Generates exact matches for the sequences loaded into this MemHash 
 	 */
-	virtual boolean CreateMatches();
+	[[nodiscard]] virtual bool CreateMatches();
 
 	/**
 	 * Returns the size of the hash table being used. 
@@ -153,8 +153,8 @@ public:
 	//end void GetMatchList( std::vector<MatchListType*>& mem_list );
 
 protected:
-	virtual boolean EnumerateMatches( IdmerList& match_list );
-	virtual boolean HashMatch(IdmerList& match_list);
+	[[nodiscard]] virtual bool EnumerateMatches( IdmerList& match_list );
+	[[nodiscard]] virtual bool HashMatch(IdmerList& match_list);
 	virtual void SetDirection(MatchHashEntry& mhe);
 	virtual MatchHashEntry* AddHashEntry(MatchHashEntry& mhe);
 	virtual uint32 quadratic_li(uint32 listI){return (listI*(listI+1))/2;}
