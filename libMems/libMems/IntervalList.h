@@ -333,7 +333,6 @@ void GenericIntervalList<MatchType>::WriteXMLAlignment( std::ostream& out_file )
 			GetAlignment( (*this)[ ivI ], seq_table, alignment );
 		for( seqI = 0; seqI < (*this)[ ivI ].SeqCount(); seqI++ ){
 			int64 startI = (*this)[ ivI ].Start( seqI );
-			gnSeqI length = (*this)[ ivI ].Length( seqI );
 			// if this genome doesn't have any sequence in this
 			// interval then skip it...
 			if( startI == 0 &&ivI > 0)	// kludge: write all seqs into the first interval so java parser can read it
