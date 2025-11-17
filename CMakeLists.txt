@@ -8,9 +8,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 set(Boost_DEBUG OFF)
-set(Boost_USE_STATIC_LIBS ON)
+set(Boost_USE_STATIC_LIBS OFF)
 set(Boost_USE_MULTITHREADED ON)
 
+# Try to find Boost 1.89 or higher
 find_package(Boost 1.89 REQUIRED 
     COMPONENTS
     filesystem
@@ -18,6 +19,10 @@ find_package(Boost 1.89 REQUIRED
     program_options
     regex
 )
+
+if(NOT Boost_FOUND)
+    message(FATAL_ERROR "Boost 1.89+ not found. Please install Boost or set BOOST_ROOT environment variable.")
+endif()
 
 message(STATUS "Boost version: ${Boost_VERSION}")
 message(STATUS "Boost include dir: ${Boost_INCLUDE_DIRS}")
