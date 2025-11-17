@@ -404,9 +404,9 @@ IntervalSequenceTree< Key, Allocator >::insert(
 template< class Key, class Allocator >
 template <class InputIterator>
 void IntervalSequenceTree< Key, Allocator >::insert( 
-	InputIterator first, 
-	InputIterator last, 
-	typename IntervalSequenceTree< Key, Allocator >::size_type point )
+	[[maybe_unused]] InputIterator first, 
+	[[maybe_unused]] InputIterator last, 
+	[[maybe_unused]] typename IntervalSequenceTree< Key, Allocator >::size_type point )
 {
 
 }
@@ -537,8 +537,8 @@ void IntervalSequenceTree< Key, Allocator >::propogateChanges(
 
 template< class Key, class Allocator >
 void IntervalSequenceTree< Key, Allocator >::erase( 
-	typename IntervalSequenceTree< Key, Allocator >::iterator first, 
-	typename IntervalSequenceTree< Key, Allocator >::iterator last )
+	[[maybe_unused]] typename IntervalSequenceTree< Key, Allocator >::iterator first, 
+	[[maybe_unused]] typename IntervalSequenceTree< Key, Allocator >::iterator last )
 {
 
 }
@@ -636,7 +636,7 @@ void IntervalSequenceTree< Key, Allocator >::increment( IstNode*& x) {
 }
 
 template< class Key, class Allocator >
-void IntervalSequenceTree< Key, Allocator >::decrement( IstNode*& x) const{
+void IntervalSequenceTree< Key, Allocator >::decrement( IstNode*& x){
 	if( x != NULL ){
 		// find the least-ancestor with another child to the left
 		// and set x to that child
