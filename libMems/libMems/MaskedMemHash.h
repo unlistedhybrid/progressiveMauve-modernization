@@ -29,12 +29,12 @@ public:
 	MaskedMemHash(const MaskedMemHash& mh);
 	MaskedMemHash& operator=( const MaskedMemHash& mh );
 	virtual MaskedMemHash* Clone() const override;
-	virtual void SetMask( uint64 seq_mask ) override { this->seq_mask = seq_mask; }
+	virtual void SetMask( uint64 seq_mask ) { this->seq_mask = seq_mask; }
 protected:
 	/**
 	 * Can't find subsets when there is only one permitted sequence mask!
 	 */
-	virtual void FindSubsets(const Match& mhe, std::vector<Match>& subset_matches) override {};
+	virtual void FindSubsets(const Match& mhe, std::vector<Match>& subset_matches) {};
 	[[nodiscard]] virtual bool HashMatch(std::list<idmer>& match_list) override;
 	uint64 seq_mask;
 };
