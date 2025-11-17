@@ -1891,18 +1891,18 @@ void Aligner::WritePermutation( vector< LCB >& adjacencies, std::string out_file
 		cerr << "Error opening " << out_filename << endl;
 		return;
 	}
-	for( int seqI = 0; seqI < seq_count; seqI++ )
+	for( uint32 seqI = 0; seqI < seq_count; seqI++ )
 	{
 		// find the left-most LCB in this genome
-		int left_lcb = 0;
+		size_t left_lcb = 0;
 		for( ; left_lcb < adjacencies.size(); left_lcb++ )
 		{
 			uint left_adj = adjacencies[left_lcb].left_adjacency[seqI];
-			if( left_adj == -1 )
+			if( left_adj == static_cast<uint>(-1) )
 				break;
 		}
 		// write out lcb id's in order
-		for( uint lcbI = left_lcb; lcbI < adjacencies.size(); )
+		for( size_t lcbI = left_lcb; lcbI < adjacencies.size(); )
 		{
 			if( lcbI != left_lcb )
 				permutation_out << '\t';
@@ -1948,7 +1948,7 @@ void WritePermutationCoordinates( IntervalList& perm_iv_list, std::string out_fi
 	}
 }
 
-void Aligner::RecursiveAnchorSearch( MatchList& mlist, gnSeqI minimum_weight, vector< MatchList >& LCB_list, boolean entire_genome, ostream* status_out ){
+void Aligner::RecursiveAnchorSearch( MatchList& mlist, gnSeqI minimum_weight, vector< MatchList >& LCB_list, bool entire_genome, ostream* status_out ){
 
 //
 // Step 4) Identify regions of collinearity (LCBs) among the remaining n-way multi-MUMs
@@ -1976,7 +1976,7 @@ void Aligner::RecursiveAnchorSearch( MatchList& mlist, gnSeqI minimum_weight, ve
 
 	computeLCBAdjacencies_v2( LCB_list, weights, adjacencies );
 
-	int cur_extension_round = 0;
+	uint cur_extension_round = 0;
 	int64 total_weight = 0;
 	int64 prev_total_weight = 0;
 	weightI = 0;
@@ -2037,7 +2037,7 @@ void Aligner::RecursiveAnchorSearch( MatchList& mlist, gnSeqI minimum_weight, ve
 			for( lcbI = 0; lcbI < LCB_list.size(); lcbI++ ){
 //				if( status_out )
 //					*status_out << "Searching in LCB: " << lcbI << endl;
-				int prev_size = LCB_list[ lcbI ].size();
+				[[maybe_unused]] int prev_size = LCB_list[ lcbI ].size();
 				bool leftmost = true;
 				for( int i = 0; leftmost && i < adjacencies[lcbI].left_adjacency.size(); i++ )
 					if(adjacencies[lcbI].left_adjacency[i] != NO_ADJACENCY)
