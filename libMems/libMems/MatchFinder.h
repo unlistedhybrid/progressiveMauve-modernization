@@ -54,7 +54,7 @@ public:
 	 * @param sar A pointer to the sorted mer list for the new sequence
 	 * @param seq A pointer to the genome::gnSequence corresponding to the new sequence.
 	 */
-	virtual boolean AddSequence( SortedMerList* sar, genome::gnSequence* seq = NULL );
+	virtual bool AddSequence( SortedMerList* sar, genome::gnSequence* seq = NULL );
 	/**
 	 * Given the index of a sequence and an index into the sorted mer list, this function
 	 * will search the other sorted mer lists for the same mer.  This function returns the
@@ -85,10 +85,10 @@ protected:
 	 * @throws InvalidData thrown if the start_points are bad or if the sorted mer lists were sorted on different mer sizes
 	 * @return true if completed searching, false if repetitive mers were encountered and FindMatches must be called again.
 	 */
-	virtual boolean SearchRange(std::vector<gnSeqI>& start_points, std::vector<gnSeqI>& search_len);
+	[[nodiscard]] virtual bool SearchRange(std::vector<gnSeqI>& start_points, std::vector<gnSeqI>& search_len);
 	/** Called whenever a mer match is found */
-	virtual boolean HashMatch(IdmerList& match_list) = 0;
-	virtual boolean EnumerateMatches(IdmerList& match_list);
+	[[nodiscard]] virtual bool HashMatch(IdmerList& match_list) = 0;
+	[[nodiscard]] virtual bool EnumerateMatches(IdmerList& match_list);
 
 	template< class MatchType >
 	void FindSubsets(const MatchType& mhe, std::vector<MatchType>& subset_matches);
@@ -178,7 +178,7 @@ void MatchFinder::FindSubsets(const MatchType& mhe, std::vector<MatchType>& subs
 
 		uint64 cur_mer = GetSar( seqI )->GetMer( mer_to_get - 1 );
 
-		boolean parity;
+		bool parity;
 		if( mhe[ seqI ] < 0 )
 			parity = cur_mer & 0x1;
 		else
@@ -233,7 +233,7 @@ void MatchFinder::ExtendMatch(UngappedMatchType& mhe, std::vector<UngappedMatchT
 	int jump_size = GetSar(0)->SeedLength();
 	uint extend_limit = 0;	/**< Tracks the distance to the most distant overlapping matching seed */
 	uint extend_attempts = 0;	/**< Counts the total number of overlapping seeds checked */
-	boolean extend_again = false;	/**< Set to true if any overlapping seeds matched, the search will be restarted from that point */
+	bool extend_again = false;	/**< Set to true if any overlapping seeds matched, the search will be restarted from that point */
 	for(uint32 directionI = 0; directionI < 4; ++directionI){
 		//how far can we go?	
 		//first calculate the maximum amount of traversal
@@ -278,7 +278,7 @@ void MatchFinder::ExtendMatch(UngappedMatchType& mhe, std::vector<UngappedMatchT
 				mer_to_get += mhe.Length() - GetSar(0)->SeedLength();
 			}
 			cur_mer = GetSar(cur_seqs[0])->GetSeedMer(mer_to_get - 1);
-			boolean parity;
+			bool parity;
 			if( mhe[cur_seqs[0]] < 0 )
 				parity = cur_mer & 0x1;
 			else
@@ -293,7 +293,7 @@ void MatchFinder::ExtendMatch(UngappedMatchType& mhe, std::vector<UngappedMatchT
 					mer_to_get += mhe.Length() - GetSar(0)->SeedLength();
 				}
 				uint64 comp_mer = GetSar(cur_seqs[i])->GetSeedMer(mer_to_get - 1);
-				boolean comp_parity;				
+				bool comp_parity;				
 				if( mhe[cur_seqs[i]] < 0 )
 					comp_parity = comp_mer & 0x1;
 				else
