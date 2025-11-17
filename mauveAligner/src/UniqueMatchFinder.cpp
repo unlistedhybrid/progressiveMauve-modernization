@@ -33,7 +33,7 @@ UniqueMatchFinder* UniqueMatchFinder::Clone() const{
 
 
 // enumerate out every pairwise match
-boolean UniqueMatchFinder::EnumerateMatches( IdmerList& match_list ){
+bool UniqueMatchFinder::EnumerateMatches( IdmerList& match_list ){
 
 	match_list.sort(&idmer_id_lessthan);
 	IdmerList::iterator iter = match_list.begin();
@@ -53,7 +53,7 @@ boolean UniqueMatchFinder::EnumerateMatches( IdmerList& match_list ){
 		++iter;
 	}
 	// hash all unique seeds
-	boolean success = true;
+	bool success = true;
 	if( unique_list.size() >= 2 )
 		success = HashMatch(unique_list);
 	return success;
