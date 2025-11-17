@@ -119,7 +119,7 @@ void TextFile::PutChar(char c)
 
 void TextFile::PutString(const char szLine[])
 	{
-	int iError = fputs(szLine, m_ptrFile);
+	[[maybe_unused]] int iError = fputs(szLine, m_ptrFile);
 	assert(iError >= 0);
 	}
 
@@ -353,6 +353,4 @@ bool TextFile::SkipWhiteX()
 		}
 	return false;
 	}
-} 
-
-
+}
