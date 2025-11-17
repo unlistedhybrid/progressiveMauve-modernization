@@ -84,7 +84,7 @@ public:
 	}
 	virtual void merge(const gnSeqI startI, const gnSeqI endI){ throw; }
 	virtual void mergeContigs(const uint32 startC, const uint32 endC){ throw; }
-	virtual void splitContig(const gnSeqI splitI, const uint32 contigI=ALL_CONTIGS) { throw; }
+	virtual void splitContig(const gnSeqI splitI, [[maybe_unused]] const uint32 contigI=ALL_CONTIGS) { throw; }
 
 	virtual void setContigName( const uint32 contigI, const std::string& contig_name) { throw; }
 
@@ -109,7 +109,7 @@ public:
 	virtual void globalToLocal(uint32& contigI, gnSeqI& baseI) const{};
 	virtual void localToGlobal(const uint32 contigI, gnSeqI& baseI) const {};
 	virtual void globalToSource(uint32& contigI, gnSeqI& baseI) const{};
-	virtual void localToSource(uint32& contigI, gnSeqI& baseI) const{};
+	virtual void localToSource(uint32& contigI, [[maybe_unused]] gnSeqI& baseI) const{};
 	virtual bool LoadSource(const std::string sourcename){
 		data.open( sourcename );
 		filename = sourcename;
