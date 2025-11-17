@@ -19,6 +19,7 @@
 #include <vector>
 #include <limits>
 #include <cstring>
+#include <stdexcept>
 namespace mems {
 
 /**
@@ -71,7 +72,7 @@ public:
 	virtual void MoveStart(int64 move_amount);
 	virtual void MoveEnd(int64 move_amount);
 
-	virtual boolean operator==( const HybridAbstractMatch& ham ) const;
+	virtual bool operator==( const HybridAbstractMatch& ham ) const;
 
 	virtual uint UsedSeq( uint seqI ) const { 
 		if(seqI < FIXED_SEQ_COUNT) return fixed_seq_ids[seqI];
@@ -104,14 +105,14 @@ void HybridAbstractMatch< FIXED_SEQ_COUNT, gnSeqIAlloc, uintAlloc >::swap( Hybri
 	std::swap( m_seq_count, other->m_seq_count );
 
 	uint tmp_ids[FIXED_SEQ_COUNT];
-	for( int i = 0; i < FIXED_SEQ_COUNT; i++ ) tmp_ids[i] = other->fixed_seq_ids[i];
-	for( int i = 0; i < FIXED_SEQ_COUNT; i++ ) other->fixed_seq_ids[i] = fixed_seq_ids[i];
-	for( int i = 0; i < FIXED_SEQ_COUNT; i++ ) fixed_seq_ids[i] = tmp_ids[i];
+	for( std::size_t i = 0; i < FIXED_SEQ_COUNT; i++ ) tmp_ids[i] = other->fixed_seq_ids[i];
+	for( std::size_t i = 0; i < FIXED_SEQ_COUNT; i++ ) other->fixed_seq_ids[i] = fixed_seq_ids[i];
+	for( std::size_t i = 0; i < FIXED_SEQ_COUNT; i++ ) fixed_seq_ids[i] = tmp_ids[i];
 
 	int64 tmp_starts[FIXED_SEQ_COUNT];
-	for( int i = 0; i < FIXED_SEQ_COUNT; i++ ) tmp_starts[i] = other->fixed_starts[i];
-	for( int i = 0; i < FIXED_SEQ_COUNT; i++ ) other->fixed_starts[i] = fixed_starts[i];
-	for( int i = 0; i < FIXED_SEQ_COUNT; i++ ) fixed_starts[i] = tmp_starts[i];
+	for( std::size_t i = 0; i < FIXED_SEQ_COUNT; i++ ) tmp_starts[i] = other->fixed_starts[i];
+	for( std::size_t i = 0; i < FIXED_SEQ_COUNT; i++ ) other->fixed_starts[i] = fixed_starts[i];
+	for( std::size_t i = 0; i < FIXED_SEQ_COUNT; i++ ) fixed_starts[i] = tmp_starts[i];
 
 	std::swap( seq_ids, other->seq_ids );
 	std::swap( starts, other->starts );
@@ -257,7 +258,7 @@ void HybridAbstractMatch< FIXED_SEQ_COUNT, gnSeqIAlloc, uintAlloc >::SetOrientat
 	}
 	uint posI = SeqToIndex( seqI );
 	if( posI == NO_SEQ )
-		throw "ArrayIndexOutOfBounds!\n";
+		throw std::out_of_range("ArrayIndexOutOfBounds");
 	int oi = o == reverse ? -1 : 1;
 	if( posI < FIXED_SEQ_COUNT )
 	{
@@ -290,7 +291,7 @@ void HybridAbstractMatch< FIXED_SEQ_COUNT, gnSeqIAlloc, uintAlloc >::MoveEnd(int
 }
 
 template< unsigned FIXED_SEQ_COUNT, class gnSeqIAlloc, class uintAlloc >
-boolean HybridAbstractMatch< FIXED_SEQ_COUNT, gnSeqIAlloc, uintAlloc >::operator==( const HybridAbstractMatch< FIXED_SEQ_COUNT, gnSeqIAlloc, uintAlloc >& sam ) const
+bool HybridAbstractMatch< FIXED_SEQ_COUNT, gnSeqIAlloc, uintAlloc >::operator==( const HybridAbstractMatch< FIXED_SEQ_COUNT, gnSeqIAlloc, uintAlloc >& sam ) const
 {
 	for( size_t i = 0; i < FIXED_SEQ_COUNT; ++i )
 	{
