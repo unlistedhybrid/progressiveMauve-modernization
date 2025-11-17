@@ -26,20 +26,20 @@ using namespace genome;
 namespace mems {
 
 
-boolean validateLCB( MatchList& lcb );
+bool validateLCB( MatchList& lcb );
 void validateRangeIntersections( vector< MatchList >& lcb_list  );
 bool debug_shite = false;
 
 /**
  * Test code to ensure that an individual LCB is truly collinear
  */
-boolean validateLCB( MatchList& lcb ){
+bool validateLCB( MatchList& lcb ){
 	vector< Match* >::iterator lcb_iter = lcb.begin();
 	if( lcb.size() == 0 )
 		return true;
 	uint seq_count = (*lcb_iter)->SeqCount();
 	uint seqI = 0;
-	boolean complain = false;
+	bool complain = false;
 	for(; seqI < seq_count; seqI++ ){
 		lcb_iter = lcb.begin();
 		int64 prev_coord = 0;
@@ -85,7 +85,7 @@ void EliminateOverlaps( MatchList& ml ){
 				if( ml[ nextI ] == NULL )
 					continue;
 
-				boolean deleted_matchI = false;
+				bool deleted_matchI = false;
 				// check for overlaps
 				int64 startI = ml[ matchI ]->Start( seqI );
 				int64 lenI = ml[ matchI ]->Length();
@@ -242,7 +242,7 @@ void Aligner::SetMaxGappedAlignmentLength( gnSeqI len ){
 
 
 /* returns true if all labels between start_label and end_label are contained in the no_match_labels set */
-void scanLabels( set< uint >& no_match_labels, uint& start_label, boolean forward ){
+void scanLabels( set< uint >& no_match_labels, uint& start_label, bool forward ){
 	uint labelI;
 	// scan no_match_labels for consecutive labels starting at start_label until one is missing
 	if( forward ){
@@ -264,7 +264,7 @@ void scanLabels( set< uint >& no_match_labels, uint& start_label, boolean forwar
 	}
 }
 
-boolean checkCollinearity( Match* m1, Match* m2 ){
+bool checkCollinearity( Match* m1, Match* m2 ){
 	for( uint seqI = 0; seqI < m1->SeqCount(); seqI++ ){
 		if( m1->Start( seqI ) == NO_MATCH ||
 			m2->Start( seqI ) == NO_MATCH )
@@ -330,7 +330,7 @@ void scanFit( list< LabeledMem >& pair_list, list< LabeledMem >::iterator& list_
 	for( matchI = match_count; matchI > 0; matchI-- )
 		scores.push_back( 0 );
 	for( uint seqI = 0; seqI < new_match->SeqCount() - sort_seq - 1; ++seqI ){
-		boolean redefined = false;
+		bool redefined = false;
 		for( matchI = match_count; matchI > 0; matchI-- ){
 			if( !redefined ){
 				if( score_vector[ seqI ][ matchI - 1 ] >= 0 ){
@@ -376,7 +376,7 @@ void AaronsLCB( MatchList& mlist, set<uint>& breakpoints ){
 	list<LabeledMem> pair_list;
 	
 	map<uint, Match*> debug_label_map;
-	boolean debugging = false;
+	bool debugging = false;
 	
 	
 	list< PlacementMatch > placement_list;
@@ -458,7 +458,7 @@ void AaronsLCB( MatchList& mlist, set<uint>& breakpoints ){
 			placement_iter->iter--;
 		}
 	}
-	boolean debug_labels = false;
+	bool debug_labels = false;
 	ofstream debug_label_file;
 	if( debug_labels )
 		debug_label_file.open( "label_debug.txt" );
@@ -717,14 +717,14 @@ void scanRight( int& right_recurseI, vector< LCB >& adjacencies, int min_weight,
   * start positions organized as iv_regions[ seqI ][ lcbI * 2 ]
   * end positions organized as iv_regions[ seqI ][ lcbI * 2 + 1 ] 
  */
-void CreateGapSearchList( vector< LCB >& adjacencies, const vector< gnSequence* >& seq_table, vector< vector< int64 > >& iv_regions, boolean entire_genome ) 
+void CreateGapSearchList( vector< LCB >& adjacencies, const vector< gnSequence* >& seq_table, vector< vector< int64 > >& iv_regions, bool entire_genome ) 
 {
 	iv_regions.clear();
 	if( adjacencies.size() == 0 )
 		return;		// there aren't any intervening LCB regions!
 	if( adjacencies.size() == 1 && !entire_genome )
 		return; 	// there aren't any interveniing LCB regions in the local area
-	boolean debug_lcb_extension = false;	/**< enables debugging output */
+	bool debug_lcb_extension = false;	/**< enables debugging output */
 	const uint seq_count = seq_table.size();
 
 	uint seqI = 0;
@@ -791,7 +791,7 @@ void SearchLCBGaps( MatchList& new_matches, const std::vector< std::vector< int6
 	if( sI == iv_regions.size() )
 		return;		// there aren't any intervening LCB regions!
 
-	boolean debug_lcb_extension = false;	/**< enables debugging output */
+	bool debug_lcb_extension = false;	/**< enables debugging output */
 
 	const uint seq_count = new_matches.seq_table.size();
 	uint seqI = 0;
@@ -843,7 +843,7 @@ void SearchLCBGaps( MatchList& new_matches, const std::vector< std::vector< int6
 	
 	//	Create sorted mer lists for the intervening gap region
 	vector< boost::filesystem::path > delete_files;
-	boolean create_succeeded = true;
+	bool create_succeeded = true;
 	for( seqI = 0; seqI < seq_count; seqI++ ){
 		gap_list.sml_table[ seqI ]->Clear();
 		try{
@@ -943,7 +943,7 @@ public:
 		m_seq = msc.m_seq;
 	}
 	// TODO??  make this do a wraparound comparison if all is equal?
-	boolean operator()(const AbstractMatch* a, const AbstractMatch* b) const{
+	bool operator()(const AbstractMatch* a, const AbstractMatch* b) const{
 		int32 start_diff = max( a->FirstStart(), m_seq ) - max( b->FirstStart(), m_seq );
 		if(start_diff == 0){
 			uint32 m_count = a->SeqCount();
@@ -1080,7 +1080,7 @@ void Aligner::Recursion( MatchList& r_list, Match* r_begin, Match* r_end, bool n
 	gnSeqI gap_size = 0;
 	uint seqI = 0;
 //	gnSeqI min_gap_size = 0;
-	boolean create_ok = true;
+	bool create_ok = true;
 	// create gnSequences for each intervening region
 	// create a MatchList for the intervening region
 	MatchList gap_list;
@@ -1236,7 +1236,7 @@ void Aligner::Recursion( MatchList& r_list, Match* r_begin, Match* r_end, bool n
 			// move all the matches that were found
 			vector< Match* >::iterator mum_iter = gap_list.begin();
 			for( ; mum_iter != gap_list.end(); ){
-				boolean add_ok = true;
+				bool add_ok = true;
 				for( uint seqI = 0; seqI < (*mum_iter)->SeqCount(); ++seqI ){
 					int64 gap_start;
 					if( (*mum_iter)->Start( seqI ) == NO_MATCH )
@@ -1375,7 +1375,7 @@ void Aligner::AlignLCB( MatchList& mlist, Interval& iv ){
 	}
 
 	vector< AbstractMatch* > iv_matches;
-	boolean debug_recurse = false;
+	bool debug_recurse = false;
 	int64 config_value = 138500;
 	int print_interval = 50;
 	try{
@@ -1421,7 +1421,7 @@ void Aligner::AlignLCB( MatchList& mlist, Interval& iv ){
 		// and add them to r_list		
 		r_list.clear();
 		GappedAlignment* cr = NULL;
-		boolean align_success = false;
+		bool align_success = false;
 		
 		Match* r_lend = NULL;
 		Match* r_rend = NULL;
@@ -1474,7 +1474,7 @@ void Aligner::SearchWithinLCB( MatchList& mlist, std::vector< search_cache_t >& 
 	if( !(leftmost || rightmost) && mlist.size() < 2 )
 		return;
 
-	boolean debug_recurse = false;
+	bool debug_recurse = false;
 	int64 config_value = 138500;
 	int print_interval = 50;
 
@@ -1621,7 +1621,7 @@ int64 greedyBreakpointElimination( gnSeqI minimum_weight, vector< LCB >& adjacen
 	gnSeqI prev_min_weight = 0;
 	uint min_lcb = 0;
 	uint lcb_count = adjacencies.size();
-	boolean debug_bp_elimination = false;
+	bool debug_bp_elimination = false;
 	uint current_lcbI = 0;	/**< tracks how many of the LCBs are above the min weight */
 
 	if( adjacencies.size() == 0 )
@@ -1733,10 +1733,10 @@ int64 greedyBreakpointElimination( gnSeqI minimum_weight, vector< LCB >& adjacen
 			}
 
 			// check whether the two LCBs are adjacent in each sequence
-			boolean orientation = adjacencies[ left_adj ].left_end[ seqI ] > 0 ? true : false;
+			bool orientation = adjacencies[ left_adj ].left_end[ seqI ] > 0 ? true : false;
 			uint seqJ;
 			for( seqJ = 0; seqJ < seq_count; seqJ++ ){
-				boolean j_orientation = adjacencies[ left_adj ].left_end[ seqJ ] > 0;
+				bool j_orientation = adjacencies[ left_adj ].left_end[ seqJ ] > 0;
 				if( j_orientation == orientation &&
 					adjacencies[ left_adj ].right_adjacency[ seqJ ] != right_adj )
 					break;
@@ -1762,7 +1762,7 @@ int64 greedyBreakpointElimination( gnSeqI minimum_weight, vector< LCB >& adjacen
 			// unlink right_adj from the adjacency list and
 			// update left and right ends of left_adj
 			for( seqJ = 0; seqJ < seq_count; seqJ++ ){
-				boolean j_orientation = adjacencies[ left_adj ].left_end[ seqJ ] > 0;
+				bool j_orientation = adjacencies[ left_adj ].left_end[ seqJ ] > 0;
 				uint rr_adj = adjacencies[ right_adj ].right_adjacency[ seqJ ];
 				uint rl_adj = adjacencies[ right_adj ].left_adjacency[ seqJ ];
 				if( j_orientation == orientation ){
@@ -2190,7 +2190,7 @@ void Aligner::RecursiveAnchorSearch( MatchList& mlist, gnSeqI minimum_weight, ve
  * 
  */
 
-void Aligner::align( MatchList& mlist, IntervalList& interval_list, double LCB_minimum_density, double LCB_minimum_range, boolean recursive, boolean extend_lcbs, boolean gapped_alignment, string tree_filename ){
+void Aligner::align( MatchList& mlist, IntervalList& interval_list, double LCB_minimum_density, double LCB_minimum_range, bool recursive, bool extend_lcbs, bool gapped_alignment, string tree_filename ){
 	seq_count = mlist.seq_table.size();
 	this->LCB_minimum_density = LCB_minimum_density;
 	this->LCB_minimum_range = LCB_minimum_range;
