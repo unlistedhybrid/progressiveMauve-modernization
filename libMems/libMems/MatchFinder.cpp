@@ -56,7 +56,7 @@ void MatchFinder::LogProgress( ostream* os ){
 	log_stream = os;
 }
 
-boolean MatchFinder::AddSequence( SortedMerList* sar, gnSequence* seq ){
+bool MatchFinder::AddSequence( SortedMerList* sar, gnSequence* seq ){
 	if(sar == NULL){
 		Throw_gnExMsg( NullPointer(), "Null SortedMerList pointer" );
 	}
@@ -166,10 +166,10 @@ void MatchFinder::FindMatchSeeds( const vector<gnSeqI>& start_offsets ){
 #define MER_REPEAT_LIMIT 1000 // The maximum number of matching mers before they are completely
 								// ignored.
 
-boolean print_sp = false;
+bool print_sp = false;
 //startI must be 0
 //At most search_length mers in any one genome will be checked.
-boolean MatchFinder::SearchRange(vector<gnSeqI>& start_points, vector<gnSeqI>& search_len){
+bool MatchFinder::SearchRange(vector<gnSeqI>& start_points, vector<gnSeqI>& search_len){
 	//picked a semi-arbitrary number for buffer size.
 	uint32 MER_BUFFER_SIZE = 10000;
 	vector<uint32> mer_index;   // stores the indexes of the current mers in mer_vector
@@ -277,7 +277,7 @@ boolean MatchFinder::SearchRange(vector<gnSeqI>& start_points, vector<gnSeqI>& s
 		}
 		//check for matches within the same genome
 		gnSeqI merI = mer_index[cur_id];
-		boolean buffer_exhausted = merI < mer_vector[cur_id].size() ? false : true;
+		bool buffer_exhausted = merI < mer_vector[cur_id].size() ? false : true;
 		while(!buffer_exhausted && (mer_iter->mer == (mer_vector[cur_id][merI].mer & mer_mask))){
 			newmer.position = mer_vector[cur_id][merI].position;
 			newmer.mer = mer_vector[cur_id][merI].mer & mer_mask;
@@ -339,7 +339,7 @@ boolean MatchFinder::SearchRange(vector<gnSeqI>& start_points, vector<gnSeqI>& s
 	return true;
 }
 
-boolean MatchFinder::EnumerateMatches( IdmerList& match_list ){
+bool MatchFinder::EnumerateMatches( IdmerList& match_list ){
 	//this must call HashMatch on every possible combination of matches in the list.
 	if(match_list.size() == 2){
 		//this is the smallest possible match.  simply hash it.
@@ -392,7 +392,7 @@ boolean MatchFinder::EnumerateMatches( IdmerList& match_list ){
 	return true;
 }
 /*
-boolean MatchFinder::MatchAmbiguities(MatchHashEntry& mhe, uint32 match_size){
+bool MatchFinder::MatchAmbiguities(MatchHashEntry& mhe, uint32 match_size){
 	if(ambiguity_tolerance == 0)
 		return false;
 			//check that all mers at the new position match
