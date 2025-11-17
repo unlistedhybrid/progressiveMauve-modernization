@@ -110,7 +110,7 @@ public:
 	virtual void localToGlobal(const uint32 contigI, gnSeqI& baseI) const {};
 	virtual void globalToSource(uint32& contigI, gnSeqI& baseI) const{};
 	virtual void localToSource(uint32& contigI, [[maybe_unused]] gnSeqI& baseI) const{};
-	virtual bool LoadSource(const std::string sourcename){
+	[[nodiscard]] virtual bool LoadSource(const std::string sourcename){
 		data.open( sourcename );
 		filename = sourcename;
 		return true;
@@ -159,13 +159,13 @@ public:
 		return asdf;
 	}
 
-	virtual bool ToString( std::string& str, const gnSeqI length=GNSEQI_END, const gnSeqI offset=1 ) const
+	[[nodiscard]] virtual bool ToString( std::string& str, const gnSeqI length=GNSEQI_END, const gnSeqI offset=1 ) const
 	{
 		gnSeqI len = length == GNSEQI_END ? data.size() - offset - 1 : length;
 		str.assign(data.data()+offset-1,len);
 		return true;
 	}
-	virtual bool ToArray( gnSeqC* pSeqC, gnSeqI length, const gnSeqI offset=1 ) const
+	[[nodiscard]] virtual bool ToArray( gnSeqC* pSeqC, gnSeqI length, const gnSeqI offset=1 ) const
 	{
 		gnSeqI len = length == GNSEQI_END ? data.size() - offset - 1 : length;
 		memcpy(pSeqC, data.data()+offset-1, len);
