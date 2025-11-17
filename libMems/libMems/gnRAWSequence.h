@@ -180,7 +180,7 @@ public:
 		return *(data.data()+(offset-1));
 	}
 
-	virtual gnSeqI find(const gnRAWSequence& search, const gnSeqI offset=0) const {return GNSEQI_ERROR;}
+	virtual gnSeqI find([[maybe_unused]] const gnRAWSequence& search, [[maybe_unused]] const gnSeqI offset=0) const {return GNSEQI_ERROR;}
 	
 private:
 	boost::iostreams::mapped_file_source data;
