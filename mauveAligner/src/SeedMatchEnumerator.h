@@ -32,11 +32,11 @@ public:
 		match_list.insert( match_list.end(), mlist.begin(), mlist.end() );
 	}
 
-	virtual boolean CreateMatches();
+	virtual bool CreateMatches();
 protected:
 
-	virtual boolean EnumerateMatches( mems::IdmerList& match_list );
-	virtual boolean HashMatch(mems::IdmerList& match_list);
+	virtual bool EnumerateMatches( mems::IdmerList& match_list );
+	virtual bool HashMatch(mems::IdmerList& match_list);
 	virtual mems::SortedMerList* GetSar(uint32 sarI) const;
 	mems::MatchList mlist;
 	void SetDirection(mems::Match& mhe);
@@ -56,7 +56,7 @@ mems::SortedMerList* SeedMatchEnumerator::GetSar(uint32 sarI) const{
 	return sar_table[0];
 }
 
-boolean SeedMatchEnumerator::CreateMatches(){
+bool SeedMatchEnumerator::CreateMatches(){
 	if(seq_count == 1){
 		MatchFinder::FindMatchSeeds();
 		return true;
@@ -64,11 +64,11 @@ boolean SeedMatchEnumerator::CreateMatches(){
 	return false;
 }
 
-boolean SeedMatchEnumerator::EnumerateMatches( mems::IdmerList& match_list ){
+bool SeedMatchEnumerator::EnumerateMatches( mems::IdmerList& match_list ){
 	return HashMatch(match_list);
 }
 
-boolean SeedMatchEnumerator::HashMatch(mems::IdmerList& match_list){
+bool SeedMatchEnumerator::HashMatch(mems::IdmerList& match_list){
 	//check that there is at least one forward component
 	match_list.sort(&mems::idmer_position_lessthan);
 	// initialize the hash entry
