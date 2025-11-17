@@ -637,31 +637,32 @@ void IntervalSequenceTree< Key, Allocator >::increment( IstNode*& x) {
 
 template< class Key, class Allocator >
 void IntervalSequenceTree< Key, Allocator >::decrement( IstNode*& x){
-	if( x != NULL ){
-		// find the least-ancestor with another child to the left
-		// and set x to that child
-		while( x->parent != NULL ){
-			if( x == x->parent->right &&
-				x->parent->left != NULL){
-				x = x->parent->left;
-				break;
-			}else
-				x = x->parent;
-		}
-		// if there was no other children to the left then we're at the end
-		// raise hell! (cause an access violation)
-		if( x->parent == NULL )
-			x = NULL;
-	}else{
-		x = root;
+	if( x == NULL ){
+		throw "decrementing out of bounds!";
 	}
 	
-	// find the right-most leaf node below x
-	while( x->key == NULL ){
-		if( x->right != NULL )
-			x = x->right;
-		else if( x->left != NULL )
-			x = x->left;
+	// find the least-ancestor with another child to the left
+	// and set x to that child
+	while( x->parent != NULL ){
+		if( x == x->parent->right &&
+			x->parent->left != NULL){
+			x = x->parent->left;
+			break;
+		}else
+			x = x->parent;
+	}
+	// if there was no other children to the left then we're at the end
+	if( x->parent == NULL )
+		x = NULL;
+	
+	// find the right-most leaf node below x if needed
+	if( x != NULL ){
+		while( x->key == NULL ){
+			if( x->right != NULL )
+				x = x->right;
+			else if( x->left != NULL )
+				x = x->left;
+		}
 	}
 }
 
