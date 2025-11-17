@@ -4,6 +4,11 @@
 
 #include "libGenome/gnSequence.h"
 #include "libGenome/gnRAWSource.h"
+#include <iostream>
+#include <string>
+
+using namespace std;
+using namespace genome;
 
 int main( int argc, char* argv[] ){
 
