@@ -939,7 +939,7 @@ public:
 	MatchLeftEndComparator( unsigned seq = 0 ){
 		m_seq = seq;
 	}
-	MatchLeftEndComparator( MatchLeftEndComparator& msc ){
+	MatchLeftEndComparator( const MatchLeftEndComparator& msc ){
 		m_seq = msc.m_seq;
 	}
 	// TODO??  make this do a wraparound comparison if all is equal?
