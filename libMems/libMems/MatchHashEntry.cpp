@@ -21,7 +21,7 @@ MatchHashEntry::MatchHashEntry() : m_extended(false), m_mersize(0), m_offset(0)
 }
 
 MatchHashEntry::MatchHashEntry(const uint seq_count, const gnSeqI mersize, const MemType m_type)
-	: Match(seq_count, mersize), m_mersize(mersize), m_offset(0)
+	: m_mersize(mersize), m_offset(0)
 {
 	m_extended = (m_type == extended);
 }
