@@ -869,12 +869,9 @@ void GisSplayTree< Key, Allocator >::increment( GisNode*& x){
 
 template< class Key, class Allocator >
 void GisSplayTree< Key, Allocator >::decrement( GisNode*& x) {
-	// if x is null find the rightmost node
+	// if x is null we're at the beginning
 	if( x == NULL ){
-		x = root;
-		while( x->right != NULL )
-			x = x->right;
-		return;
+		throw "decrementing out of bounds!";
 	}
 
 	// if x has a left child, find its rightmost descendant
