@@ -19,7 +19,7 @@ jobs:
         tar xzf boost-1.89.0-cmake.tar.gz
         cd boost-1.89.0
         mkdir build && cd build
-        cmake .. -DCMAKE_INSTALL_PREFIX=/usr/local
+        cmake .. -DCMAKE_INSTALL_PREFIX=/usr/local -DBUILD_SHARED_LIBS=ON
         sudo cmake --build . --target install -j$(nproc)
     
     - name: Install dependencies (macOS)
