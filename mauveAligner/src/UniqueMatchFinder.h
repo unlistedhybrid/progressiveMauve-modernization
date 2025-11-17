@@ -28,7 +28,7 @@ public:
 	virtual UniqueMatchFinder* Clone() const;
 protected:
 
-	virtual boolean EnumerateMatches( mems::IdmerList& match_list );
+	virtual bool EnumerateMatches( mems::IdmerList& match_list );
 };
 
 #endif //_UniqueMatchFinder_h_
