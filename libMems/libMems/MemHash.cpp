@@ -101,7 +101,7 @@ void MemHash::SetTableSize(uint32 new_table_size){
 	mem_table_count.resize(table_size,0);
 }
 
-boolean MemHash::CreateMatches(){
+bool MemHash::CreateMatches(){
 	MatchFinder::FindMatchSeeds();
 	return true;
 }
@@ -136,7 +136,7 @@ MatchList MemHash::GetMatchList() const{
 }
 
 // an attempt to do this without sorting, which appears to be very slow...
-boolean MemHash::EnumerateMatches( IdmerList& match_list )
+bool MemHash::EnumerateMatches( IdmerList& match_list )
 {
 	vector< uint > enum_tally(seq_count, 0);
 	IdmerList::iterator iter = match_list.begin();
@@ -164,7 +164,7 @@ boolean MemHash::EnumerateMatches( IdmerList& match_list )
 //why have separate hash tables? dunno.  no reason.  what was i thinking
 // at that coffeehouse in portland when i wrote this crappy code?
 // MemHashEntries use GENETICIST coordinates.  They start at 1, not 0.
-boolean MemHash::HashMatch(IdmerList& match_list){
+bool MemHash::HashMatch(IdmerList& match_list){
 	//check that there is at least one forward component
 //	match_list.sort(&idmer_id_lessthan);
 	// initialize the hash entry
@@ -188,7 +188,7 @@ boolean MemHash::HashMatch(IdmerList& match_list){
 
 void MemHash::SetDirection(MatchHashEntry& mhe){
 	//get the reference direction
-	boolean ref_forward = false;
+	bool ref_forward = false;
 	uint32 seqI=0;
 	for(; seqI < mhe.SeqCount(); ++seqI)
 		if(mhe[seqI] != NO_MATCH){
