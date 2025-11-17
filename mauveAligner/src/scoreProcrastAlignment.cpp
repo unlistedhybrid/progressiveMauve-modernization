@@ -42,9 +42,9 @@ typedef struct aligned_coords_s {
 class AlignedCoordSeqIComparator {
 public:
 	boolean operator()(const aligned_coords_t& a, const aligned_coords_t& b) const{
-		if( abs_int64(a.pos1) == abs_int64(b.pos1) )
-			return abs_int64(a.pos2) < abs_int64(b.pos2);
-		return abs_int64(a.pos1) < abs_int64(b.pos1);
+		if( std::abs(a.pos1) == std::abs(b.pos1) )
+			return std::abs(a.pos2) < std::abs(b.pos2);
+		return std::abs(a.pos1) < std::abs(b.pos1);
 	}
 };
 
