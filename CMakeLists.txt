@@ -1,12 +1,14 @@
 cmake_minimum_required(VERSION 3.16)
 project(ProgressiveMauveModern LANGUAGES C CXX)
 
+cmake_policy(SET CMP0167 OLD)
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 set(Boost_DEBUG OFF)
-set(Boost_USE_STATIC_LIBS OFF)
+set(Boost_USE_STATIC_LIBS ON)
 set(Boost_USE_MULTITHREADED ON)
 
 find_package(Boost 1.89 REQUIRED 
@@ -22,16 +24,9 @@ message(STATUS "Boost include dir: ${Boost_INCLUDE_DIRS}")
 message(STATUS "Boost library dir: ${Boost_LIBRARY_DIRS}")
 message(STATUS "Boost libraries: ${Boost_LIBRARIES}")
 
-if(NOT Boost_FOUND)
-    message(FATAL_ERROR "Boost 1.89 not found. Install with:")
-    message(FATAL_ERROR "  macOS: brew install boost")
-    message(FATAL_ERROR "  Linux: sudo apt-get install libboost-all-dev")
-endif()
-
 add_library(BoostInterface INTERFACE IMPORTED)
 set_target_properties(BoostInterface PROPERTIES
     INTERFACE_INCLUDE_DIRECTORIES "${Boost_INCLUDE_DIRS}"
-    INTERFACE_LINK_DIRECTORIES "${Boost_LIBRARY_DIRS}"
     INTERFACE_LINK_LIBRARIES "${Boost_LIBRARIES}"
 )
 
@@ -41,6 +36,8 @@ if(NOT MSVC)
         -Wno-unused-parameter
     )
 endif()
+
+link_directories(${Boost_LIBRARY_DIRS})
 
 if(MSVC)
     add_compile_options(/W3 /permissive- /std:c++17)
@@ -67,8 +64,6 @@ include_directories(
     ${PROJECT_SOURCE_DIR}/mauveAligner
     ${PROJECT_SOURCE_DIR}/mauveAligner/src
 )
-
-link_directories(${Boost_LIBRARY_DIRS})
 
 add_subdirectory(libGenome)
 add_subdirectory(libMems)
