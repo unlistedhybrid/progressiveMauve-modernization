@@ -75,7 +75,7 @@ char** parseCommand( const string& cmd ){
 		}
 	}
 	char ** cmd_array = new char*[ cmd_tokens.size() + 1 ];
-	for( int tokI = 0; tokI < cmd_tokens.size(); tokI++ ){
+	for( size_t tokI = 0; tokI < cmd_tokens.size(); tokI++ ){
 		cmd_array[ tokI ] = new char[ cmd_tokens[ tokI ].length() + 1 ];
 		strcpy( cmd_array[ tokI ], cmd_tokens[ tokI ].c_str() );
 	}
