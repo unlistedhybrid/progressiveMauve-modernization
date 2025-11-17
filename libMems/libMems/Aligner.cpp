@@ -1075,7 +1075,7 @@ void ComputeLCBs( MatchList& meml, set<uint>& breakpoints, vector<MatchList>& lc
 	}
 }
 
-void Aligner::Recursion( MatchList& r_list, Match* r_begin, Match* r_end, boolean nway_only ){
+void Aligner::Recursion( MatchList& r_list, Match* r_begin, Match* r_end, bool nway_only ){
 	try{
 	gnSeqI gap_size = 0;
 	uint seqI = 0;
@@ -1115,7 +1115,7 @@ void Aligner::Recursion( MatchList& r_list, Match* r_begin, Match* r_end, boolea
 		}
 		int64 diff = gap_end - gap_start;
 		diff = 0 < diff ? diff : 0;
-		gap_size = diff < gap_size ? gap_size : diff;
+		gap_size = static_cast<gnSeqI>(diff) < gap_size ? gap_size : static_cast<gnSeqI>(diff);
 
 		if( gap_start == 0 )
 			cerr << "scheiss\n";
@@ -1123,7 +1123,7 @@ void Aligner::Recursion( MatchList& r_list, Match* r_begin, Match* r_end, boolea
 		if( debug )
 			cout << r_list.seq_table[ seqI ]->length() << endl;
 
-		if( diff < min_recursive_gap_length )
+		if( static_cast<gnSeqI>(diff) < min_recursive_gap_length )
 			below_cutoff_count++;
 		starts.push_back( gap_start );
 		gnSequence* new_seq = new gnSequence( r_list.seq_table[ seqI ]->subseq( gap_start, diff ) );
@@ -1150,7 +1150,7 @@ void Aligner::Recursion( MatchList& r_list, Match* r_begin, Match* r_end, boolea
 		vector< uint > search_seqs;
 		while( mer_iter != mer_sizes.end() ){
 			uint prev_mer = mer_iter->first;
-			uint new_seqs = 0;
+			[[maybe_unused]] uint new_seqs = 0;
 			while( true ){
 				if( mer_iter->first < MIN_DNA_SEED_WEIGHT )
 					break;
@@ -2286,4 +2286,3 @@ void Aligner::align( MatchList& mlist, IntervalList& interval_list, double LCB_m
 }
 
 }	// namespace mems
-
