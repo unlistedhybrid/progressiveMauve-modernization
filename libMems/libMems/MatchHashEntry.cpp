@@ -21,10 +21,9 @@ MatchHashEntry::MatchHashEntry() : m_extended(false), m_mersize(0), m_offset(0)
 }
 
 MatchHashEntry::MatchHashEntry(const uint seq_count, const gnSeqI mersize, const MemType m_type)
-	: m_mersize(mersize), m_offset(0)
+	: Match(seq_count, mersize), m_mersize(mersize), m_offset(0)
 {
 	m_extended = (m_type == extended);
-	SetSize(seq_count, mersize);
 }
 
 MatchHashEntry* MatchHashEntry::Clone() const
@@ -43,7 +42,7 @@ MatchHashEntry& MatchHashEntry::operator=(const MatchHashEntry& mhe)
 
 boolean MatchHashEntry::operator==(const MatchHashEntry& mhe) const
 {
-	if (Match::operator!=(mhe))
+	if (!(Match::operator==(mhe)))
 		return false;
 	if (m_extended != mhe.m_extended)
 		return false;
