@@ -264,7 +264,7 @@ string gnSequence::ToString( const gnSeqI len, const gnSeqI offset ) const
 		return str;
 	STACK_TRACE_END
 }
-boolean gnSequence::ToString( string& str, const gnSeqI len, const gnSeqI offset ) const
+bool gnSequence::ToString( std::string& str, const gnSeqI len, const gnSeqI offset ) const
 {
 	STACK_TRACE_START
 		gnSeqI real_offset = offset - 1;
@@ -272,7 +272,7 @@ boolean gnSequence::ToString( string& str, const gnSeqI len, const gnSeqI offset
 		gnSeqI readSize = len > m_length - real_offset ? m_length - real_offset : len;
 		Array<char> array_buf( readSize+1 );
 		char *buf = array_buf.data;
-		boolean success = spec->SeqRead( real_offset, buf, readSize, ALL_CONTIGS);
+		bool success = spec->SeqRead( real_offset, buf, readSize, ALL_CONTIGS);
 		buf[readSize] = '\0';
 		str = buf;
 
@@ -286,14 +286,14 @@ boolean gnSequence::ToString( string& str, const gnSeqI len, const gnSeqI offset
 		return false;
 	STACK_TRACE_END
 }
-boolean gnSequence::ToArray( gnSeqC* pSeqC, gnSeqI length, const gnSeqI offset ) const
+bool gnSequence::ToArray( gnSeqC* pSeqC, gnSeqI length, const gnSeqI offset ) const
 {
 	STACK_TRACE_START
 		gnSeqI real_offset = offset - 1;
 		if(offset == GNSEQI_END)
 			return false;
 		gnSeqC* tmp = new gnSeqC[length];
-		boolean success = spec->SeqRead( real_offset, tmp, length, ALL_CONTIGS);
+		bool success = spec->SeqRead( real_offset, tmp, length, ALL_CONTIGS);
 		
 		//now filter the array
 		list<const gnBaseFilter*>::const_iterator iter = filter_list.begin();
@@ -315,7 +315,7 @@ gnSeqC gnSequence::GetSeqC( const gnSeqI offset ) const
 		char block;
 		gnSeqI readLen = 1;
 		gnSeqI real_offset = offset - 1;
-		boolean success = spec->SeqRead( real_offset, &block, readLen, ALL_CONTIGS);
+		bool success = spec->SeqRead( real_offset, &block, readLen, ALL_CONTIGS);
 
 		//now filter the char
 		list<const gnBaseFilter*>::const_iterator iter = filter_list.begin();
@@ -454,7 +454,7 @@ void gnSequence::setContigName( const uint32 contigI, const string& contig_name)
 	STACK_TRACE_END
 }
 
-void gnSequence::setReverseComplement( const boolean revComp, const uint32 contigI){
+void gnSequence::setReverseComplement( const bool revComp, const uint32 contigI){
 	STACK_TRACE_START
 		if(contigI == ALL_CONTIGS)
 			spec->SetReverseComplement(revComp);
@@ -465,7 +465,7 @@ void gnSequence::setReverseComplement( const boolean revComp, const uint32 conti
 	STACK_TRACE_END
 }
 
-boolean gnSequence::isReverseComplement( const uint32 contigI ){
+bool gnSequence::isReverseComplement( const uint32 contigI ){
 	STACK_TRACE_START
 		if(contigI == ALL_CONTIGS)
 			return spec->IsReverseComplement();
@@ -554,4 +554,3 @@ gnSeqI gnSequence::find(const gnSequence& search, const gnSeqI offset)const{
 }
 
 }	// end namespace genome
-
