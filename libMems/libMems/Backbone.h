@@ -189,7 +189,7 @@ void writeBackboneSeqFile( std::ostream& bbseq_out, std::vector< bb_seqentry_t >
 	{
 		if( seqI > 0 )
 			bbseq_out << '\t';
-		stringstream ss;
+		std::stringstream ss;
 		ss << "seq" << seqI;
 		bbseq_out << ss.str() << "_leftend\t" << ss.str() << "_rightend";
 	}
@@ -237,4 +237,3 @@ void mergePairwiseHomologyPredictions( 	std::vector< CompactGappedAlignment<>* >
 }
 
 #endif	// __Backbone_h__
-
