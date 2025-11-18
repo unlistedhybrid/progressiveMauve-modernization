@@ -18,6 +18,7 @@ set(PROGRESSIVEMAUVE_SRC
 
 add_executable(progressiveMauve ${PROGRESSIVEMAUVE_SRC})
 
+# Include directories (adjust as needed based on project root)
 target_include_directories(progressiveMauve PUBLIC
     ${PROJECT_SOURCE_DIR}/mauveAligner
     ${PROJECT_SOURCE_DIR}/mauveAligner/src
