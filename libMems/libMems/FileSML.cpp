@@ -14,6 +14,7 @@
 #include "libGenome/gnRAWSource.h"
 #include <algorithm>
 #include <cmath>
+#include <cstring>
 #include "boost/filesystem/operations.hpp"
 
 using namespace std;
@@ -530,7 +531,7 @@ STACK_TRACE_START
 	//do some sanity checks on the sars we're merging.
 	if(sa_head.alphabet_bits != sa_head2.alphabet_bits ||
 	  sa_head.version != sa_head2.version ||
-	  memcmp(sa_head.translation_table, sa_head2.translation_table, UINT8_MAX)){
+	  std::memcmp(sa_head.translation_table, sa_head2.translation_table, UINT8_MAX)){
 		Throw_gnExMsg(SMLMergeError(), "Incompatible sorted mer lists.");
 	}
 	
