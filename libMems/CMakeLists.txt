@@ -27,6 +27,17 @@ set(LIBMEMS_SRC
     libMems/SuperInterval.cpp
     libMems/gnAlignedSequences.cpp
     libMems/twister.cpp
+    libMems/dmSML/asyncio.cpp
+    libMems/dmSML/aPOSIXaio.cpp
+    libMems/dmSML/alinuxaio.cpp
+    libMems/dmSML/awin32aio.cpp
+    libMems/dmSML/alibc.cpp
+    libMems/dmSML/buffer.cpp
+    libMems/dmSML/sml.cpp
+    libMems/dmSML/sorting.cpp
+    libMems/dmSML/timing.cpp
+    libMems/dmSML/util.cpp
+    libMems/dmSML/dmsort.cpp
 )
 add_library(libMems STATIC ${LIBMEMS_SRC})
 target_include_directories(libMems PUBLIC
