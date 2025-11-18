@@ -12,10 +12,12 @@
 
 #include "UniqueMatchFinder.h"
 #include <list>
+#include <algorithm>
 
 using namespace std;
 using namespace genome;
-using namespace mems;
+
+namespace mems {
 
 UniqueMatchFinder::UniqueMatchFinder(){
 }
@@ -38,8 +40,9 @@ bool UniqueMatchFinder::EnumerateMatches( IdmerList& match_list ){
 	match_list.sort(&idmer_id_lessthan);
 	IdmerList::iterator iter = match_list.begin();
 	IdmerList::iterator iter2 = match_list.begin();
-	uint cur_id_count = 1;
+	unsigned int cur_id_count = 1;
 	IdmerList unique_list;
+	
 	// identify all of the unique seeds and add them to unique_list
 	while(iter2 != match_list.end()){
 		++iter2;
@@ -58,3 +61,5 @@ bool UniqueMatchFinder::EnumerateMatches( IdmerList& match_list ){
 		success = HashMatch(unique_list);
 	return success;
 }
+
+} // namespace mems
