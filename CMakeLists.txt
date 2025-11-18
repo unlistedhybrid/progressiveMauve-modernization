@@ -20,15 +20,6 @@ find_package(Boost 1.89 REQUIRED
     regex
 )
 
-if(NOT Boost_FOUND)
-    message(FATAL_ERROR "Boost 1.89+ not found. Please install Boost or set BOOST_ROOT environment variable.")
-endif()
-
-message(STATUS "Boost version: ${Boost_VERSION}")
-message(STATUS "Boost include dir: ${Boost_INCLUDE_DIRS}")
-message(STATUS "Boost library dir: ${Boost_LIBRARY_DIRS}")
-message(STATUS "Boost libraries: ${Boost_LIBRARIES}")
-
 add_library(BoostInterface INTERFACE IMPORTED)
 set_target_properties(BoostInterface PROPERTIES
     INTERFACE_INCLUDE_DIRECTORIES "${Boost_INCLUDE_DIRS}"
@@ -42,36 +33,60 @@ if(NOT MSVC)
     )
 endif()
 
-link_directories(${Boost_LIBRARY_DIRS})
-
-if(MSVC)
-    add_compile_options(/W3 /permissive- /std:c++17)
-    add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
-else()
-    add_compile_options(
-        -Wall
-        -Wextra
-        -pedantic
-    )
-endif()
-
-include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
-include_directories(
-    ${PROJECT_SOURCE_DIR}
-    ${PROJECT_SOURCE_DIR}/libGenome
-    ${PROJECT_SOURCE_DIR}/libGenome/libGenome
-    ${PROJECT_SOURCE_DIR}/libMems
-    ${PROJECT_SOURCE_DIR}/libMems/libMems
-    ${PROJECT_SOURCE_DIR}/muscle
-    ${PROJECT_SOURCE_DIR}/muscle/libMUSCLE
-    ${PROJECT_SOURCE_DIR}/sgEvolver
-    ${PROJECT_SOURCE_DIR}/sgEvolver/src
-    ${PROJECT_SOURCE_DIR}/mauveAligner
-    ${PROJECT_SOURCE_DIR}/mauveAligner/src
-)
+# ------------------------------------------------------------
+# SHARED LIBRARIES
+# ------------------------------------------------------------
 
 add_subdirectory(libGenome)
 add_subdirectory(libMems)
 add_subdirectory(muscle)
+
+# sgEvolver is optional tools
 add_subdirectory(sgEvolver)
-add_subdirectory(mauveAligner)
+
+# ------------------------------------------------------------
+# EXECUTABLE: mauveAligner
+# ------------------------------------------------------------
+add_executable(mauveAligner
+    mauveAligner/src/mauveAligner.cpp
+    mauveAligner/src/AlignmentTree.cpp
+    mauveAligner/src/alignmentProjector.cpp
+)
+
+target_include_directories(mauveAligner PRIVATE
+    ${PROJECT_SOURCE_DIR}/libGenome
+    ${PROJECT_SOURCE_DIR}/libMems
+    ${PROJECT_SOURCE_DIR}/muscle
+    ${PROJECT_SOURCE_DIR}/mauveAligner/src
+)
+
+target_link_libraries(mauveAligner
+    libGenome
+    libMems
+    libMUSCLE
+    BoostInterface
+)
+
+# ------------------------------------------------------------
+# EXECUTABLE: progressiveMauve
+# ------------------------------------------------------------
+add_executable(progressiveMauve
+    mauveAligner/src/progressiveMauve.cpp
+    mauveAligner/src/repeatoire.cpp
+    mauveAligner/src/addUnalignedIntervals.cpp
+    mauveAligner/src/backbone_global_to_local.cpp
+)
+
+target_include_directories(progressiveMauve PRIVATE
+    ${PROJECT_SOURCE_DIR}/libGenome
+    ${PROJECT_SOURCE_DIR}/libMems
+    ${PROJECT_SOURCE_DIR}/muscle
+    ${PROJECT_SOURCE_DIR}/mauveAligner/src
+)
+
+target_link_libraries(progressiveMauve
+    libGenome
+    libMems
+    libMUSCLE
+    BoostInterface
+)
