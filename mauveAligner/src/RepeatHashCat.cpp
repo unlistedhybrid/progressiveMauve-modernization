@@ -10,7 +10,7 @@
 #include "config.h"
 #endif
 
-#include "mauveAligner/src/RepeatHashCat.h"
+#include "RepeatHashCat.h"
 
 namespace mems {
 
@@ -45,4 +45,3 @@ RepeatHashCat* RepeatHashCat::Clone() const
 }
 
 } // namespace mems
-
