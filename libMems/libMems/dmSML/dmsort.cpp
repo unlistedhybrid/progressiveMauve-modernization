@@ -1397,3 +1397,4 @@ int dmSML( const char* input_file, const char* output_file, const char* const* s
 	lasttime = 0;
 	
 	return rval;
+}
