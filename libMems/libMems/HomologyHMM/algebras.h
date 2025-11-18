@@ -187,7 +187,7 @@ static inline BFloat double2bfloat( double prob) {
       cerr << "BFloat: Negative number: " << prob << endl;
     return BFloat (0.0, -cBFloatInfinity );
   } else {
-    register BFloat a( 0.0, 0 );
+    BFloat a( 0.0, 0 );
     while (prob > cBFloatRangeSqrt) {
       prob *= cBFloatRangeInv;
       a.e++;
@@ -206,14 +206,14 @@ static inline BFloat double2bfloat( double prob) {
 
 static inline BFloat bfloat_pr_product (const BFloat& a, const BFloat& b) 
 { 
-  register BFloat sf(a.f*b.f,a.e+b.e); 
+  BFloat sf(a.f*b.f,a.e+b.e); 
   BFloatNormalise(sf); 
   return sf; 
 }
 
 static inline BFloat bfloat_pr_double_product (const BFloat& a, double b) 
 { 
-  register double mantisse = a.f*b;
+  double mantisse = a.f*b;
   int exponent = a.e;
   DoubleNormalise(mantisse, exponent);
   return BFloat(mantisse, exponent);
@@ -226,14 +226,14 @@ static inline void bfloat_pr_product_accum( BFloat& a, const BFloat& b) {
 
 static inline void bfloat_pr_double_product_accum (BFloat& a, double b) 
 { 
-  register double mantisse = a.f*b;
+  double mantisse = a.f*b;
   DoubleNormalise(mantisse, a.e);
   a.f = mantisse;
 }
 
 static inline BFloat bfloat_pr_quotient( const BFloat& a, const BFloat& b) 
 { 
-  register BFloat sf(a.f/b.f, a.e-b.e); 
+  BFloat sf(a.f/b.f, a.e-b.e); 
   BFloatNormalise(sf); 
   return sf;
 }
