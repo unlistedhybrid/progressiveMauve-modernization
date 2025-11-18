@@ -316,9 +316,9 @@ bfloat Forward(HomologyDPTable** ppOutTable,Params iPar,char *aSeq,int iLen) {
     if (false && iSymbol[0] == iSymbol[0]) {}   // avoid 'unused variable' warnings
     double iEmission[2];
     /* temporary storage for ordinary reals */
-    register double iTempResult[1];
+    double iTempResult[1];
     /* temporary storage for extended-exponent reals */
-    register bfloat iTempProb[1];
+    bfloat iTempProb[1];
     HomologyDPTable dp(iLen);
     iTransition[0] = iPar.iStartHomologous;
     
@@ -414,9 +414,9 @@ bfloat Backward(HomologyBaumWelch& bw,HomologyDPTable* pInTable,HomologyDPTable*
     if (false && iSymbol[0] == iSymbol[0]) {}   // avoid 'unused variable' warnings
     double iEmission[2];
     /* temporary storage for ordinary reals */
-    register double iTempResult[1];
+    double iTempResult[1];
     /* temporary storage for extended-exponent reals */
-    register bfloat iTempProb[3];
+    bfloat iTempProb[3];
     HomologyDPTable dp(iLen);
     HomologyDPTable dp2(*pInTable);
     // make sure tables don't get deleted
@@ -562,9 +562,9 @@ bfloat Viterbi_recurse(HomologyDPTable** ppOutTable,Params iPar,char *aSeq,int i
     if (false && iSymbol[0] == iSymbol[0]) {}   // avoid 'unused variable' warnings
     double iEmission[2];
     /* temporary storage for ordinary reals */
-    register double iTempResult[1];
+    double iTempResult[1];
     /* temporary storage for extended-exponent reals */
-    register bfloat iTempProb[1];
+    bfloat iTempProb[1];
     HomologyDPTable dp(iLen);
     iTransition[0] = iPar.iStartHomologous;
     
@@ -670,7 +670,7 @@ Path& Viterbi_trace(HomologyDPTable* pInTable,Params iPar,char *aSeq,int iLen) {
     /* temporary int vector storage */
     int iTempIntVec[6];
     /* temporary storage for ordinary reals */
-    register double iTempResult[1];
+    double iTempResult[1];
     iTransition[0] = iPar.iStartHomologous;
     
     iTransition[1] = 1.0 - iPar.iStartHomologous;
@@ -780,7 +780,3 @@ Path& Viterbi_trace(HomologyDPTable* pInTable,Params iPar,char *aSeq,int iLen) {
     }
     return *pPath;
 };
-
-
-
-/* --- end of HMMoC-generated file --- */
