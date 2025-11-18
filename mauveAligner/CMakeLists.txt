@@ -1,3 +1,9 @@
+cmake_minimum_required(VERSION 3.10)
+project(progressiveMauve)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 set(PROGRESSIVEMAUVE_SRC
     src/mauveAligner.cpp
     src/progressiveMauve.cpp
@@ -11,10 +17,12 @@ set(PROGRESSIVEMAUVE_SRC
 )
 
 add_executable(progressiveMauve ${PROGRESSIVEMAUVE_SRC})
+
 target_include_directories(progressiveMauve PUBLIC
     ${PROJECT_SOURCE_DIR}/mauveAligner
     ${PROJECT_SOURCE_DIR}/mauveAligner/src
 )
+
 target_link_libraries(progressiveMauve PUBLIC
     libGenome
     libMems
