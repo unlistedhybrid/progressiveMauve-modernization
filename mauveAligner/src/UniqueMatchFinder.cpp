@@ -16,32 +16,34 @@
 
 using namespace std;
 using namespace genome;
+using namespace mems;
 
-namespace mems {
+// Explicitly define constructors/destructors in the mems namespace
 
-UniqueMatchFinder::UniqueMatchFinder(){
+mems::UniqueMatchFinder::UniqueMatchFinder(){
 }
 
-UniqueMatchFinder::~UniqueMatchFinder(){
+mems::UniqueMatchFinder::~UniqueMatchFinder(){
 }
 
-UniqueMatchFinder::UniqueMatchFinder(const UniqueMatchFinder& mh) : MemHash(mh){
+mems::UniqueMatchFinder::UniqueMatchFinder(const UniqueMatchFinder& mh) : MemHash(mh){
 
 }
 
-UniqueMatchFinder* UniqueMatchFinder::Clone() const{
+mems::UniqueMatchFinder* mems::UniqueMatchFinder::Clone() const{
 	return new UniqueMatchFinder(*this);
 }
 
 
 // enumerate out every pairwise match
-bool UniqueMatchFinder::EnumerateMatches( IdmerList& match_list ){
+bool mems::UniqueMatchFinder::EnumerateMatches( IdmerList& match_list ){
 
 	match_list.sort(&idmer_id_lessthan);
 	IdmerList::iterator iter = match_list.begin();
 	IdmerList::iterator iter2 = match_list.begin();
 	unsigned int cur_id_count = 1;
 	IdmerList unique_list;
+	
 	// identify all of the unique seeds and add them to unique_list
 	while(iter2 != match_list.end()){
 		++iter2;
@@ -60,5 +62,3 @@ bool UniqueMatchFinder::EnumerateMatches( IdmerList& match_list ){
 		success = HashMatch(unique_list);
 	return success;
 }
-
-} // namespace mems
