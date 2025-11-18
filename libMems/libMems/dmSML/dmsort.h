@@ -69,7 +69,6 @@ enum dm_errors {
 	BIN_NOT_OPENED,
 };
 
-void print_usage( const char* pname );
 
 static buffer_t * AllocateFree( void );
 static int ComputeBinNumber( const unsigned char key[10] );
