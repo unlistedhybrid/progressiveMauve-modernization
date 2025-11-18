@@ -52,6 +52,7 @@ add_executable(mauveAligner
     mauveAligner/src/mauveAligner.cpp
     mauveAligner/src/AlignmentTree.cpp
     mauveAligner/src/alignmentProjector.cpp
+    mauveAligner/src/UniqueMatchFinder.cpp
 )
 
 target_include_directories(mauveAligner PRIVATE
@@ -71,11 +72,16 @@ target_link_libraries(mauveAligner
 # ------------------------------------------------------------
 # EXECUTABLE: progressiveMauve
 # ------------------------------------------------------------
+# Added missing source files here (UniqueMatchFinder, AlignmentTree, etc.)
 add_executable(progressiveMauve
     mauveAligner/src/progressiveMauve.cpp
     mauveAligner/src/repeatoire.cpp
     mauveAligner/src/addUnalignedIntervals.cpp
     mauveAligner/src/backbone_global_to_local.cpp
+    mauveAligner/src/UniqueMatchFinder.cpp
+    mauveAligner/src/AlignmentTree.cpp
+    mauveAligner/src/alignmentProjector.cpp
+    mauveAligner/src/RepeatHashCat.cpp
 )
 
 target_include_directories(progressiveMauve PRIVATE
