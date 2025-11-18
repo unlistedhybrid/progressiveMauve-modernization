@@ -13,6 +13,7 @@
 #endif
 
 #include "libMems/SubstitutionMatrix.h"
+#include <iostream>
 #include <string>
 #include <vector>
 
@@ -42,7 +43,7 @@ void computeConsensusScore( const std::vector<std::string>& alignment, const Pai
 
 	score =	INVALID_SCORE;
 
-	std::vector< string > nucleotides;
+	std::vector< std::string > nucleotides;
 	nucleotides.push_back(std::string(alignment.at(0).size(),'A'));
 	nucleotides.push_back(std::string(alignment.at(0).size(),'G'));
 	nucleotides.push_back(std::string(alignment.at(0).size(),'C'));
@@ -247,13 +248,13 @@ void computeGapScores( const std::string& seq1, const std::string& seq2, const P
 				if( scores[uGapIndex] != INVALID_SCORE )
 				{
 					genome::breakHere();
-					cerr << "asdgohasdoghasodgh\n";
+					std::cerr << "asdgohasdoghasodgh\n";
 				}
 				scores[uGapIndex] = per_site_penalty;
 			}
 			if( scores[gap_left_col] == INVALID_SCORE )
 			{
-				cerr << "crap!\n";
+				std::cerr << "crap!\n";
 				genome::breakHere();
 			}
 			scores[gap_left_col] += extra;
@@ -286,7 +287,7 @@ void computeGapScores( const std::string& seq1, const std::string& seq2, const P
 		{
 			if( scores[gap_left_col] == INVALID_SCORE )
 			{
-				cerr << "crap!\n";
+				std::cerr << "crap!\n";
 				genome::breakHere();
 			}
 			scores[gap_left_col] += extra;
@@ -295,7 +296,7 @@ void computeGapScores( const std::string& seq1, const std::string& seq2, const P
 }
 
 inline
-void computeSPScore( const std::vector<string>& alignment, const PairwiseScoringScheme& pss, 
+void computeSPScore( const std::vector<std::string>& alignment, const PairwiseScoringScheme& pss, 
 					std::vector<score_t>& scores, score_t& score )
 {
 	std::vector< score_t > cur_m_scores( alignment[0].size(), INVALID_SCORE );
@@ -332,4 +333,3 @@ void computeSPScore( const std::vector<string>& alignment, const PairwiseScoring
 
 
 #endif	// __Scoring_h__
-
