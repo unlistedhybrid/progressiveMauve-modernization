@@ -1,7 +1,11 @@
 set(PROGRESSIVEMAUVE_SRC
     src/mauveAligner.cpp
     src/progressiveMauve.cpp
-    src/ProgressiveAligner.cpp
+    src/AlignmentTree.cpp
+    src/UniqueMatchFinder.cpp
+    src/RepeatHashCat.cpp
+    src/alignmentProjector.cpp
+    src/backbone_global_to_local.cpp
     src/addUnalignedIntervals.cpp
     src/repeatoire.cpp
 )
@@ -21,8 +25,3 @@ target_link_libraries(progressiveMauve PUBLIC
     Boost::program_options
     Boost::regex
 )
-
-# Utility programs (optional - uncomment if needed)
-# add_executable(xmfa2maf src/xmfa2maf.cpp)
-# target_include_directories(xmfa2maf PUBLIC ${PROJECT_SOURCE_DIR}/mauveAligner/src)
-# target_link_libraries(xmfa2maf PUBLIC libGenome libMems)
