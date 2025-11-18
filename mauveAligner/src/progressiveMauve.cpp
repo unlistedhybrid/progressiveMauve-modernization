@@ -172,6 +172,8 @@ BOOL WINAPI handler(DWORD dwCtrlType)
 }
 #endif
 
+int doAlignment(int argc, char* argv[]);
+
 int main( int argc, char* argv[] )
 {
 #if	WIN32
@@ -764,4 +766,5 @@ int doAlignment( int argc, char* argv[] ){
 */
 	return 0;
 }
+
 
