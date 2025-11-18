@@ -891,57 +891,57 @@ void createBackboneList( const IntervalList& iv_list, backbone_list_t& ula_list 
 	}
 }
 
-void detectAndApplyBackbone( AbstractMatch* m, vector< gnSequence* >& seq_table, CompactGappedAlignment<>*& result, backbone_list_t& bb_list, const Params& hmm_params, bool left_homologous, bool right_homologous )
-{
-	vector< AbstractMatch* > mlist( 1, m );
-	uint seq_count = seq_table.size();
-
-	// indexed by seqI, seqJ, ivI, hssI (left col, right col)
-	pairwise_genome_hss_t hss_cols(boost::extents[seq_count][seq_count][1]);
-
-	// ugg.  need CompactGappedAlignment for its SeqPosToColumn
-	vector< CompactGappedAlignment<>* > iv_ptrs(1);
-	CompactGappedAlignment<> tmp_cga;
-	iv_ptrs[0] = tmp_cga.Copy();
-	new (iv_ptrs[0])CompactGappedAlignment<>( *m );	// this will be freed when unalignIslands() gets called
-
-	vector< CompactGappedAlignment<>* > iv_orig_ptrs(iv_ptrs);
-	hss_array_t island_array, hss_array;
-
-	findHssHomologyHMM( mlist, seq_table, island_array, hmm_params, left_homologous, right_homologous );
-	translateToPairwiseGenomeHSS( island_array, hss_cols );
-
-	// merge overlapping pairwise homology predictions into n-way predictions
-	backbone_list_t ula_list;
-	mergePairwiseHomologyPredictions( iv_orig_ptrs, hss_cols, ula_list );
-
-	// unalignIslands wants an IntervalList
-	IntervalList iv_list;
-	iv_list.seq_table = seq_table;
-	iv_list.resize(1);
-	vector<AbstractMatch*> asdf(1, iv_orig_ptrs.front()->Copy() );
-	iv_list[0].SetMatches( asdf );
-	// unalign regions found to be non-homologous
-	unalignIslands( iv_list, iv_orig_ptrs, ula_list );
-
-	// free all ULAs and reconstruct them from the new alignment column coordinates
-	for( size_t ulaI = 0; ulaI < ula_list.size(); ++ulaI )
-		for( size_t i = 0; i < ula_list[ulaI].size(); ++i )
-			ula_list[ulaI][i]->Free();
-	ula_list.clear();
-
-
-	createBackboneList( iv_list, ula_list );
-
-	iv_orig_ptrs.clear();
-
-	bb_list.clear();
-	bb_list = ula_list;
-
-	result = tmp_cga.Copy();
-	if( iv_list.size() > 0 )
-		new (result)CompactGappedAlignment<>( iv_list[0] );
-}
+// void detectAndApplyBackbone( AbstractMatch* m, vector< gnSequence* >& seq_table, CompactGappedAlignment<>*& result, backbone_list_t& bb_list, const Params& hmm_params, bool left_homologous, bool right_homologous )
+// {
+// 	vector< AbstractMatch* > mlist( 1, m );
+// 	uint seq_count = seq_table.size();
+// 
+// 	// indexed by seqI, seqJ, ivI, hssI (left col, right col)
+// 	pairwise_genome_hss_t hss_cols(boost::extents[seq_count][seq_count][1]);
+// 
+// 	// ugg.  need CompactGappedAlignment for its SeqPosToColumn
+// 	vector< CompactGappedAlignment<>* > iv_ptrs(1);
+// 	CompactGappedAlignment<> tmp_cga;
+// 	iv_ptrs[0] = tmp_cga.Copy();
+// 	new (iv_ptrs[0])CompactGappedAlignment<>( *m );	// this will be freed when unalignIslands() gets called
+// 
+// 	vector< CompactGappedAlignment<>* > iv_orig_ptrs(iv_ptrs);
+// 	hss_array_t island_array, hss_array;
+// 
+// 	findHssHomologyHMM( mlist, seq_table, island_array, hmm_params, left_homologous, right_homologous );
+// 	translateToPairwiseGenomeHSS( island_array, hss_cols );
+// 
+// 	// merge overlapping pairwise homology predictions into n-way predictions
+// 	backbone_list_t ula_list;
+// 	mergePairwiseHomologyPredictions( iv_orig_ptrs, hss_cols, ula_list );
+// 
+// 	// unalignIslands wants an IntervalList
+// 	IntervalList iv_list;
+// 	iv_list.seq_table = seq_table;
+// 	iv_list.resize(1);
+// 	vector<AbstractMatch*> asdf(1, iv_orig_ptrs.front()->Copy() );
+// 	iv_list[0].SetMatches( asdf );
+// 	// unalign regions found to be non-homologous
+// 	unalignIslands( iv_list, iv_orig_ptrs, ula_list );
+// 
+// 	// free all ULAs and reconstruct them from the new alignment column coordinates
+// 	for( size_t ulaI = 0; ulaI < ula_list.size(); ++ulaI )
+// 		for( size_t i = 0; i < ula_list[ulaI].size(); ++i )
+// 			ula_list[ulaI][i]->Free();
+// 	ula_list.clear();
+// 
+// 
+// 	createBackboneList( iv_list, ula_list );
+// 
+// 	iv_orig_ptrs.clear();
+// 
+// 	bb_list.clear();
+// 	bb_list = ula_list;
+// 
+// 	result = tmp_cga.Copy();
+// 	if( iv_list.size() > 0 )
+// 		new (result)CompactGappedAlignment<>( iv_list[0] );
+// }
 
 
 
@@ -1078,14 +1078,14 @@ void detectBackbone( IntervalList& iv_list, backbone_list_t& bb_list, const HssD
 	// FIXME: clean up iv_orig_ptrs
 }
 
-void detectAndApplyBackbone( IntervalList& iv_list, backbone_list_t& bb_list, const Params& hmm_params )
-{
-	HomologyHmmDetector* hmm_detector = new HomologyHmmDetector( hmm_params, true, true );
-	vector< CompactGappedAlignment<>* > iv_orig_ptrs;
-	detectBackbone( iv_list, bb_list, hmm_detector, iv_orig_ptrs );
-	applyBackbone( iv_list, iv_orig_ptrs, bb_list );
-	delete hmm_detector;
-}
+// void detectAndApplyBackbone( IntervalList& iv_list, backbone_list_t& bb_list, const Params& hmm_params )
+// {
+// 	HomologyHmmDetector* hmm_detector = new HomologyHmmDetector( hmm_params, true, true );
+// 	vector< CompactGappedAlignment<>* > iv_orig_ptrs;
+// 	detectBackbone( iv_list, bb_list, hmm_detector, iv_orig_ptrs );
+// 	applyBackbone( iv_list, iv_orig_ptrs, bb_list );
+// 	delete hmm_detector;
+// }
 
 
 void writeBackboneColumns( ostream& bb_out, backbone_list_t& bb_list )
@@ -1200,3 +1200,4 @@ void writeBackboneSeqCoordinates( backbone_list_t& bb_list, IntervalList& iv_lis
 
 
 }  // namespace mems
+
