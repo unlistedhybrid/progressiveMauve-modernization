@@ -17,7 +17,7 @@
  *    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 \*/
 //
-// algebras.cc - extended real types
+// algebras.cpp - extended real types
 //
 // Gerton Lunter, 27/8/04
 //
