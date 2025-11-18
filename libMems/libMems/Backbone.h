@@ -62,13 +62,13 @@ void checkForAllGapColumns( IntervalList& iv_list );
  * @param	right_homologous	Set to true if the detection code should assume that sequence beyond the right-most alignment
  *							column is homologous sequence
  */
-void detectAndApplyBackbone( AbstractMatch* m, std::vector< genome::gnSequence* >& seq_table, CompactGappedAlignment<>*& result, backbone_list_t& bb_list, const Params& hmm_params, bool left_homologous = false, bool right_homologous = false );
+// void detectAndApplyBackbone( AbstractMatch* m, std::vector< genome::gnSequence* >& seq_table, CompactGappedAlignment<>*& result, backbone_list_t& bb_list, const Params& hmm_params, bool left_homologous = false, bool right_homologous = false );
 
 /**
  * Applies pairwise transitive homology statistics to detect backbone in a genome alignment
  * Unaligns any regions found to be non-homologous, returns coordinates of the homologous segments in bb_list
  */
-void detectAndApplyBackbone( IntervalList& iv_list, backbone_list_t& bb_list, const Params& hmm_params );
+// void detectAndApplyBackbone( IntervalList& iv_list, backbone_list_t& bb_list, const Params& hmm_params );
 
 /**
  * Simply detects backbone using the particular algorithm implemented by HssDetector
@@ -95,20 +95,20 @@ public:
 		hss_array_t& hss_array ) const = 0;
 };
 
-class HomologyHmmDetector : public HssDetector
-{
-public:
-	HomologyHmmDetector( const Params& hmm_params, bool left_homologous, bool right_homologous ) :
-		p(hmm_params), left(left_homologous), right(right_homologous) {}
-	virtual void operator() ( const MatchListType& iv_list, std::vector< genome::gnSequence* >& seq_table, hss_array_t& hss_array ) const
-	{
-		findHssHomologyHMM( iv_list, seq_table, hss_array, p, left, right );
-	}
-private:
-	const Params& p;
-	bool left; 
-	bool right;
-};
+// class HomologyHmmDetector : public HssDetector
+// {
+// public:
+// 	HomologyHmmDetector( const Params& hmm_params, bool left_homologous, bool right_homologous ) :
+// 		p(hmm_params), left(left_homologous), right(right_homologous) {}
+// 	virtual void operator() ( const MatchListType& iv_list, std::vector< genome::gnSequence* >& seq_table, hss_array_t& hss_array ) const
+// 	{
+// 		findHssHomologyHMM( iv_list, seq_table, hss_array, p, left, right );
+// 	}
+// private:
+// 	const Params& p;
+// 	bool left; 
+// 	bool right;
+// };
 
 class BigGapsDetector : public HssDetector
 {
@@ -237,3 +237,4 @@ void mergePairwiseHomologyPredictions( 	std::vector< CompactGappedAlignment<>* >
 }
 
 #endif	// __Backbone_h__
+
