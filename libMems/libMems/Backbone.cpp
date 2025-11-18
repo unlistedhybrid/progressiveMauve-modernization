@@ -209,7 +209,7 @@ void collapseCollinear( IntervalList& iv_list )
 						getNeighbor( neighbor_list[other_nayb], -1 )[seqI] = nayb;
 					else
 					{
-						std::cerr << "serious programmer error\n";
+						cerr << "serious programmer error\n";
 						genome::breakHere();
 					}
 				}
@@ -219,7 +219,7 @@ void collapseCollinear( IntervalList& iv_list )
 					getNeighbor( neighbor_list[nayb], -1 )[seqI] = other_nayb;
 				else
 				{
-					std::cerr << "inexcusable programmer error\n";
+					cerr << "inexcusable programmer error\n";
 					genome::breakHere();
 				}
 				neighbor_list[nI].first[seqI] = NEIGHBOR_UNKNOWN;
@@ -261,7 +261,7 @@ void checkForAllGapColumns( IntervalList& iv_list )
 					break;
 			if( rowI == aln.size() )
 			{
-				std::cerr << "ERROR!  IV " << ivI << " COLUMN " << colI << " IS ALL GAPS!\n";
+				cerr << "ERROR!  IV " << ivI << " COLUMN " << colI << " IS ALL GAPS!\n";
 			}
 		}
 	}
@@ -395,11 +395,11 @@ void makeAllPairwiseGenomeHSS( IntervalList& iv_list, vector< CompactGappedAlign
 					continue;
 				if( ivI == iv_ptrs.size() )
 				{
-					std::cerr << "huh?\n";
-					std::cerr << hss_list[hssI]->LeftEnd(0) << std::endl;
-					std::cerr << hss_list[hssI]->RightEnd(0) << std::endl;
-					std::cerr << iv_ptrs.back()->LeftEnd(seqI) << std::endl;
-					std::cerr << iv_ptrs.back()->RightEnd(seqI) << std::endl;
+					cerr << "huh?\n";
+					cerr << hss_list[hssI]->LeftEnd(0) << endl;
+					cerr << hss_list[hssI]->RightEnd(0) << endl;
+					cerr << iv_ptrs.back()->LeftEnd(seqI) << endl;
+					cerr << iv_ptrs.back()->RightEnd(seqI) << endl;
 				}
 				while( ivI < iv_ptrs.size() && 
 					(iv_ptrs[ivI]->LeftEnd(seqI) == NO_MATCH ||
@@ -407,7 +407,7 @@ void makeAllPairwiseGenomeHSS( IntervalList& iv_list, vector< CompactGappedAlign
 					++ivI;
 				if( ivI == iv_ptrs.size() )
 				{
-					std::cerr << "hssI fit!!\n";
+					cerr << "hssI fit!!\n";
 					genome::breakHere();
 				}
 				// check for containment in seqJ
@@ -418,11 +418,11 @@ void makeAllPairwiseGenomeHSS( IntervalList& iv_list, vector< CompactGappedAlign
 
 				if( hss_list[hssI]->RightEnd(0) < iv_ptrs[ivI]->LeftEnd(seqI) )
 				{
-					std::cerr << "huh 2?\n";
-					std::cerr << hss_list[hssI]->LeftEnd(0) << std::endl;
-					std::cerr << hss_list[hssI]->RightEnd(0) << std::endl;
-					std::cerr << iv_ptrs[ivI]->LeftEnd(seqI) << std::endl;
-					std::cerr << iv_ptrs[ivI]->RightEnd(seqI) << std::endl;
+					cerr << "huh 2?\n";
+					cerr << hss_list[hssI]->LeftEnd(0) << endl;
+					cerr << hss_list[hssI]->RightEnd(0) << endl;
+					cerr << iv_ptrs[ivI]->LeftEnd(seqI) << endl;
+					cerr << iv_ptrs[ivI]->RightEnd(seqI) << endl;
 					hssI++;
 					continue;
 				}
@@ -437,21 +437,21 @@ void makeAllPairwiseGenomeHSS( IntervalList& iv_list, vector< CompactGappedAlign
 				}
 				else if(left_col > right_col)
 				{
-					std::cerr << "bad cols\n";
-					std::cerr << hss_list[hssI]->LeftEnd(0) << std::endl;
-					std::cerr << hss_list[hssI]->RightEnd(0) << std::endl;
-					std::cerr << iv_ptrs[ivI]->LeftEnd(seqI) << std::endl;
-					std::cerr << iv_ptrs[ivI]->RightEnd(seqI) << std::endl;
+					cerr << "bad cols\n";
+					cerr << hss_list[hssI]->LeftEnd(0) << endl;
+					cerr << hss_list[hssI]->RightEnd(0) << endl;
+					cerr << iv_ptrs[ivI]->LeftEnd(seqI) << endl;
+					cerr << iv_ptrs[ivI]->RightEnd(seqI) << endl;
 					genome::breakHere();
 				}
 
 				if( left_col > 2000000000 || right_col > 2000000000 )
 				{
-					std::cerr << "huh 2?\n";
-					std::cerr << hss_list[hssI]->LeftEnd(0) << std::endl;
-					std::cerr << hss_list[hssI]->RightEnd(0) << std::endl;
-					std::cerr << iv_ptrs[ivI]->LeftEnd(seqI) << std::endl;
-					std::cerr << iv_ptrs[ivI]->RightEnd(seqI) << std::endl;
+					cerr << "huh 2?\n";
+					cerr << hss_list[hssI]->LeftEnd(0) << endl;
+					cerr << hss_list[hssI]->RightEnd(0) << endl;
+					cerr << iv_ptrs[ivI]->LeftEnd(seqI) << endl;
+					cerr << iv_ptrs[ivI]->RightEnd(seqI) << endl;
 					genome::breakHere();
 				}
 				cur_hss_cols.push_back( make_pair( left_col, right_col ) );
@@ -891,7 +891,7 @@ void createBackboneList( const IntervalList& iv_list, backbone_list_t& ula_list 
 	}
 }
 
-void detectAndApplyBackbone( AbstractMatch* m, vector< gnSequence* >& seq_table, CompactGappedAlignment<>*& result, backbone_list_t& bb_list, const Params& hmm_params, bool left_homologous, bool right_homologous )
+void detectAndApplyBackbone( AbstractMatch* m, vector< gnSequence* >& seq_table, CompactGappedAlignment<>*& result, backbone_list_t& bb_list, const Params& hmm_params, boolean left_homologous, boolean right_homologous )
 {
 	vector< AbstractMatch* > mlist( 1, m );
 	uint seq_count = seq_table.size();
@@ -1105,7 +1105,7 @@ void writeBackboneColumns( ostream& bb_out, backbone_list_t& bb_list )
 					continue;
 				bb_out << '\t' << seqI;
 			}
-			bb_out << std::endl;
+			bb_out << endl;
 		}
 	}
 }
@@ -1132,7 +1132,7 @@ void writeBackboneSeqCoordinates( backbone_list_t& bb_list, IntervalList& iv_lis
 		bb_out << "seq_" << seqI << "_leftend\t";
 		bb_out << "seq_" << seqI << "_rightend";
 	}
-	bb_out << std::endl;
+	bb_out << endl;
 	for( size_t ivI = 0; ivI < bb_list.size(); ++ivI )
 	{
 		// there seems to be a bug in the backbone creation code that causes the CGA that gets
@@ -1175,11 +1175,11 @@ void writeBackboneSeqCoordinates( backbone_list_t& bb_list, IntervalList& iv_lis
 					}
 					if( leftI > rightI )
 					{
-						std::cerr << "oh crahpey!\n";
-						std::cerr << "leftI: " << leftI << std::endl;
-						std::cerr << "rightI: " << rightI << std::endl;
-						std::cerr << "seqI: " << seqI << std::endl;
-						std::cerr << "ivI: " << ivI << std::endl;
+						cerr << "oh crahpey!\n";
+						cerr << "leftI: " << leftI << endl;
+						cerr << "rightI: " << rightI << endl;
+						cerr << "seqI: " << seqI << endl;
+						cerr << "ivI: " << ivI << endl;
 					}
 					if( leftI == 0 )
 						leftI = iv_cga.LeftEnd(seqI);
@@ -1193,10 +1193,11 @@ void writeBackboneSeqCoordinates( backbone_list_t& bb_list, IntervalList& iv_lis
 					bb_out << leftI << '\t' << rightI;
 				}
 			}
-			bb_out << std::endl;
+			bb_out << endl;
 		}
 	}
 }
 
 
 }  // namespace mems
+
