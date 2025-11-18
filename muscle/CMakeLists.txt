@@ -147,8 +147,8 @@ set(MUSCLE_SRC
     libMUSCLE/writescorefile.cpp
 )
 
-add_library(muscle STATIC ${MUSCLE_SRC})
-target_include_directories(muscle PUBLIC
+add_library(libMUSCLE STATIC ${MUSCLE_SRC})
+target_include_directories(libMUSCLE PUBLIC
     ${PROJECT_SOURCE_DIR}/muscle
     ${PROJECT_SOURCE_DIR}/muscle/libMUSCLE
 )
