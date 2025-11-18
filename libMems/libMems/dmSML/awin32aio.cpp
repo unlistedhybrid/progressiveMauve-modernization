@@ -9,10 +9,10 @@
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+#include <cstring>
 
 
 static VOID CALLBACK DummyCompletionRoutine( DWORD err, DWORD nbytes, LPOVERLAPPED lpo ) {
-    // we poll for completion, so this is just a dummy to make windows happy.
     printf( "completion routine!\n" );
 }
 
@@ -25,10 +25,10 @@ int OpenWIN32( aFILE * file, const char *path, int mode ) {
         path, 
         access, 
         FILE_SHARE_DELETE | FILE_SHARE_READ | FILE_SHARE_WRITE,
-        NULL,
+        nullptr,
         disposition,
         FILE_FLAG_OVERLAPPED,
-        NULL );
+        nullptr );
     if( result == INVALID_HANDLE_VALUE ) {
     	access = GetLastError();
     	printf( "Error opening %s, code %d\n", path, access );
@@ -52,14 +52,13 @@ int WriteWIN32( aFILE * file, aIORec * rec ) {
         return( 0 );
     }
 
-    rec->w32overlapped = malloc( sizeof( *(rec->w32overlapped) ) );
-    memset( rec->w32overlapped, 0, sizeof( *(rec->w32overlapped) ) );
+    rec->w32overlapped = static_cast<OVERLAPPED*>(malloc( sizeof( *(rec->w32overlapped) ) ));
+    std::memset( rec->w32overlapped, 0, sizeof( *(rec->w32overlapped) ) );
 	
 	if( rec->pos != CURRENT_POS ){
 		offset_t tmppos = rec->pos;
 		tmppos >>= 32;
 		file->filep_high = tmppos;
-		// clear high bits.  Is this really necessary?
 		tmppos = rec->pos;
 		tmppos <<= 32;
 		tmppos >>= 32;
@@ -69,13 +68,7 @@ int WriteWIN32( aFILE * file, aIORec * rec ) {
     rec->w32overlapped->OffsetHigh = file->filep_high;
     rec->w32overlapped->Offset = file->filep_low;
 
-    //printf( "issuing write -- first few bytes of buffer are\n" );
-    //for( i = 0; i < 20; i++ ) {
-    //    printf( "%c", rec->buf[i] );
-    //}
-    //printf( "\n" );
     total_bytes += rec->size * rec->count;
-    //printf( "total bytes: %d\n", total_bytes );
     if( WriteFileEx( 
         file->w32handle, 
         rec->buf, 
@@ -95,14 +88,13 @@ int ReadWIN32( aFILE * file, aIORec * rec ) {
     if( file->mode != A_READ ) {
         return( 0 );
     }
-    rec->w32overlapped = malloc( sizeof( *(rec->w32overlapped) ) );
-    memset( rec->w32overlapped, 0, sizeof( *(rec->w32overlapped) ) );
+    rec->w32overlapped = static_cast<OVERLAPPED*>(malloc( sizeof( *(rec->w32overlapped) ) ));
+    std::memset( rec->w32overlapped, 0, sizeof( *(rec->w32overlapped) ) );
 
 	if( rec->pos != CURRENT_POS ){
 		offset_t tmppos = rec->pos;
 		tmppos >>= 32;
 		file->filep_high = tmppos;
-		// clear high bits.  Is this really necessary?
 		tmppos = rec->pos;
 		tmppos <<= 32;
 		tmppos >>= 32;
@@ -139,17 +131,13 @@ int ReadWIN32( aFILE * file, aIORec * rec ) {
 
 int QueryLastCompleteWIN32( aFILE * file ) {
     DWORD result;
-    // this operation may not have ever been executed yet (the case
-    // where w32overlapped is NULL) so we must detect this.
     if( file->queuetail && file->queuetail->w32overlapped ) {
-        // this is a simple poll, because we're waiting for 0 msec.
         result = WaitForSingleObject( file->w32handle, 0 );
         if( result != WAIT_TIMEOUT ) {
             return( 1 );
         } else {
             return( 0 );
         }
-        //return( HasOverlappedIoCompleted( file->queuetail->w32overlapped ) );
     } else {
         return( 0 );
     }
