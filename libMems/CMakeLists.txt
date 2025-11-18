@@ -21,6 +21,7 @@ set(LIBMEMS_SRC
     libMems/PairwiseMatchFinder.cpp
     libMems/PhyloTree.cpp
     libMems/ProgressiveAligner.cpp
+    libMems/RepeatHash.cpp
     libMems/SlotAllocator.cpp
     libMems/SortedMerList.cpp
     libMems/SuperInterval.cpp
