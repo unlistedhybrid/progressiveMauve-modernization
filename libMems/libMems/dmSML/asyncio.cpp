@@ -11,7 +11,7 @@
 #include "libMems/dmSML/util.h"
 
 #include "libMems/dmSML/buffer.h"
-#include <string.h>
+#include <cstring>
 
 #if defined(USE_POSIX_AIO)||defined(USE_LINUX_AIO)
 #include <unistd.h>
@@ -31,7 +31,7 @@ int QueryOpComplete( aFILE * file );
 int aAct( void * buffer, offset_t size, offset_t count, aFILE * file, offset_t pos );
 
 int QueueEmpty( aFILE * file ) {
-    return( (file->queuehead == file->queuetail) && (file->queuehead == NULL) );
+    return( (file->queuehead == file->queuetail) && (file->queuehead == nullptr) );
 }
 
 void RemoveOperation( aFILE * file ) {
@@ -39,12 +39,11 @@ void RemoveOperation( aFILE * file ) {
     if( !QueueEmpty( file ) ) {
         tofree = file->queuetail;
         if( file->queuetail == file->queuehead ) {
-            file->queuehead = file->queuetail = NULL;
+            file->queuehead = file->queuetail = nullptr;
         } else {
-            file->queuetail->next->last = NULL;
+            file->queuetail->next->last = nullptr;
             file->queuetail = file->queuetail->next;
         }
-        // FIXME: ack hack from my poor design for win32
 #if defined USE_WIN32
         free( tofree->w32overlapped );
 #elif defined(USE_POSIX_AIO)||defined(USE_LINUX_AIO)
@@ -63,12 +62,11 @@ void FreeQueue( aFILE * file ) {
 
 
 
-// opens a file
 aFILE * aOpen( const char * path, int mode ) {
     int err = 0;
-    aFILE *ret = malloc( sizeof( *ret ) );
+    aFILE *ret = static_cast<aFILE*>(malloc( sizeof( *ret ) ));
     
-    memset( ret, 0, sizeof( *ret ) );
+    std::memset( ret, 0, sizeof( *ret ) );
     ret->mode = mode;
     ret->busy = 0;
 #if defined USE_LINUX_AIO
@@ -82,16 +80,14 @@ aFILE * aOpen( const char * path, int mode ) {
 #endif
     if( err ) {
         free( ret );
-        ret = NULL;
+        ret = nullptr;
     }
     return( ret );
 }
 
 
-// helper to close a file
 int aClose( aFILE * file ) {
     int err = 0;
-    // block until the file is no longer busy.
     aWaitNotBusy( file );
 #if defined USE_LINUX_AIO
     err = CloseLinux( file );
@@ -121,7 +117,6 @@ int ExecuteWrite( aFILE * file, aIORec * rec ) {
     err = !WriteWIN32( file, rec );
 #endif
     if( err ) {
-        //printf( "error in ExecuteWrite\n" );
     } else {
         file->busy = 1;
     }
@@ -141,7 +136,6 @@ int ExecuteRead( aFILE * file, aIORec * rec ) {
     err = !ReadWIN32( file, rec );
 #endif
     if( err ) {
-        //printf( "error in ExecuteRead\n" );
     } else {
         file->busy = 1;
     }
@@ -153,12 +147,12 @@ int ExecuteRead( aFILE * file, aIORec * rec ) {
 int EnqueueOperation( char * buffer, offset_t size, offset_t count, aFILE * file, offset_t pos ) {
     if( QueueEmpty( file ) ) {
         
-		file->queuehead = file->queuetail = malloc( sizeof( *file->queuehead ) );
-		memset( file->queuehead, 0, sizeof( *(file->queuehead) ) );
-		file->queuehead->last = NULL;
+		file->queuehead = file->queuetail = static_cast<aIORec*>(malloc( sizeof( *file->queuehead ) ));
+		std::memset( file->queuehead, 0, sizeof( *(file->queuehead) ) );
+		file->queuehead->last = nullptr;
     } else {
-		file->queuehead->next = malloc( sizeof( *file->queuehead->next ) );
-		memset( file->queuehead->next, 0, sizeof( *(file->queuehead->next) ) );
+		file->queuehead->next = static_cast<aIORec*>(malloc( sizeof( *file->queuehead->next ) ));
+		std::memset( file->queuehead->next, 0, sizeof( *(file->queuehead->next) ) );
 		file->queuehead->next->last = file->queuehead;
 		file->queuehead = file->queuehead->next;
     }
@@ -167,14 +161,13 @@ int EnqueueOperation( char * buffer, offset_t size, offset_t count, aFILE * file
 	file->queuehead->count = count;
 	file->queuehead->pos = pos;
 	file->queuehead->operation = ++OperationNumber;        
-	file->queuehead->next = NULL;
+	file->queuehead->next = nullptr;
     return( file->queuehead->operation );
 }
 
 
 
 void ExecuteOperation( aFILE * file ) {
-    // if file is busy or there are no pending ops, we can't do much.
     if( !QueueEmpty( file ) && !file->busy ) {
         int err = 0;
         if( file->mode == A_WRITE ) {
@@ -183,7 +176,6 @@ void ExecuteOperation( aFILE * file ) {
             err = ExecuteRead( file, file->queuetail );
         }
         if( !err ) {
-            // advance file pointer
             AddTo64( file->queuetail->size * file->queuetail->count, &(file->filep_high), &(file->filep_low) );
         }
         
@@ -192,8 +184,7 @@ void ExecuteOperation( aFILE * file ) {
 
 
 int QueryOpComplete( aFILE * file ) {
-    // check to see if the last operation was completed.
-    if( file->queuetail != NULL ) {
+    if( file->queuetail != nullptr ) {
 #if defined USE_LINUX_AIO
 	return( QueryLastCompleteLinux( file ) );
 #elif defined USE_POSIX_AIO
@@ -210,8 +201,6 @@ int QueryOpComplete( aFILE * file ) {
 
 
 
-// for files open for writing, ensures that all data is
-// safely on disk (flushes buffer cache).
 void aFlush( aFILE *file ) {
 #if defined(USE_POSIX_AIO)||defined(USE_LINUX_AIO)
 	if( fsync( file->file_descriptor ) )
@@ -227,7 +216,6 @@ void aFlush( aFILE *file ) {
 #endif
 }
 
-// get the size in bytes of a particular file
 unsigned long long aStatFileSize( const char * path ) {
 #if defined(USE_POSIX_AIO)||defined(USE_LINUX_AIO)
 	struct stat stat_data;
@@ -246,13 +234,10 @@ unsigned long long aStatFileSize( const char * path ) {
 	f_size <<= 32;
 	f_size += file_data.nFileSizeLow;
 	return f_size;
-//#error "Implement me!  WIN32 aStatSize"
 #endif
 }
 
 
-// get the size in records of a particular file
-// used when skipping the binning phase
 unsigned long aStatSize( const char * path ) {
 #if defined(USE_POSIX_AIO)||defined(USE_LINUX_AIO)
 	struct stat stat_data;
@@ -266,23 +251,19 @@ unsigned long aStatSize( const char * path ) {
 #elif defined USE_WIN32
 	return aStatFileSize( path ) / sizeof(record_t);
 	printf("Implement me!  WIN32 aStatSize");
-//#error "Implement me!  WIN32 aStatSize"
 #endif
 }
 
 
 void aUpdateOperations( aFILE * file ) {
     int op_complete;
-    // if we are busy, see if the last thing has completed.
     op_complete = QueryOpComplete( file );
     if( !op_complete ) {
-        //printf( "op not yet complete on file 0x%X\n", file );
     }
     if( !QueueEmpty( file ) && file->busy && op_complete ) {
         RemoveOperation( file );
         file->busy = 0;
     }
-    // if the queue is still not empty, start the next one up.
     if( !QueueEmpty( file ) ) {
         ExecuteOperation( file );
     }
@@ -294,20 +275,12 @@ void aUpdateOperations( aFILE * file ) {
 
 int aAct( void * buffer, offset_t size, offset_t count, aFILE * file, offset_t pos ) {
     int operation = 0;
-    // enter the operation in the queue, and then
-    // try to execute what we can.
-    // enqueue the op.
-    operation = EnqueueOperation( buffer, size, count, file, pos );
-    // execute operations
+    operation = EnqueueOperation( static_cast<char*>(buffer), size, count, file, pos );
     ExecuteOperation( file );
     return( operation );
 }
 
 
-// these allow you to queue reads and writes.
-// these return 0 for a failure, or an operation
-// code that can be checked for completion with
-// a_OperationComplete
 int aWrite( void * buffer, offset_t size, offset_t count, aFILE * file, offset_t pos ) {
     return( aAct( buffer, size, count, file, pos ) );
 }
@@ -316,14 +289,9 @@ int aRead( void * buffer, offset_t size, offset_t count, aFILE * file, offset_t 
 }
 
 
-// returns 1 if the operation was completed, 0 otherwise.
 int aOperationComplete( aFILE * file, int operation ) {
     aIORec *qp;
-    // scan through the queue until we find the op
-    // or we get to the end.  if we get to the end
-    // and don't find it, it must have completed,
-    // otherwise it hasn't.
-    for( qp = file->queuetail; qp != NULL; qp = qp->next ) {
+    for( qp = file->queuetail; qp != nullptr; qp = qp->next ) {
         if( qp->operation == operation ) {
             return( 0 );
         }
@@ -332,14 +300,11 @@ int aOperationComplete( aFILE * file, int operation ) {
 }
 
 
-// returns 1 if the file is doing IO, 0 otherwise.
 int aFileBusy( aFILE * file ) {
     return( file->busy );
 }
 
 
-// blocks and waits for the specified operation to
-// complete.
 void aWaitComplete( aFILE * file, int operation ) {
     while( !aOperationComplete( file, operation ) ) {
         aUpdateOperations( file );
@@ -347,12 +312,8 @@ void aWaitComplete( aFILE * file, int operation ) {
 }
 
 
-// blocks and waits for the file to not be busy
-// and for all IO operations to complete.
 void aWaitNotBusy( aFILE * file ) {
     while( file->busy ) {
         aUpdateOperations( file );
     }
 }
-
-
