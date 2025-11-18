@@ -11,7 +11,6 @@ set(Boost_DEBUG OFF)
 set(Boost_USE_STATIC_LIBS OFF)
 set(Boost_USE_MULTITHREADED ON)
 
-# Try to find Boost 1.89 or higher
 find_package(Boost 1.89 REQUIRED 
     COMPONENTS
     filesystem
@@ -19,6 +18,8 @@ find_package(Boost 1.89 REQUIRED
     program_options
     regex
 )
+
+include_directories(${Boost_INCLUDE_DIRS})
 
 add_library(BoostInterface INTERFACE IMPORTED)
 set_target_properties(BoostInterface PROPERTIES
