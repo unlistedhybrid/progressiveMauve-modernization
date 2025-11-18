@@ -15,10 +15,12 @@
 
 #include "libMems/MemHash.h"
 
+namespace mems {
+
 /**
  * Finds all pairwise matches with unique seeds among a group of sequences
  */
-class UniqueMatchFinder : public mems::MemHash
+class UniqueMatchFinder : public MemHash
 {
 public:
 	UniqueMatchFinder();
@@ -28,7 +30,9 @@ public:
 	virtual UniqueMatchFinder* Clone() const;
 protected:
 
-	virtual bool EnumerateMatches( mems::IdmerList& match_list );
+	virtual bool EnumerateMatches( IdmerList& match_list );
 };
+
+} // namespace mems
 
 #endif //_UniqueMatchFinder_h_
