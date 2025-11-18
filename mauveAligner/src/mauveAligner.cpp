@@ -46,16 +46,6 @@ private:
 
 #define NELEMS(a) ( sizeof( a ) / sizeof( *a ) )
 
-int main( int argc, char* argv[] ){
-#if	WIN32
-// Multi-tasking does not work well in CPU-bound
-// console apps running under Win32.
-// Reducing the process priority allows GUI apps
-// to run responsively in parallel.
-	SetPriorityClass(GetCurrentProcess(), BELOW_NORMAL_PRIORITY_CLASS);
-#endif
-	return doAlignment(argc, argv);
-}
 
 /**
  * This application uses libMems to produce full scale multiple
@@ -916,4 +906,3 @@ void print_usage( const char* pname ){
 	cerr << endl;
 	cerr << endl;
 }
-
