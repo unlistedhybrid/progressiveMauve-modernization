@@ -3,13 +3,11 @@
 #endif
 
 #include "libMems/dmSML/sorting.h"
-#include "math.h"
-#include <string.h>
+#include <cmath>
+#include <cstring>
 
 #ifndef USE_QSORT_ONLY
 
-
-// Other helper functions in this file:
 void RadixHistogram( sort_buf_t* sortbuf );
 void RadixCopy( sort_buf_t* sortbuf );
 void QSortPointers( sort_buf_t* sortbuf );
@@ -20,22 +18,17 @@ void CopySortedData ( sort_buf_t* sortbuf );
 
 void InitRadixSort( sort_buf_t* sortbuf, buffer_t* scratch_buffer )
 {
-	// allocate the sortbuf struct
 	unsigned int bin_divisor;
 	unsigned int i, keyval = 0;
-	// allocate the histogram memory
 	sortbuf->histogram_size = 1;
 	sortbuf->histogram_size <<= RADIX_BITS;
-	sortbuf->histogram = (unsigned*) malloc( sortbuf->histogram_size * sizeof(unsigned) );
-	sortbuf->cur_ptr_offsets = (unsigned*) malloc( sortbuf->histogram_size * sizeof(unsigned) );
+	sortbuf->histogram = static_cast<unsigned*>( malloc( sortbuf->histogram_size * sizeof(unsigned) ) );
+	sortbuf->cur_ptr_offsets = static_cast<unsigned*>( malloc( sortbuf->histogram_size * sizeof(unsigned) ) );
 
-	// init histogram to 0's
-	memset( sortbuf->histogram, 0, sortbuf->histogram_size * sizeof(unsigned) );
+	std::memset( sortbuf->histogram, 0, sortbuf->histogram_size * sizeof(unsigned) );
 	
-	// calculate the base number and divisor
 
     bin_divisor = (unsigned)16777216 / (unsigned)NumBins;
-    // need ceiling of this
     bin_divisor += (unsigned)16777216 % (unsigned)NumBins ? 1 : 0;
 
     for( i = 0; i < 3; i++ ) {
@@ -47,13 +40,11 @@ void InitRadixSort( sort_buf_t* sortbuf, buffer_t* scratch_buffer )
 	sortbuf->divisor = (unsigned)bin_divisor / (unsigned)sortbuf->histogram_size;
 	sortbuf->divisor += (unsigned)bin_divisor % (unsigned)sortbuf->histogram_size ? 1 : 0;
 	
-	// init some values
 	sortbuf->cur_position = 0;
 	sortbuf->sort_state = CalculateHistogram;
 	sortbuf->radix_tmp = scratch_buffer;
 	
-	// allocate ptr buffer memory
-	sortbuf->rec_ptrs = (record_t**) malloc( sortbuf->buf->numrecs * sizeof(record_t*) );
+	sortbuf->rec_ptrs = static_cast<record_t**>( malloc( sortbuf->buf->numrecs * sizeof(record_t*) ) );
 
 }
 
@@ -86,10 +77,8 @@ void RadixHistogram( sort_buf_t* sortbuf ){
 	record_t* cur_rec;
 	
 	maxI = sortbuf->cur_position + HISTOGRAM_CHUNK_SIZE;
-	maxI = maxI < (unsigned)sortbuf->buf->numrecs ? maxI : (unsigned)sortbuf->buf->numrecs;
+	maxI = maxI < static_cast<unsigned>(sortbuf->buf->numrecs) ? maxI : static_cast<unsigned>(sortbuf->buf->numrecs);
 
-	// do a complete pass over the data set, summing the number of entries
-	// in each bucket
 	for(; sortbuf->cur_position < maxI; sortbuf->cur_position++){
 		cur_rec = &(sortbuf->buf->recs[ sortbuf->cur_position ]);
 		data_bucket = cur_rec->key[0];
@@ -103,10 +92,8 @@ void RadixHistogram( sort_buf_t* sortbuf ){
 		sortbuf->histogram[data_bucket]++;
 	}
 	
-	// check if we've completed this stage
-	if( sortbuf->cur_position == (unsigned)sortbuf->buf->numrecs ){
+	if( sortbuf->cur_position == static_cast<unsigned>(sortbuf->buf->numrecs) ){
 
-		// do a pass over the histogram converting the counts to offsets
 		cur_offset = 0;
 		for( histI = 0; histI < sortbuf->histogram_size; histI++){
 			tmp = sortbuf->histogram[ histI ];
@@ -114,7 +101,6 @@ void RadixHistogram( sort_buf_t* sortbuf ){
 			cur_offset += tmp;
 		}
 
-		// copy pointers is the next stage
 		sortbuf->sort_state = CopyPointers;
 		sortbuf->cur_position = 0;
 	}
@@ -128,14 +114,11 @@ void RadixCopy( sort_buf_t* sortbuf ){
 	record_t* cur_rec;
 
 	maxI = sortbuf->cur_position + PTR_COPY_CHUNK_SIZE;
-	maxI = maxI < (unsigned)sortbuf->buf->numrecs ? maxI : (unsigned)sortbuf->buf->numrecs;
+	maxI = maxI < static_cast<unsigned>(sortbuf->buf->numrecs) ? maxI : static_cast<unsigned>(sortbuf->buf->numrecs);
 
-	// if its the first time through then initialize cur_ptr_offsets
 	if(sortbuf->cur_position == 0 )
-		memcpy(sortbuf->cur_ptr_offsets, sortbuf->histogram, sortbuf->histogram_size * sizeof(unsigned) );
+		std::memcpy(sortbuf->cur_ptr_offsets, sortbuf->histogram, sortbuf->histogram_size * sizeof(unsigned) );
 
-	// do a complete pass over the data set, setting an entry in the pointer
-	// array for the correct bucket
 	for(; sortbuf->cur_position < maxI; sortbuf->cur_position++){
 		cur_rec = &(sortbuf->buf->recs[ sortbuf->cur_position ]);
 		data_bucket = cur_rec->key[0];
@@ -151,8 +134,7 @@ void RadixCopy( sort_buf_t* sortbuf ){
 		sortbuf->cur_ptr_offsets[ data_bucket ]++;
 	}
 	
-	// check if we've completed this stage
-	if( sortbuf->cur_position == (unsigned)sortbuf->buf->numrecs ){
+	if( sortbuf->cur_position == static_cast<unsigned>(sortbuf->buf->numrecs) ){
 		sortbuf->sort_state = QsortPointers;
 		sortbuf->cur_position = 0;
 	}
@@ -186,25 +168,20 @@ void CopySortedData ( sort_buf_t* sortbuf ){
 	unsigned maxI = recordI + COPY_CHUNK_SIZE;
 	record_t* tmp;
 	
-	// set the processing limit for this time through.
-	maxI = maxI < (unsigned)sortbuf->buf->numrecs ? maxI : (unsigned)sortbuf->buf->numrecs;
+	maxI = maxI < static_cast<unsigned>(sortbuf->buf->numrecs) ? maxI : static_cast<unsigned>(sortbuf->buf->numrecs);
 
 	for(; recordI < maxI; recordI++ )
 		sortbuf->radix_tmp->recs[recordI] = *(sortbuf->rec_ptrs[recordI]);
 
 	sortbuf->cur_position = recordI;
 
-	// check if we're all done with sorting
-	if(recordI == (unsigned)sortbuf->buf->numrecs){
-		// swap the pointers
+	if(recordI == static_cast<unsigned>(sortbuf->buf->numrecs)){
 		tmp = sortbuf->radix_tmp->recs;
 		sortbuf->radix_tmp->recs = sortbuf->buf->recs;
 		sortbuf->buf->recs = tmp;
 
-		// set our state to completion
 		sortbuf->state = WRITE_RESTRUCTURE;
 		
-		// release memory
 		free( sortbuf->rec_ptrs );
 		free( sortbuf->histogram );
 		free( sortbuf->cur_ptr_offsets );
@@ -214,7 +191,6 @@ void CopySortedData ( sort_buf_t* sortbuf ){
 }
 
 
-// QBrute sorts less than 3 elements at a time
 void QBrute( record_t* a[], int lo, int hi ) {
     if ((hi-lo) == 1) {
         if( CompareKeyPtrs( a[hi], a[lo] ) < 0 ) {
@@ -268,35 +244,20 @@ void QSort( record_t* a[], int lo0, int hi0 ) {
         return;
     }
     
-    /*
-    *  Pick a pivot and move it out of the way
-    */
     pivot = a[(lo + hi) / 2];
     a[(lo + hi) / 2] = a[hi];
     a[hi] = pivot;
     
     while( lo < hi ) {
-    /*
-    *  Search forward from a[lo] until an element is found that
-    *  is greater than the pivot or lo >= hi 
-        */
-        //while( a[lo] <= pivot && lo < hi ) {
+
         while( (CompareKeyPtrs( a[lo], pivot ) <= 0) && lo < hi ) {
             lo++;
         }
         
-        /*
-        *  Search backward from a[hi] until element is found that
-        *  is less than the pivot, or hi <= lo 
-        */
-        //while (pivot <= a[hi] && lo < hi ) {
         while( (CompareKeyPtrs( pivot, a[hi] ) <= 0) && lo < hi ) {
             hi--;
         }
         
-        /*
-        *  Swap elements a[lo] and a[hi]
-        */
         if( lo < hi ) {
             record_t* T = a[lo];
             a[lo] = a[hi];
@@ -304,17 +265,9 @@ void QSort( record_t* a[], int lo0, int hi0 ) {
         }
     }
     
-    /*
-    *  Put the median in the "center" of the list
-    */
     a[hi0] = a[hi];
     a[hi] = pivot;
     
-    /*
-    *  Recursive calls, elements a[lo0] to a[lo-1] are less than or
-    *  equal to pivot, elements a[hi+1] to a[hi0] are greater than
-    *  pivot.
-    */
     QSort( a, lo0, lo-1 );
     QSort( a, hi+1, hi0 );
 }
