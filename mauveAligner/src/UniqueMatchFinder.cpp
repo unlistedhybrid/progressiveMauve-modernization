@@ -42,7 +42,6 @@ bool UniqueMatchFinder::EnumerateMatches( IdmerList& match_list ){
 	IdmerList::iterator iter2 = match_list.begin();
 	unsigned int cur_id_count = 1;
 	IdmerList unique_list;
-	
 	// identify all of the unique seeds and add them to unique_list
 	while(iter2 != match_list.end()){
 		++iter2;
