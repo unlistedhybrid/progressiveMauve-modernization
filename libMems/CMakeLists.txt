@@ -1,8 +1,14 @@
 set(LIBMEMS_SRC
     libMems/Aligner.cpp
     libMems/Backbone.cpp
+    libMems/DNAFileSML.cpp
+    libMems/DNAMemorySML.cpp
+    libMems/FileSML.cpp
     libMems/GappedAlignment.cpp
     libMems/GreedyBreakpointElimination.cpp
+    libMems/HomologyHMM/algebras.cpp
+    libMems/HomologyHMM/homology.cpp
+    libMems/HomologyHMM/homologymain.cpp
     libMems/Interval.cpp
     libMems/IntervalList.cpp
     libMems/Islands.cpp
@@ -12,6 +18,7 @@ set(LIBMEMS_SRC
     libMems/MatchList.cpp
     libMems/MemHash.cpp
     libMems/MuscleInterface.cpp
+    libMems/PairwiseMatchFinder.cpp
     libMems/PhyloTree.cpp
     libMems/ProgressiveAligner.cpp
     libMems/SlotAllocator.cpp
@@ -20,7 +27,6 @@ set(LIBMEMS_SRC
     libMems/gnAlignedSequences.cpp
     libMems/twister.cpp
 )
-
 add_library(libMems STATIC ${LIBMEMS_SRC})
 target_include_directories(libMems PUBLIC
     ${PROJECT_SOURCE_DIR}/libMems
