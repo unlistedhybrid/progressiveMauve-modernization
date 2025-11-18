@@ -10,7 +10,7 @@
 int OpenLibC( aFILE * file, const char *path, int mode ) {
     FILE * result = fopen( path, mode == A_READ ? "rb" : "wb" );
     file->libchandle = result;
-    if( result == NULL ) {
+    if( result == nullptr ) {
         return( 0 );
     }
     return( 1 );
@@ -35,12 +35,10 @@ int ReadLibC( aFILE * file, aIORec * rec ) {
 
 
 int OperationCompleteLibC( aFILE * file ) {
-    // libc operations are atomic
     return( 1 );
 }
 
 int FileBusyLibC( aFILE * file ) {
-    // libc operations are atomic
     return( 1 );
 }
 
