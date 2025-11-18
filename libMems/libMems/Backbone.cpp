@@ -209,7 +209,7 @@ void collapseCollinear( IntervalList& iv_list )
 						getNeighbor( neighbor_list[other_nayb], -1 )[seqI] = nayb;
 					else
 					{
-						cerr << "serious programmer error\n";
+						std::cerr << "serious programmer error\n";
 						genome::breakHere();
 					}
 				}
@@ -219,7 +219,7 @@ void collapseCollinear( IntervalList& iv_list )
 					getNeighbor( neighbor_list[nayb], -1 )[seqI] = other_nayb;
 				else
 				{
-					cerr << "inexcusable programmer error\n";
+					std::cerr << "inexcusable programmer error\n";
 					genome::breakHere();
 				}
 				neighbor_list[nI].first[seqI] = NEIGHBOR_UNKNOWN;
@@ -261,7 +261,7 @@ void checkForAllGapColumns( IntervalList& iv_list )
 					break;
 			if( rowI == aln.size() )
 			{
-				cerr << "ERROR!  IV " << ivI << " COLUMN " << colI << " IS ALL GAPS!\n";
+				std::cerr << "ERROR!  IV " << ivI << " COLUMN " << colI << " IS ALL GAPS!\n";
 			}
 		}
 	}
@@ -395,11 +395,11 @@ void makeAllPairwiseGenomeHSS( IntervalList& iv_list, vector< CompactGappedAlign
 					continue;
 				if( ivI == iv_ptrs.size() )
 				{
-					cerr << "huh?\n";
-					cerr << hss_list[hssI]->LeftEnd(0) << endl;
-					cerr << hss_list[hssI]->RightEnd(0) << endl;
-					cerr << iv_ptrs.back()->LeftEnd(seqI) << endl;
-					cerr << iv_ptrs.back()->RightEnd(seqI) << endl;
+					std::cerr << "huh?\n";
+					std::cerr << hss_list[hssI]->LeftEnd(0) << std::endl;
+					std::cerr << hss_list[hssI]->RightEnd(0) << std::endl;
+					std::cerr << iv_ptrs.back()->LeftEnd(seqI) << std::endl;
+					std::cerr << iv_ptrs.back()->RightEnd(seqI) << std::endl;
 				}
 				while( ivI < iv_ptrs.size() && 
 					(iv_ptrs[ivI]->LeftEnd(seqI) == NO_MATCH ||
@@ -407,7 +407,7 @@ void makeAllPairwiseGenomeHSS( IntervalList& iv_list, vector< CompactGappedAlign
 					++ivI;
 				if( ivI == iv_ptrs.size() )
 				{
-					cerr << "hssI fit!!\n";
+					std::cerr << "hssI fit!!\n";
 					genome::breakHere();
 				}
 				// check for containment in seqJ
@@ -418,11 +418,11 @@ void makeAllPairwiseGenomeHSS( IntervalList& iv_list, vector< CompactGappedAlign
 
 				if( hss_list[hssI]->RightEnd(0) < iv_ptrs[ivI]->LeftEnd(seqI) )
 				{
-					cerr << "huh 2?\n";
-					cerr << hss_list[hssI]->LeftEnd(0) << endl;
-					cerr << hss_list[hssI]->RightEnd(0) << endl;
-					cerr << iv_ptrs[ivI]->LeftEnd(seqI) << endl;
-					cerr << iv_ptrs[ivI]->RightEnd(seqI) << endl;
+					std::cerr << "huh 2?\n";
+					std::cerr << hss_list[hssI]->LeftEnd(0) << std::endl;
+					std::cerr << hss_list[hssI]->RightEnd(0) << std::endl;
+					std::cerr << iv_ptrs[ivI]->LeftEnd(seqI) << std::endl;
+					std::cerr << iv_ptrs[ivI]->RightEnd(seqI) << std::endl;
 					hssI++;
 					continue;
 				}
@@ -437,21 +437,21 @@ void makeAllPairwiseGenomeHSS( IntervalList& iv_list, vector< CompactGappedAlign
 				}
 				else if(left_col > right_col)
 				{
-					cerr << "bad cols\n";
-					cerr << hss_list[hssI]->LeftEnd(0) << endl;
-					cerr << hss_list[hssI]->RightEnd(0) << endl;
-					cerr << iv_ptrs[ivI]->LeftEnd(seqI) << endl;
-					cerr << iv_ptrs[ivI]->RightEnd(seqI) << endl;
+					std::cerr << "bad cols\n";
+					std::cerr << hss_list[hssI]->LeftEnd(0) << std::endl;
+					std::cerr << hss_list[hssI]->RightEnd(0) << std::endl;
+					std::cerr << iv_ptrs[ivI]->LeftEnd(seqI) << std::endl;
+					std::cerr << iv_ptrs[ivI]->RightEnd(seqI) << std::endl;
 					genome::breakHere();
 				}
 
 				if( left_col > 2000000000 || right_col > 2000000000 )
 				{
-					cerr << "huh 2?\n";
-					cerr << hss_list[hssI]->LeftEnd(0) << endl;
-					cerr << hss_list[hssI]->RightEnd(0) << endl;
-					cerr << iv_ptrs[ivI]->LeftEnd(seqI) << endl;
-					cerr << iv_ptrs[ivI]->RightEnd(seqI) << endl;
+					std::cerr << "huh 2?\n";
+					std::cerr << hss_list[hssI]->LeftEnd(0) << std::endl;
+					std::cerr << hss_list[hssI]->RightEnd(0) << std::endl;
+					std::cerr << iv_ptrs[ivI]->LeftEnd(seqI) << std::endl;
+					std::cerr << iv_ptrs[ivI]->RightEnd(seqI) << std::endl;
 					genome::breakHere();
 				}
 				cur_hss_cols.push_back( make_pair( left_col, right_col ) );
@@ -891,57 +891,57 @@ void createBackboneList( const IntervalList& iv_list, backbone_list_t& ula_list 
 	}
 }
 
-// void detectAndApplyBackbone( AbstractMatch* m, vector< gnSequence* >& seq_table, CompactGappedAlignment<>*& result, backbone_list_t& bb_list, const Params& hmm_params, bool left_homologous, bool right_homologous )
-// {
-// 	vector< AbstractMatch* > mlist( 1, m );
-// 	uint seq_count = seq_table.size();
-// 
-// 	// indexed by seqI, seqJ, ivI, hssI (left col, right col)
-// 	pairwise_genome_hss_t hss_cols(boost::extents[seq_count][seq_count][1]);
-// 
-// 	// ugg.  need CompactGappedAlignment for its SeqPosToColumn
-// 	vector< CompactGappedAlignment<>* > iv_ptrs(1);
-// 	CompactGappedAlignment<> tmp_cga;
-// 	iv_ptrs[0] = tmp_cga.Copy();
-// 	new (iv_ptrs[0])CompactGappedAlignment<>( *m );	// this will be freed when unalignIslands() gets called
-// 
-// 	vector< CompactGappedAlignment<>* > iv_orig_ptrs(iv_ptrs);
-// 	hss_array_t island_array, hss_array;
-// 
-// 	findHssHomologyHMM( mlist, seq_table, island_array, hmm_params, left_homologous, right_homologous );
-// 	translateToPairwiseGenomeHSS( island_array, hss_cols );
-// 
-// 	// merge overlapping pairwise homology predictions into n-way predictions
-// 	backbone_list_t ula_list;
-// 	mergePairwiseHomologyPredictions( iv_orig_ptrs, hss_cols, ula_list );
-// 
-// 	// unalignIslands wants an IntervalList
-// 	IntervalList iv_list;
-// 	iv_list.seq_table = seq_table;
-// 	iv_list.resize(1);
-// 	vector<AbstractMatch*> asdf(1, iv_orig_ptrs.front()->Copy() );
-// 	iv_list[0].SetMatches( asdf );
-// 	// unalign regions found to be non-homologous
-// 	unalignIslands( iv_list, iv_orig_ptrs, ula_list );
-// 
-// 	// free all ULAs and reconstruct them from the new alignment column coordinates
-// 	for( size_t ulaI = 0; ulaI < ula_list.size(); ++ulaI )
-// 		for( size_t i = 0; i < ula_list[ulaI].size(); ++i )
-// 			ula_list[ulaI][i]->Free();
-// 	ula_list.clear();
-// 
-// 
-// 	createBackboneList( iv_list, ula_list );
-// 
-// 	iv_orig_ptrs.clear();
-// 
-// 	bb_list.clear();
-// 	bb_list = ula_list;
-// 
-// 	result = tmp_cga.Copy();
-// 	if( iv_list.size() > 0 )
-// 		new (result)CompactGappedAlignment<>( iv_list[0] );
-// }
+void detectAndApplyBackbone( AbstractMatch* m, vector< gnSequence* >& seq_table, CompactGappedAlignment<>*& result, backbone_list_t& bb_list, const Params& hmm_params, bool left_homologous, bool right_homologous )
+{
+	vector< AbstractMatch* > mlist( 1, m );
+	uint seq_count = seq_table.size();
+
+	// indexed by seqI, seqJ, ivI, hssI (left col, right col)
+	pairwise_genome_hss_t hss_cols(boost::extents[seq_count][seq_count][1]);
+
+	// ugg.  need CompactGappedAlignment for its SeqPosToColumn
+	vector< CompactGappedAlignment<>* > iv_ptrs(1);
+	CompactGappedAlignment<> tmp_cga;
+	iv_ptrs[0] = tmp_cga.Copy();
+	new (iv_ptrs[0])CompactGappedAlignment<>( *m );	// this will be freed when unalignIslands() gets called
+
+	vector< CompactGappedAlignment<>* > iv_orig_ptrs(iv_ptrs);
+	hss_array_t island_array, hss_array;
+
+	findHssHomologyHMM( mlist, seq_table, island_array, hmm_params, left_homologous, right_homologous );
+	translateToPairwiseGenomeHSS( island_array, hss_cols );
+
+	// merge overlapping pairwise homology predictions into n-way predictions
+	backbone_list_t ula_list;
+	mergePairwiseHomologyPredictions( iv_orig_ptrs, hss_cols, ula_list );
+
+	// unalignIslands wants an IntervalList
+	IntervalList iv_list;
+	iv_list.seq_table = seq_table;
+	iv_list.resize(1);
+	vector<AbstractMatch*> asdf(1, iv_orig_ptrs.front()->Copy() );
+	iv_list[0].SetMatches( asdf );
+	// unalign regions found to be non-homologous
+	unalignIslands( iv_list, iv_orig_ptrs, ula_list );
+
+	// free all ULAs and reconstruct them from the new alignment column coordinates
+	for( size_t ulaI = 0; ulaI < ula_list.size(); ++ulaI )
+		for( size_t i = 0; i < ula_list[ulaI].size(); ++i )
+			ula_list[ulaI][i]->Free();
+	ula_list.clear();
+
+
+	createBackboneList( iv_list, ula_list );
+
+	iv_orig_ptrs.clear();
+
+	bb_list.clear();
+	bb_list = ula_list;
+
+	result = tmp_cga.Copy();
+	if( iv_list.size() > 0 )
+		new (result)CompactGappedAlignment<>( iv_list[0] );
+}
 
 
 
@@ -1078,14 +1078,14 @@ void detectBackbone( IntervalList& iv_list, backbone_list_t& bb_list, const HssD
 	// FIXME: clean up iv_orig_ptrs
 }
 
-// void detectAndApplyBackbone( IntervalList& iv_list, backbone_list_t& bb_list, const Params& hmm_params )
-// {
-// 	HomologyHmmDetector* hmm_detector = new HomologyHmmDetector( hmm_params, true, true );
-// 	vector< CompactGappedAlignment<>* > iv_orig_ptrs;
-// 	detectBackbone( iv_list, bb_list, hmm_detector, iv_orig_ptrs );
-// 	applyBackbone( iv_list, iv_orig_ptrs, bb_list );
-// 	delete hmm_detector;
-// }
+void detectAndApplyBackbone( IntervalList& iv_list, backbone_list_t& bb_list, const Params& hmm_params )
+{
+	HomologyHmmDetector* hmm_detector = new HomologyHmmDetector( hmm_params, true, true );
+	vector< CompactGappedAlignment<>* > iv_orig_ptrs;
+	detectBackbone( iv_list, bb_list, hmm_detector, iv_orig_ptrs );
+	applyBackbone( iv_list, iv_orig_ptrs, bb_list );
+	delete hmm_detector;
+}
 
 
 void writeBackboneColumns( ostream& bb_out, backbone_list_t& bb_list )
@@ -1105,7 +1105,7 @@ void writeBackboneColumns( ostream& bb_out, backbone_list_t& bb_list )
 					continue;
 				bb_out << '\t' << seqI;
 			}
-			bb_out << endl;
+			bb_out << std::endl;
 		}
 	}
 }
@@ -1132,7 +1132,7 @@ void writeBackboneSeqCoordinates( backbone_list_t& bb_list, IntervalList& iv_lis
 		bb_out << "seq_" << seqI << "_leftend\t";
 		bb_out << "seq_" << seqI << "_rightend";
 	}
-	bb_out << endl;
+	bb_out << std::endl;
 	for( size_t ivI = 0; ivI < bb_list.size(); ++ivI )
 	{
 		// there seems to be a bug in the backbone creation code that causes the CGA that gets
@@ -1175,11 +1175,11 @@ void writeBackboneSeqCoordinates( backbone_list_t& bb_list, IntervalList& iv_lis
 					}
 					if( leftI > rightI )
 					{
-						cerr << "oh crahpey!\n";
-						cerr << "leftI: " << leftI << endl;
-						cerr << "rightI: " << rightI << endl;
-						cerr << "seqI: " << seqI << endl;
-						cerr << "ivI: " << ivI << endl;
+						std::cerr << "oh crahpey!\n";
+						std::cerr << "leftI: " << leftI << std::endl;
+						std::cerr << "rightI: " << rightI << std::endl;
+						std::cerr << "seqI: " << seqI << std::endl;
+						std::cerr << "ivI: " << ivI << std::endl;
 					}
 					if( leftI == 0 )
 						leftI = iv_cga.LeftEnd(seqI);
@@ -1193,11 +1193,10 @@ void writeBackboneSeqCoordinates( backbone_list_t& bb_list, IntervalList& iv_lis
 					bb_out << leftI << '\t' << rightI;
 				}
 			}
-			bb_out << endl;
+			bb_out << std::endl;
 		}
 	}
 }
 
 
 }  // namespace mems
-
