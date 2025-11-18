@@ -101,6 +101,6 @@ int removeFile( const char* filename, int verbose )
                 rm_cmd = Fmt( "/bin/rm -fv %s", filename );
         else
                 rm_cmd = Fmt( "/bin/rm -f %s", filename );
-        return system( rm_cmd );
+        return std::system( rm_cmd );
 #endif
 }
