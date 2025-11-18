@@ -4,6 +4,7 @@
 
 #include <cstdio>
 #include "libMems/dmSML/util.h"
+#include <cstdlib>
 
 #define FMT_BUFFER_SIZE     (32)
 #define FMT_MAX_STRING      (1024)
