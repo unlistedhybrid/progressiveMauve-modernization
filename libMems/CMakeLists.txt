@@ -6,9 +6,11 @@ set(LIBMEMS_SRC
     libMems/FileSML.cpp
     libMems/GappedAlignment.cpp
     libMems/GreedyBreakpointElimination.cpp
+
     libMems/HomologyHMM/algebras.cpp
     libMems/HomologyHMM/homology.cpp
     libMems/HomologyHMM/homologymain.cpp
+
     libMems/Interval.cpp
     libMems/IntervalList.cpp
     libMems/Islands.cpp
@@ -28,6 +30,7 @@ set(LIBMEMS_SRC
     libMems/SuperInterval.cpp
     libMems/gnAlignedSequences.cpp
     libMems/twister.cpp
+
     libMems/dmSML/asyncio.cpp
     libMems/dmSML/aPOSIXaio.cpp
     libMems/dmSML/alinuxaio.cpp
@@ -42,8 +45,11 @@ set(LIBMEMS_SRC
 )
 
 add_library(libMems STATIC ${LIBMEMS_SRC})
+
 target_include_directories(libMems PUBLIC
     ${PROJECT_SOURCE_DIR}/libMems
     ${PROJECT_SOURCE_DIR}/libMems/libMems
+    ${PROJECT_SOURCE_DIR}/muscle/libMUSCLE
 )
+
 target_link_libraries(libMems PUBLIC libGenome)
