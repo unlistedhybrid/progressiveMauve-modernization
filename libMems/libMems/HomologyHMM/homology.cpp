@@ -780,3 +780,7 @@ Path& Viterbi_trace(HomologyDPTable* pInTable,Params iPar,char *aSeq,int iLen) {
     }
     return *pPath;
 };
+
+
+
+/* --- end of HMMoC-generated file --- */
