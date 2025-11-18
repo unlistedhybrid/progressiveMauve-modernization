@@ -194,7 +194,7 @@ inline
 // }
 
 
-template< typename MatchVector >
+//template< typename MatchVector >
 // void findHssHomologyHMM( const MatchVector& iv_list, std::vector< genome::gnSequence* >& seq_table,  hss_array_t& hss_array, const Params& hmm_params, boolean left_homologous, boolean right_homologous )
 // {
 // 	typedef typename MatchVector::value_type MatchType;
@@ -415,5 +415,6 @@ void findBigGaps( const MatchVector& iv_list, std::vector< genome::gnSequence* >
 }
 
 #endif // __Islands_h__
+
 
 
