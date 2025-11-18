@@ -49,7 +49,7 @@ add_library(libMems STATIC ${LIBMEMS_SRC})
 target_include_directories(libMems PUBLIC
     ${PROJECT_SOURCE_DIR}/libMems
     ${PROJECT_SOURCE_DIR}/libMems/libMems
-    ${PROJECT_SOURCE_DIR}/muscle/libMUSCLE
+    ${PROJECT_SOURCE_DIR}/muscle
 )
 
 target_link_libraries(libMems PUBLIC libGenome)
