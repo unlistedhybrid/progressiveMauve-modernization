@@ -17,6 +17,7 @@ set(LIBMEMS_SRC
     libMems/MatchHashEntry.cpp
     libMems/MatchList.cpp
     libMems/MemHash.cpp
+    libMems/MemorySML.cpp
     libMems/MuscleInterface.cpp
     libMems/PairwiseMatchFinder.cpp
     libMems/PhyloTree.cpp
