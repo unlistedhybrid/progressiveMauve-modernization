@@ -10,7 +10,7 @@
 #include "config.h"
 #endif
 
-#include "mauveAligner.h"
+//#include "mauveAligner.h"
 #include "getopt.h"
 #include <sstream>
 #include <stdexcept>
@@ -764,3 +764,4 @@ int doAlignment( int argc, char* argv[] ){
 */
 	return 0;
 }
+
