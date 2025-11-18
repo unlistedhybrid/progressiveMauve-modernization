@@ -22,7 +22,7 @@
 #include "libMems/CompactGappedAlignment.h"
 #include "libMems/Aligner.h"
 #include <boost/multi_array.hpp>
-#include "libMems/HomologyHMM/homology.h"
+// #include "libMems/HomologyHMM/homology.h"
 #include "libMems/Scoring.h"
 
 namespace mems {
@@ -415,3 +415,4 @@ void findBigGaps( const MatchVector& iv_list, std::vector< genome::gnSequence* >
 }
 
 #endif // __Islands_h__
+
