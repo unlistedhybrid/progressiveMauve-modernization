@@ -1313,7 +1313,6 @@ int dmsort() {
 }
 
 extern "C" {
-extern "C" {
 int dmSML( const char* input_file, const char* output_file, const char* const* scratch_paths, uint64 seed ) {
 	long working_mb = 300;
 	long buffer_size = 1000;
@@ -1399,5 +1398,4 @@ int dmSML( const char* input_file, const char* output_file, const char* const* s
 	lasttime = 0;
 	
 	return rval;
-}
 }
