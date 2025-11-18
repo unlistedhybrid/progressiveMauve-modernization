@@ -10,8 +10,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include <errno.h>
-#include <string.h>
+#include <cerrno>
+#include <cstring>
 
 int OpenPAIO( aFILE * file, const char *path, int mode ){
 	int flags = 0;
@@ -35,16 +35,14 @@ int ClosePAIO( aFILE * file ){
 }
 
 int FillAIOStruct( aFILE * file, aIORec * rec ){
-// fill the request data structure
-	rec->aio_cb = (aiocb_t*) malloc( sizeof(aiocb_t));
-	if(rec->aio_cb == 0)
+	rec->aio_cb = static_cast<aiocb_t*>( malloc( sizeof(aiocb_t)));
+	if(rec->aio_cb == nullptr)
 		return 0;
 
 	if( rec->pos != CURRENT_POS ){
 		offset_t tmppos = rec->pos;
 		tmppos >>= 32;
 		file->filep_high = tmppos;
-		// clear high bits.  Is this really necessary?
 		tmppos = rec->pos;
 		tmppos <<= 32;
 		tmppos >>= 32;
@@ -58,22 +56,17 @@ int FillAIOStruct( aFILE * file, aIORec * rec ){
 	rec->aio_cb->aio_buf = rec->buf;
 	rec->aio_cb->aio_nbytes = rec->size * rec->count;
 	rec->aio_cb->aio_reqprio = 0;
-	memset(&(rec->aio_cb->aio_sigevent), 0, sizeof(struct sigevent) );
+	std::memset(&(rec->aio_cb->aio_sigevent), 0, sizeof(struct sigevent) );
 	return 1;
 }
 
 int WritePAIO( aFILE * file, aIORec * rec ){
         int req_error;
 	if( FillAIOStruct( file, rec ) ){
-		// request the io
 		rec->aio_cb->aio_lio_opcode = LIO_WRITE;
 		req_error = aio_write(rec->aio_cb);
 		if(req_error == -1){
 			perror("write");
-//            printf( "aiocb->aio_filedes = %d\n", rec->aio_cb->aio_filedes );
-//            printf( "aiocb->aio_offset = %llu\n", rec->aio_cb->aio_offset );
-//            printf( "aiocb->aio_buf = %lx\n", rec->aio_cb->aio_buf );
-//            printf( "aiocb->aio_nbytes = %llu\n", rec->aio_cb->aio_nbytes );
             printf( "aiocb->aio_reqprio = %d\n", rec->aio_cb->aio_reqprio );
 		}
 		return req_error == 0;
@@ -83,17 +76,11 @@ int WritePAIO( aFILE * file, aIORec * rec ){
 
 int ReadPAIO( aFILE * file, aIORec * rec ){
 	int req_error;
-// fill the request data structure
 	if( FillAIOStruct( file, rec ) ){
-	// request the io
 		rec->aio_cb->aio_lio_opcode = LIO_READ;
 		req_error = aio_read(rec->aio_cb);
         if(req_error == -1){
                 perror("write");
-//                printf( "aiocb->aio_filedes = %d\n", rec->aio_cb->aio_filedes );
-//                printf( "aiocb->aio_offset = %llu\n", rec->aio_cb->aio_offset );
-//                printf( "aiocb->aio_buf = %lx\n", rec->aio_cb->aio_buf );
-//                printf( "aiocb->aio_nbytes = %llu\n", rec->aio_cb->aio_nbytes );
                 printf( "aiocb->aio_reqprio = %d\n", rec->aio_cb->aio_reqprio );
         }
 		return req_error == 0;
@@ -101,9 +88,6 @@ int ReadPAIO( aFILE * file, aIORec * rec ){
 	return 0;
 }
 
-// PRECONDITION:  file->queuetail is not null
-// simply queries wether the first request submitted to the file has
-// completed yet.
 int QueryLastCompletePAIO( aFILE * file ){
 	int rval;
 	struct aiocb *request_array[] = { file->queuetail->aio_cb };
@@ -114,10 +98,9 @@ int QueryLastCompletePAIO( aFILE * file ){
 	
 	rval = aio_suspend(request_array, 1, &zero_wait);
 	if(rval == 0){
-		return 1; //why, shouldnt we tell the caller what finished?
+		return 1;
 	}else if(rval == -1)
 		;
-//		perror("aio_suspend");
 	return 0;
 }
 
