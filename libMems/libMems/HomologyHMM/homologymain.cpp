@@ -61,5 +61,3 @@ void run(std::string& sequence, std::string& prediction, const Params& params )
   delete pBWDP;
 
 }
-
-
