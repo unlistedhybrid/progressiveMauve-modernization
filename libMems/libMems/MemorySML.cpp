@@ -12,6 +12,7 @@
 
 #include "libMems/MemorySML.h"
 #include <algorithm>
+#include <cstring>
 
 using namespace std;
 using namespace genome;
@@ -19,7 +20,7 @@ namespace mems {
 
 MemorySML::MemorySML(const uint8* table, const uint32 alpha_bits ){
 	header.alphabet_bits = alpha_bits;
-	memcpy(header.translation_table, table, UINT8_MAX);
+	std::memcpy(header.translation_table, table, UINT8_MAX);
 	header.version = 0;
 }
 
