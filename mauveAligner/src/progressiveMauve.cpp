@@ -44,17 +44,16 @@
 #include <cstring>
 #include <algorithm>
 
-// Explicitly use necessary standard namespaces but avoid global pollution if possible
 using namespace std;
 using namespace genome;
-// using namespace mems; // Removing this to force explicit mems:: usage for clarity and linker safety
+using namespace mems;
 
 class MLDeleter {
 public:
-	MLDeleter( mems::MatchList& ml ) : mlist( ml ) {}
+	MLDeleter( MatchList& ml ) : mlist( ml ) {}
 	~MLDeleter(){ mlist.Clear(); }
 private:
-	mems::MatchList& mlist;
+	MatchList& mlist;
 };
 
 class OptionList;
@@ -64,7 +63,6 @@ class MauveOption : public option
 public:
 	MauveOption( OptionList& ol, const char* name, int has_arg, const std::string& usage_info);
 
-	// boolean is often a typedef in older code, using bool
 	bool set;
 	std::string arg_value;
 	std::string usage_info;
@@ -133,17 +131,17 @@ void print_usage( const char* pname, OptionList& option_list )
 
 void printMatchSizes()
 {
-	mems::UngappedLocalAlignment< mems::HybridAbstractMatch<> > ula;
-	mems::UngappedLocalAlignment< mems::SparseAbstractMatch<> > sula;
-	mems::CompactGappedAlignment<> cga;
-	mems::MatchHashEntry	mhe;
-	mems::bitset_t bitset;
-	mems::Match m;
+	UngappedLocalAlignment< HybridAbstractMatch<> > ula;
+	UngappedLocalAlignment< SparseAbstractMatch<> > sula;
+	CompactGappedAlignment<> cga;
+	MatchHashEntry	mhe;
+	bitset_t bitset;
+	Match m;
 	cerr << "sizeof(UngappedLocalAlignment< HybridAbstractMatch<> >) " << sizeof(ula) << endl;
 	cerr << "sizeof(UngappedLocalAlignment< SparseAbstractMatch<> >) " << sizeof(sula) << endl;
 	cerr << "sizeof(m) " << sizeof(m) << endl;
 	cerr << "sizeof(CompactGappedAlignment<>) " << sizeof(cga) << endl;
-	// cerr << "sizeof(boost::dynamic_bitset) " << sizeof(bitset) << endl; // bitset_t might be a vector<bool> or similar
+	// cerr << "sizeof(boost::dynamic_bitset) " << sizeof(bitset) << endl;
 	cerr << "sizeof(MatchHashEntry) " << sizeof(mhe) << endl;
 }
 
@@ -158,7 +156,7 @@ void terminateProgram( int sig )
 {
 	std::cerr << "Caught signal " << sig << std::endl;
 	std::cerr << "Cleaning up and exiting!\n";
-	mems::deleteRegisteredFiles();
+	deleteRegisteredFiles();
 	std::cerr << "Temporary files deleted.\n";
 	exit(sig);	
 }
@@ -200,7 +198,7 @@ int main( int argc, char* argv[] )
 	signal( SIGSEGV, terminateProgram );
 #endif
 	// delete temp files at program exit!
-	atexit( &mems::deleteRegisteredFiles );
+	atexit( &deleteRegisteredFiles );
 
 	return doAlignment(argc, argv);
 }
@@ -225,7 +223,7 @@ void getPatternText( int64 seed_pattern, char pattern[65] )
 
 void getDefaultSmlFileNames( const vector< string >& seq_files, vector< string >& sml_files, int seed_weight, int seed_rank )
 {
-	int64 seed_pattern = mems::getSeed(seed_weight, seed_rank);
+	int64 seed_pattern = getSeed(seed_weight, seed_rank);
 	// convert seed pattern to text;
 	char pattern[65];
 	getPatternText(seed_pattern, pattern);
@@ -234,39 +232,39 @@ void getDefaultSmlFileNames( const vector< string >& seq_files, vector< string >
 		sml_files[seqI] = seq_files[seqI] + "." + pattern + ".sslist";
 }
 
-void applyBackbone( mems::IntervalList& iv_list, string& bbcols_fname, string& bb_fname, size_t island_gap_size, double hmm_identity, double pgh, double pgu )
+void applyBackbone( IntervalList& iv_list, string& bbcols_fname, string& bb_fname, size_t island_gap_size, double hmm_identity, double pgh, double pgu )
 {
 	ofstream bb_out( bb_fname.c_str() );
-	mems::backbone_list_t bb_list;
+	backbone_list_t bb_list;
 	// adapt to the GC of the sequences
-	double gc_content = mems::computeGC( iv_list.seq_table );
+	double gc_content = computeGC( iv_list.seq_table );
 	std::cout << "Organisms have " << std::setprecision(3) << gc_content*100 << "% GC\n";
 
-	mems::Params hmm_params = mems::getAdaptedHoxdMatrixParameters( gc_content );
+	Params hmm_params = getAdaptedHoxdMatrixParameters( gc_content );
 	hmm_params.iGoHomologous = pgh;
 	hmm_params.iGoUnrelated = pgu;
-	mems::adaptToPercentIdentity( hmm_params, hmm_identity );
+	adaptToPercentIdentity( hmm_params, hmm_identity );
 
-	mems::detectAndApplyBackbone(iv_list, bb_list, hmm_params);
+	detectAndApplyBackbone(iv_list, bb_list, hmm_params);
 	bb_list.clear();
 
-	mems::BigGapsDetector bgd( island_gap_size );
-	mems::detectBackbone( iv_list, bb_list, &bgd );
+	BigGapsDetector bgd( island_gap_size );
+	detectBackbone( iv_list, bb_list, &bgd );
 
-	mems::writeBackboneSeqCoordinates( bb_list, iv_list, bb_out );
-	std::vector< mems::bb_seqentry_t > bb_seq_list;
+	writeBackboneSeqCoordinates( bb_list, iv_list, bb_out );
+	std::vector< bb_seqentry_t > bb_seq_list;
 	bb_out.close();
 	std::ifstream bbseq_input( bb_fname.c_str() );
-	mems::readBackboneSeqFile( bbseq_input, bb_seq_list );
+	readBackboneSeqFile( bbseq_input, bb_seq_list );
 
-	mems::mergeAdjacentSegments( bb_seq_list );
-	mems::addUniqueSegments( bb_seq_list );
+	mergeAdjacentSegments( bb_seq_list );
+	addUniqueSegments( bb_seq_list );
 	bbseq_input.close();
 	bb_out.open(bb_fname.c_str());
-	mems::writeBackboneSeqFile( bb_out, bb_seq_list );
+	writeBackboneSeqFile( bb_out, bb_seq_list );
 
 	ofstream bbcols_out( bbcols_fname.c_str() );
-	mems::writeBackboneColumns( bbcols_out, bb_list );
+	writeBackboneColumns( bbcols_out, bb_list );
 	iv_list.backbone_filename = bbcols_fname;
 }
 
@@ -333,7 +331,7 @@ int doAlignment( int argc, char* argv[] ){
 	size_t island_gap_size = 20;
 
 	// set the Muscle path
-	mems::MuscleInterface& mi = mems::MuscleInterface::getMuscleInterface();
+	MuscleInterface& mi = MuscleInterface::getMuscleInterface();
 	mi.ParseMusclePath( argv[0] );
 
 	// parse the options
@@ -357,13 +355,13 @@ int doAlignment( int argc, char* argv[] ){
 	}
 	
 	if( opt_scratch_path_1.set )
-		mems::FileSML::registerTempPath( opt_scratch_path_1.arg_value.c_str() );
+		FileSML::registerTempPath( opt_scratch_path_1.arg_value.c_str() );
 	if( opt_scratch_path_2.set )
-		mems::FileSML::registerTempPath( opt_scratch_path_2.arg_value.c_str() );
+		FileSML::registerTempPath( opt_scratch_path_2.arg_value.c_str() );
 
 	// set the random number generator to a fixed seed for repeatability
 	// this should be changed if the algorithm ever depends on true pseudo-randomness
-	mems::SetTwisterSeed(37);
+	SetTwisterSeed(37);
 
 	if( opt_go_homologous.set )
 		pgh = strtod( opt_go_homologous.arg_value.c_str(), NULL );
@@ -377,16 +375,16 @@ int doAlignment( int argc, char* argv[] ){
 	// for debugging only:
 	if( opt_apply_backbone.set )
 	{
-		mems::IntervalList iv_list;
+		IntervalList iv_list;
 		ifstream in_file( opt_apply_backbone.arg_value.c_str() );
 		ofstream out_file( opt_output.arg_value.c_str() );
 		iv_list.ReadStandardAlignment(in_file);
-		mems::MatchList ml;
+		MatchList ml;
 		ml.seq_filename = iv_list.seq_filename;
 		if( ml.seq_filename[0] != ml.seq_filename[1] )
-			mems::LoadSequences(ml, &cout);
+			LoadSequences(ml, &cout);
 		else
-			mems::LoadMFASequences(ml, ml.seq_filename[0], &cout);
+			LoadMFASequences(ml, ml.seq_filename[0], &cout);
 		iv_list.seq_table = ml.seq_table;
 		string bb_fname = opt_output.arg_value + ".backbone";
 		string bbcols_fname = opt_output.arg_value + ".bbcols";
@@ -401,7 +399,7 @@ int doAlignment( int argc, char* argv[] ){
 	vector<string> seq_files;
 	vector<string> sml_files;
 	vector<gnSequence*> seq_table;
-	vector<mems::DNAFileSML*> sml_table;
+	vector<DNAFileSML*> sml_table;
 	unsigned int mer_size = 0;	// Use default settings
 	bool create_LCBs = true;
 	string output_file = "";
@@ -439,27 +437,27 @@ int doAlignment( int argc, char* argv[] ){
 	// Start doing the work
 	//
 
-	mems::MatchList pairwise_match_list;
+	MatchList pairwise_match_list;
 	if( opt_seed_weight.set )
 	{
 		mer_size = atoi( opt_seed_weight.arg_value.c_str() );
 	}
 	
 	if( seq_files.size() == 1 ){
-		mems::LoadMFASequences( pairwise_match_list, seq_files[0], &cout );
+		LoadMFASequences( pairwise_match_list, seq_files[0], &cout );
 		pairwise_match_list.CreateMemorySMLs( mer_size, &cout );
 	}else{
 		pairwise_match_list.seq_filename = seq_files;
 		pairwise_match_list.sml_filename = sml_files;
 		// testing: rewrite seq files in RAW format
-		mems::LoadAndCreateRawSequences( pairwise_match_list, &cout );
+		LoadAndCreateRawSequences( pairwise_match_list, &cout );
 //		LoadSequences( pairwise_match_list, &cout );
 		if(opt_solid_seeds.set)
-			pairwise_match_list.LoadSMLs( mer_size, &cout, mems::SOLID_SEED, true );
+			pairwise_match_list.LoadSMLs( mer_size, &cout, SOLID_SEED, true );
 		else if(opt_coding_seeds.set)
-			pairwise_match_list.LoadSMLs( mer_size, &cout, mems::CODING_SEED );
+			pairwise_match_list.LoadSMLs( mer_size, &cout, CODING_SEED );
 		else
-			pairwise_match_list.LoadSMLs( mer_size, &cout, mems::CODING_SEED );
+			pairwise_match_list.LoadSMLs( mer_size, &cout, CODING_SEED );
 	}
 
 	ostream* match_out;
@@ -474,7 +472,7 @@ int doAlignment( int argc, char* argv[] ){
 		match_out = &cout;
 	
 	if(opt_mem_clean.set)
-		mems::debugging_memory = true;
+		debugging_memory = true;
 
 	// read matches if the user requested it
 	if( opt_match_input.set ){
@@ -484,7 +482,7 @@ int doAlignment( int argc, char* argv[] ){
 			return -2;
 		}
 		try{
-			mems::ReadList( pairwise_match_list, match_in );
+			ReadList( pairwise_match_list, match_in );
 		}catch( gnException& gne ){
 			cerr << gne << endl;
 			cerr << "Error reading " << opt_match_input.arg_value << "\nPossibly corrupt file or invalid file format\n";
@@ -500,12 +498,12 @@ int doAlignment( int argc, char* argv[] ){
 	}else if( !opt_seed_family.set ){
 		if( pairwise_match_list.seq_table.size() > 4 )
 		{
-			mems::UniqueMatchFinder umf;
+			UniqueMatchFinder umf;
 			umf.LogProgress( &cout );
 			umf.FindMatches( pairwise_match_list );
 			umf.Clear();
 		}else{
-			mems::PairwiseMatchFinder pmf;
+			PairwiseMatchFinder pmf;
 			pmf.LogProgress( &cout );
 			pmf.FindMatches( pairwise_match_list );
 			pmf.Clear();
@@ -519,24 +517,24 @@ int doAlignment( int argc, char* argv[] ){
 			for( int seqI = 0; seqI < pairwise_match_list.seq_table.size(); seqI++ )
 				avg += pairwise_match_list.seq_table[seqI]->length();
 			avg /= pairwise_match_list.seq_table.size();
-			mer_size = mems::getDefaultSeedWeight( avg );
+			mer_size = getDefaultSeedWeight( avg );
 		}
 		// search with the longest seeds first so that overlapping matches tend to get contained
 		vector< pair< int, int > > length_ranks(3);
-		length_ranks[0] = make_pair( mems::getSeedLength( mems::getSeed(mer_size, 0) ), 0 );
-		length_ranks[1] = make_pair( mems::getSeedLength( mems::getSeed(mer_size, 1) ), 1 );
-		length_ranks[2] = make_pair( mems::getSeedLength( mems::getSeed(mer_size, 2) ), 2 );
+		length_ranks[0] = make_pair( getSeedLength( getSeed(mer_size, 0) ), 0 );
+		length_ranks[1] = make_pair( getSeedLength( getSeed(mer_size, 1) ), 1 );
+		length_ranks[2] = make_pair( getSeedLength( getSeed(mer_size, 2) ), 2 );
 		std::sort( length_ranks.begin(), length_ranks.end() );
 
-		mems::UniqueMatchFinder umf;
+		UniqueMatchFinder umf;
 		for( int seedI = 2; seedI >= 0; seedI-- )
 		{
 			umf.LogProgress( &cout );
-			int64 seed_pattern = mems::getSeed(mer_size, length_ranks[seedI].second );
+			int64 seed_pattern = getSeed(mer_size, length_ranks[seedI].second );
 			char pattern[65];
 			getPatternText( seed_pattern, pattern );
 			cout << "\nSearching with seed pattern " << pattern << "\n";
-			mems::MatchList cur_list;
+			MatchList cur_list;
 			cur_list.seq_filename = pairwise_match_list.seq_filename;
 			cur_list.seq_table = pairwise_match_list.seq_table;
 			if( seq_files.size() == 1 )
@@ -560,7 +558,7 @@ int doAlignment( int argc, char* argv[] ){
 	
 	if( opt_mums.set )
 	{
-		mems::WriteList(pairwise_match_list, *match_out);
+		WriteList(pairwise_match_list, *match_out);
 		for( size_t seqI = 0; seqI < pairwise_match_list.seq_table.size(); seqI++ )
 			delete pairwise_match_list.seq_table[seqI];	// an auto_ptr or shared_ptr could be great for this
 		for( size_t seqI = 0; seqI < pairwise_match_list.sml_table.size(); seqI++ )
@@ -570,26 +568,26 @@ int doAlignment( int argc, char* argv[] ){
 
 	// check whether the input sequences were masked to eliminate excess NNNNNs
 	for( seqI = 0; seqI < pairwise_match_list.sml_table.size(); seqI++ ){
-		mems::FileSML* cur_sml = dynamic_cast< mems::FileSML* >(pairwise_match_list.sml_table[ seqI ]);
+		FileSML* cur_sml = dynamic_cast< FileSML* >(pairwise_match_list.sml_table[ seqI ]);
 		if( cur_sml != NULL ){
 			const vector< int64 >& seq_coords = cur_sml->getUsedCoordinates();
 			if( seq_coords.size() > 0 ){
-				mems::transposeMatches( pairwise_match_list, seqI, seq_coords );
+				transposeMatches( pairwise_match_list, seqI, seq_coords );
 			}
 		}
 	}
 	
 	// free any match search memory
-	mems::SlotAllocator<mems::MatchHashEntry>& allocator = mems::SlotAllocator<mems::MatchHashEntry>::GetSlotAllocator();
+	SlotAllocator<MatchHashEntry>& allocator = SlotAllocator<MatchHashEntry>::GetSlotAllocator();
 	allocator.Purge();
 	
-	mems::ProgressiveAligner aligner( pairwise_match_list.seq_table.size() );
+	ProgressiveAligner aligner( pairwise_match_list.seq_table.size() );
 	if( opt_skip_gapped_alignment.set )
 		aligner.setGappedAlignment(false);
 	if( opt_skip_refinement.set )
 		aligner.setRefinement(false);
 	if( opt_debug.set )
-		mems::debug_aligner = true;
+		debug_aligner = true;
 
 	// check that LCB_size can be set appropriately
 	if( opt_weight.set )
@@ -615,25 +613,25 @@ int doAlignment( int argc, char* argv[] ){
 	if( opt_seed_family.set )
 		aligner.setUseSeedFamilies(true);
 
-	mems::penalize_repeats = true;
+	penalize_repeats = true;
 	if(opt_penalize_repeats.set && opt_penalize_repeats.arg_value == "zero")
-		mems::penalize_repeats = false;
+		penalize_repeats = false;
 
 	if( opt_scoring_scheme.set )
 	{
 		if( opt_scoring_scheme.arg_value == "ancestral" )
-			aligner.setLcbScoringScheme(mems::ProgressiveAligner::AncestralScoring);
+			aligner.setLcbScoringScheme(ProgressiveAligner::AncestralScoring);
 		else if( opt_scoring_scheme.arg_value == "ancestral_sp" )
-			aligner.setLcbScoringScheme(mems::ProgressiveAligner::AncestralSumOfPairsScoring);
+			aligner.setLcbScoringScheme(ProgressiveAligner::AncestralSumOfPairsScoring);
 		else if( opt_scoring_scheme.arg_value == "sp" )
-			aligner.setLcbScoringScheme(mems::ProgressiveAligner::ExtantSumOfPairsScoring);
+			aligner.setLcbScoringScheme(ProgressiveAligner::ExtantSumOfPairsScoring);
 		else
 		{
 			cerr << "Unrecognized scoring scheme: " << opt_scoring_scheme.arg_value << endl;
 			return -2;
 		}
 	}else	// default to extant sp
-		aligner.setLcbScoringScheme(mems::ProgressiveAligner::ExtantSumOfPairsScoring);
+		aligner.setLcbScoringScheme(ProgressiveAligner::ExtantSumOfPairsScoring);
 	if( opt_no_weight_scaling.set )
 		aligner.setUseLcbWeightScaling(false);
 	if( opt_max_breakpoint_distance_scale.set )
@@ -666,7 +664,7 @@ int doAlignment( int argc, char* argv[] ){
 	}
 	if( opt_muscle_args.set )
 	{
-		mems::MuscleInterface& mi = mems::MuscleInterface::getMuscleInterface();
+		MuscleInterface& mi = MuscleInterface::getMuscleInterface();
 		mi.SetExtraMuscleArguments(opt_muscle_args.arg_value);
 	}
 	if( opt_recursive.set )
@@ -674,7 +672,7 @@ int doAlignment( int argc, char* argv[] ){
 	else
 		aligner.SetRecursive(true);
 
-	mems::PairwiseScoringScheme pss;
+	PairwiseScoringScheme pss;
 	if( opt_gap_open.set )
 	{
 		pss.gap_open = atoi(opt_gap_open.arg_value.c_str());
@@ -691,9 +689,9 @@ int doAlignment( int argc, char* argv[] ){
 			cerr << "Error opening substitution matrix file: \"" << opt_substitution_matrix.arg_value << "\"\n";
 			return -1;
 		}
-		mems::score_t matrix[4][4];
-		mems::readSubstitutionMatrix( sub_in, matrix );
-		pss = mems::PairwiseScoringScheme(matrix, pss.gap_open, pss.gap_extend);
+		score_t matrix[4][4];
+		readSubstitutionMatrix( sub_in, matrix );
+		pss = PairwiseScoringScheme(matrix, pss.gap_open, pss.gap_extend);
 	}
 	aligner.setPairwiseScoringScheme(pss);
 
@@ -704,14 +702,14 @@ int doAlignment( int argc, char* argv[] ){
 
 	// if we will be doing a profile-profile or profile-sequence alignment
 	// then read in the profile
-	mems::IntervalList profile_1;
-	mems::IntervalList profile_2;
+	IntervalList profile_1;
+	IntervalList profile_2;
 	if( opt_profile.set ){
 		cerr << "Profile-profile alignment not yet implemented\n";
 		return -3;
 	}
 
-	mems::IntervalList interval_list;
+	IntervalList interval_list;
 	interval_list.seq_table = pairwise_match_list.seq_table;
 	interval_list.seq_filename = pairwise_match_list.seq_filename;
 
