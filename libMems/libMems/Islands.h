@@ -121,103 +121,103 @@ static char colmap[5][5] = {
 
 
 inline
-void findHssHomologyHMM( std::vector< std::string >& aln_table, hss_list_t& hss_list, uint seqI, uint seqJ, const Params& hmm_params,
-						boolean left_homologous, boolean right_homologous )
-{
-	static char* charmap = getCharmap();
-
-	// encode the alignment as column states
-	std::string column_states(aln_table[0].size(),'q');
-	vector< size_t > col_reference(column_states.size(), (std::numeric_limits<size_t>::max)() );
-	size_t refI = 0;
-	for( size_t colI = 0; colI < column_states.size(); colI++ )
-	{
-		char a = charmap[aln_table[seqI][colI]];
-		char b = charmap[aln_table[seqJ][colI]];
-		column_states[colI] = colmap[a][b];
-		if(column_states[colI] != 0 )
-			col_reference[refI++] = colI;
-	}
-	// filter out the gap/gap cols
-	std::string::iterator sitr = std::remove(column_states.begin(), column_states.end(), 0);
-	column_states.resize(sitr - column_states.begin());
-
-	for( size_t colI = 2; colI < column_states.size(); colI++ )
-	{
-		if( column_states[colI] == '7' &&
-			column_states[colI-1] == '7' &&
-			(column_states[colI-2] == '7' || column_states[colI-2] == '8') )
-			column_states[colI-1] = '8';
-	}
-	if( column_states.size() > 1 && column_states[0] == '7' && (column_states[1] == '7' || column_states[1] == '8'))
-		column_states[0] = '8';
-	if( column_states.size() > 1 && column_states[column_states.size()-1] == '7' && (column_states[column_states.size()-2] == '7'|| column_states[column_states.size()-2] == '8') )
-		column_states[column_states.size()-1] = '8';
-	// now feed it to the Homology prediction HMM
-	string prediction;
-	if( right_homologous && !left_homologous )
-		std::reverse(column_states.begin(), column_states.end());
-
-	run(column_states, prediction, hmm_params);
-
-	if( right_homologous && !left_homologous )
-		std::reverse(prediction.begin(), prediction.end());
-	size_t prev_h = 0;
-	size_t i = 1;
-	for( ; i < prediction.size(); i++ )
-	{
-		if( prediction[i] == 'H' && prediction[i-1] == 'N' )
-		{
-			prev_h = i;
-		}
-		if( prediction[i] == 'N' && prediction[i-1] == 'H' )
-		{
-			HssCols hc;
-			hc.seqI = seqI;
-			hc.seqJ = seqJ;
-			hc.left_col = col_reference[prev_h];
-			hc.right_col = col_reference[i-1];
-			hss_list.push_back(hc);
-			prev_h = i;
-		}
-	}
-	// get the last one
-	if( prediction[i-1] == 'H' )
-	{
-		HssCols hc;
-		hc.seqI = seqI;
-		hc.seqJ = seqJ;
-		hc.left_col = col_reference[prev_h];
-		hc.right_col = col_reference[i-1];
-		hss_list.push_back(hc);
-	}
-}
+// void findHssHomologyHMM( std::vector< std::string >& aln_table, hss_list_t& hss_list, uint seqI, uint seqJ, const Params& hmm_params,
+// 						boolean left_homologous, boolean right_homologous )
+// {
+// 	static char* charmap = getCharmap();
+// 
+// 	// encode the alignment as column states
+// 	std::string column_states(aln_table[0].size(),'q');
+// 	vector< size_t > col_reference(column_states.size(), (std::numeric_limits<size_t>::max)() );
+// 	size_t refI = 0;
+// 	for( size_t colI = 0; colI < column_states.size(); colI++ )
+// 	{
+// 		char a = charmap[aln_table[seqI][colI]];
+// 		char b = charmap[aln_table[seqJ][colI]];
+// 		column_states[colI] = colmap[a][b];
+// 		if(column_states[colI] != 0 )
+// 			col_reference[refI++] = colI;
+// 	}
+// 	// filter out the gap/gap cols
+// 	std::string::iterator sitr = std::remove(column_states.begin(), column_states.end(), 0);
+// 	column_states.resize(sitr - column_states.begin());
+// 
+// 	for( size_t colI = 2; colI < column_states.size(); colI++ )
+// 	{
+// 		if( column_states[colI] == '7' &&
+// 			column_states[colI-1] == '7' &&
+// 			(column_states[colI-2] == '7' || column_states[colI-2] == '8') )
+// 			column_states[colI-1] = '8';
+// 	}
+// 	if( column_states.size() > 1 && column_states[0] == '7' && (column_states[1] == '7' || column_states[1] == '8'))
+// 		column_states[0] = '8';
+// 	if( column_states.size() > 1 && column_states[column_states.size()-1] == '7' && (column_states[column_states.size()-2] == '7'|| column_states[column_states.size()-2] == '8') )
+// 		column_states[column_states.size()-1] = '8';
+// 	// now feed it to the Homology prediction HMM
+// 	string prediction;
+// 	if( right_homologous && !left_homologous )
+// 		std::reverse(column_states.begin(), column_states.end());
+// 
+// 	run(column_states, prediction, hmm_params);
+// 
+// 	if( right_homologous && !left_homologous )
+// 		std::reverse(prediction.begin(), prediction.end());
+// 	size_t prev_h = 0;
+// 	size_t i = 1;
+// 	for( ; i < prediction.size(); i++ )
+// 	{
+// 		if( prediction[i] == 'H' && prediction[i-1] == 'N' )
+// 		{
+// 			prev_h = i;
+// 		}
+// 		if( prediction[i] == 'N' && prediction[i-1] == 'H' )
+// 		{
+// 			HssCols hc;
+// 			hc.seqI = seqI;
+// 			hc.seqJ = seqJ;
+// 			hc.left_col = col_reference[prev_h];
+// 			hc.right_col = col_reference[i-1];
+// 			hss_list.push_back(hc);
+// 			prev_h = i;
+// 		}
+// 	}
+// 	// get the last one
+// 	if( prediction[i-1] == 'H' )
+// 	{
+// 		HssCols hc;
+// 		hc.seqI = seqI;
+// 		hc.seqJ = seqJ;
+// 		hc.left_col = col_reference[prev_h];
+// 		hc.right_col = col_reference[i-1];
+// 		hss_list.push_back(hc);
+// 	}
+// }
 
 
 template< typename MatchVector >
-void findHssHomologyHMM( const MatchVector& iv_list, std::vector< genome::gnSequence* >& seq_table,  hss_array_t& hss_array, const Params& hmm_params, boolean left_homologous, boolean right_homologous )
-{
-	typedef typename MatchVector::value_type MatchType;
-	if( iv_list.size() == 0 )
-		return;
-	uint seq_count = seq_table.size();
-	hss_array.resize( boost::extents[seq_count][seq_count][iv_list.size()] );
-	for( uint iv_listI = 0; iv_listI < iv_list.size(); iv_listI++ ){
-		const MatchType& iv = iv_list[ iv_listI ];
-		std::vector< std::string > aln_table;
-		GetAlignment( *iv, seq_table, aln_table );
-		
-		for( uint seqI = 0; seqI < seq_count; seqI++ ){
-			uint seqJ;
-			for( seqJ = seqI + 1; seqJ < seq_count; seqJ++ ){
-
-				hss_list_t& hss_list = hss_array[seqI][seqJ][iv_listI];
-				hss_list.clear();
-				findHssHomologyHMM( aln_table, hss_list, seqI, seqJ, hmm_params, left_homologous, right_homologous );
-			}
-		}
-	}
-}
+// void findHssHomologyHMM( const MatchVector& iv_list, std::vector< genome::gnSequence* >& seq_table,  hss_array_t& hss_array, const Params& hmm_params, boolean left_homologous, boolean right_homologous )
+// {
+// 	typedef typename MatchVector::value_type MatchType;
+// 	if( iv_list.size() == 0 )
+// 		return;
+// 	uint seq_count = seq_table.size();
+// 	hss_array.resize( boost::extents[seq_count][seq_count][iv_list.size()] );
+// 	for( uint iv_listI = 0; iv_listI < iv_list.size(); iv_listI++ ){
+// 		const MatchType& iv = iv_list[ iv_listI ];
+// 		std::vector< std::string > aln_table;
+// 		GetAlignment( *iv, seq_table, aln_table );
+// 		
+// 		for( uint seqI = 0; seqI < seq_count; seqI++ ){
+// 			uint seqJ;
+// 			for( seqJ = seqI + 1; seqJ < seq_count; seqJ++ ){
+// 
+// 				hss_list_t& hss_list = hss_array[seqI][seqJ][iv_listI];
+// 				hss_list.clear();
+// 				findHssHomologyHMM( aln_table, hss_list, seqI, seqJ, hmm_params, left_homologous, right_homologous );
+// 			}
+// 		}
+// 	}
+// }
 
 
 template< typename MatchVector >
@@ -415,4 +415,5 @@ void findBigGaps( const MatchVector& iv_list, std::vector< genome::gnSequence* >
 }
 
 #endif // __Islands_h__
+
 
