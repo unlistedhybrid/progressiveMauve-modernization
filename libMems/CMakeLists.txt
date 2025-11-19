@@ -52,14 +52,8 @@ target_include_directories(libMems PUBLIC
     ${PROJECT_SOURCE_DIR}/muscle
 )
 
+# Link against our robust BoostInterface
 target_link_libraries(libMems PUBLIC 
     libGenome
-    Boost::filesystem
-    Boost::iostreams
-    Boost::program_options
-    Boost::regex
+    BoostInterface
 )
-
-if(TARGET Boost::headers)
-    target_link_libraries(libMems PUBLIC Boost::headers)
-endif()
