@@ -5,14 +5,17 @@ namespace muscle {
 
 const char *SecsToStr(unsigned long Secs)
 	{
-	static TLS<char[16]> Str;
+	// Fixed: Increased buffer size from 16 to 32 to prevent truncation warnings.
+	// 16 bytes causes -Wformat-truncation on 64-bit systems because very large 
+	// 'hh' values would overflow the formatted string.
+	static TLS<char[32]> Str;
 	long hh, mm, ss;
 
 	hh = Secs/(60*60);
 	mm = (Secs/60)%60;
 	ss = Secs%60;
 
-	snprintf(Str.get(), 16, "%02ld:%02ld:%02ld", hh, mm, ss);
+	snprintf(Str.get(), 32, "%02ld:%02ld:%02ld", hh, mm, ss);
 	return Str.get();
 	}
 
@@ -54,5 +57,3 @@ const char *WeightToStr(WEIGHT w)
 	return ScoreToStr(w);
 	}
 }
-
-
