@@ -1,5 +1,7 @@
-#ifndef _GETOPT_H_
-#define _GETOPT_H_
+#ifndef _WIN_GETOPT_H_
+#define _WIN_GETOPT_H_
+
+#ifdef _WIN32
 
 #ifdef __cplusplus
 extern "C" {
@@ -29,4 +31,6 @@ int getopt_long(int argc, char *const argv[], const char *optstring,
 }
 #endif
 
-#endif // _GETOPT_H_
+#endif // _WIN32
+
+#endif // _WIN_GETOPT_H_
