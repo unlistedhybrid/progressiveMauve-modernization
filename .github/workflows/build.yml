@@ -19,14 +19,13 @@ jobs:
       if: runner.os == 'Linux'
       run: |
         sudo apt update
-        # We MUST have libicu-dev because Boost::regex depends on it
+        # Must have libicu-dev for Boost::regex
         sudo apt install -y cmake g++ wget libzstd-dev libbz2-dev zlib1g-dev pkg-config libicu-dev
         cd /tmp
         wget https://github.com/boostorg/boost/releases/download/boost-1.89.0/boost-1.89.0-cmake.tar.gz
         tar xzf boost-1.89.0-cmake.tar.gz
         cd boost-1.89.0
         mkdir build && cd build
-        # We allow ICU usage here
         cmake .. -DCMAKE_INSTALL_PREFIX=/usr/local -DBUILD_SHARED_LIBS=OFF
         sudo cmake --build . --target install -j$(nproc)
 
@@ -36,12 +35,12 @@ jobs:
     - name: Install dependencies (macOS)
       if: runner.os == 'macOS'
       run: |
-        # We MUST have icu4c because Homebrew's Boost is built against it
+        # Must have icu4c for Boost::regex
         brew install boost@1.89 cmake zstd pkg-config icu4c
         brew link boost@1.89 --force
 
     # ----------------------------
-    # WINDOWS (NO CHANGE)
+    # WINDOWS
     # ----------------------------
     - name: Install dependencies (Windows)
       if: runner.os == 'Windows'
@@ -55,7 +54,8 @@ jobs:
 
         $triplet = "x64-windows-static"
         
-        ./vcpkg install boost-filesystem:$triplet boost-iostreams:$triplet boost-program-options:$triplet boost-regex:$triplet boost-algorithm:$triplet boost-multi-array:$triplet boost-tokenizer:$triplet boost-format:$triplet boost-random:$triplet boost-pool:$triplet boost-tuple:$triplet boost-math:$triplet boost-graph:$triplet boost-property-map:$triplet
+        # ADDED: icu:$triplet to the installation list
+        ./vcpkg install icu:$triplet boost-filesystem:$triplet boost-iostreams:$triplet boost-program-options:$triplet boost-regex:$triplet boost-algorithm:$triplet boost-multi-array:$triplet boost-tokenizer:$triplet boost-format:$triplet boost-random:$triplet boost-pool:$triplet boost-tuple:$triplet boost-math:$triplet boost-graph:$triplet boost-property-map:$triplet
 
         Add-Content $env:GITHUB_ENV "CMAKE_TOOLCHAIN_FILE=${{ github.workspace }}\vcpkg\scripts\buildsystems\vcpkg.cmake"
         Add-Content $env:GITHUB_ENV "VCPKG_TARGET_TRIPLET=$triplet"
@@ -80,6 +80,7 @@ jobs:
       run: |
         mkdir build
         cd build
+        # Standard build command
         cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE="${{ env.CMAKE_TOOLCHAIN_FILE }}" -DVCPKG_TARGET_TRIPLET="${{ env.VCPKG_TARGET_TRIPLET }}"
         cmake --build . --config Release --parallel
 
