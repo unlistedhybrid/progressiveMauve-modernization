@@ -1,4 +1,3 @@
-
 #if	DEBUG && !_DEBUG
 #define _DEBUG	1
 #endif
@@ -51,6 +50,7 @@
 #define assert(b)	Call_MY_ASSERT(__FILE__, __LINE__, b, #b)
 void Call_MY_ASSERT(const char *file, int line, bool b, const char *msg);
 #else
+#undef assert
 #define assert(exp)     ((void)0)
 #endif
 
