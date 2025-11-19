@@ -1,4 +1,6 @@
-#include "getopt.h"
+#ifdef _WIN32
+
+#include "win_getopt.h"
 #include <string.h>
 #include <stdio.h>
 
@@ -70,12 +72,6 @@ int getopt(int argc, char *const argv[], const char *optstring) {
 
 int getopt_long(int argc, char *const argv[], const char *optstring,
                 const struct option *longopts, int *longindex) {
-    // Simple wrapper: if it looks like a long option, handling logic here would be complex.
-    // However, for this project, we can try a simplified matching or just fall back if mixed.
-    // Note: This is a minimal implementation to satisfy the linker. 
-    // Ideally, use a full open-source implementation like 'wingetopt' for full feature set.
-    
-    // Checking for --
     if (optind >= argc || !argv[optind]) return -1;
     
     if (argv[optind][0] == '-' && argv[optind][1] == '-') {
@@ -106,7 +102,6 @@ int getopt_long(int argc, char *const argv[], const char *optstring,
                 return longopts[i].val;
             }
         }
-        // Unknown long option
         if (opterr) fprintf(stderr, "%s: illegal option -- %s\n", argv[0], argv[optind-1]);
         optind++; 
         return '?';
@@ -114,3 +109,5 @@ int getopt_long(int argc, char *const argv[], const char *optstring,
     
     return getopt(argc, argv, optstring);
 }
+
+#endif // _WIN32
