@@ -4,13 +4,16 @@
 
 #include "libMems/dmSML/awin32aio.h"
 #include "libMems/dmSML/util.h"
-#ifdef USE_WIN32
 
+// Added for printf
+#include <cstdio>
+
+#ifdef USE_WIN32
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <cstring>
-
+#include <cstdlib> // Added for malloc/free if needed, though you use global malloc
 
 static VOID CALLBACK DummyCompletionRoutine( DWORD err, DWORD nbytes, LPOVERLAPPED lpo ) {
     printf( "completion routine!\n" );
@@ -31,7 +34,7 @@ int OpenWIN32( aFILE * file, const char *path, int mode ) {
         nullptr );
     if( result == INVALID_HANDLE_VALUE ) {
     	access = GetLastError();
-    	printf( "Error opening %s, code %d\n", path, access );
+    	printf( "Error opening %s, code %u\n", path, access );
         return( 0 );
     }
     file->w32handle = result;
@@ -58,11 +61,11 @@ int WriteWIN32( aFILE * file, aIORec * rec ) {
 	if( rec->pos != CURRENT_POS ){
 		offset_t tmppos = rec->pos;
 		tmppos >>= 32;
-		file->filep_high = tmppos;
+		file->filep_high = (DWORD)tmppos; // Cast to DWORD to suppress conversion warnings
 		tmppos = rec->pos;
 		tmppos <<= 32;
 		tmppos >>= 32;
-		file->filep_low = tmppos;
+		file->filep_low = (DWORD)tmppos;
 	}
 
     rec->w32overlapped->OffsetHigh = file->filep_high;
@@ -72,11 +75,11 @@ int WriteWIN32( aFILE * file, aIORec * rec ) {
     if( WriteFileEx( 
         file->w32handle, 
         rec->buf, 
-        rec->size*rec->count, 
+        (DWORD)(rec->size*rec->count), 
         rec->w32overlapped,
         DummyCompletionRoutine ) == 0 ) {
         err = GetLastError();
-        printf( "error with WriteFileEx: %d\n", err );
+        printf( "error with WriteFileEx: %u\n", err );
         return( 0 );
     }
     return( 1 );
@@ -94,11 +97,11 @@ int ReadWIN32( aFILE * file, aIORec * rec ) {
 	if( rec->pos != CURRENT_POS ){
 		offset_t tmppos = rec->pos;
 		tmppos >>= 32;
-		file->filep_high = tmppos;
+		file->filep_high = (DWORD)tmppos;
 		tmppos = rec->pos;
 		tmppos <<= 32;
 		tmppos >>= 32;
-		file->filep_low = tmppos;
+		file->filep_low = (DWORD)tmppos;
 	}
 
     rec->w32overlapped->OffsetHigh = file->filep_high;
@@ -106,7 +109,7 @@ int ReadWIN32( aFILE * file, aIORec * rec ) {
     if( ReadFileEx( 
         file->w32handle, 
         rec->buf, 
-        rec->size*rec->count, 
+        (DWORD)(rec->size*rec->count), 
         rec->w32overlapped,
         DummyCompletionRoutine ) == 0 ) {
         err = GetLastError();
@@ -115,13 +118,15 @@ int ReadWIN32( aFILE * file, aIORec * rec ) {
             printf( "readfileex says EOF -- we'll pretend it worked\n" );
             return( 1 );
         default:
-            printf( "error with ReadFileEx -- Last Error: %d\n", GetLastError() );
-            printf( "called:  ReadFileEx( %d, %d, %d, %d, %d )\n", 
-                file->w32handle, 
+            printf( "error with ReadFileEx -- Last Error: %u\n", GetLastError() );
+            // Use %p for pointers (HANDLE, void*, Function Pointers)
+            // Use %zu for size_t or cast to DWORD/%u
+            printf( "called:  ReadFileEx( %p, %p, %u, %p, %p )\n", 
+                (void*)file->w32handle, 
                 rec->buf, 
-                rec->size*rec->count, 
-                rec->w32overlapped,
-                DummyCompletionRoutine );
+                (unsigned int)(rec->size*rec->count), 
+                (void*)rec->w32overlapped,
+                (void*)DummyCompletionRoutine );
             return( 0 );
         }
     }
@@ -142,7 +147,5 @@ int QueryLastCompleteWIN32( aFILE * file ) {
         return( 0 );
     }
 }
-
-
 
 #endif /* USE_WIN32 */
