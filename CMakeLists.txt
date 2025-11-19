@@ -19,19 +19,18 @@ find_package(Boost 1.89 REQUIRED
     regex
 )
 
-include_directories(${Boost_INCLUDE_DIRS})
-
-add_library(BoostInterface INTERFACE IMPORTED)
-set_target_properties(BoostInterface PROPERTIES
-    INTERFACE_INCLUDE_DIRECTORIES "${Boost_INCLUDE_DIRS}"
-    INTERFACE_LINK_LIBRARIES "${Boost_LIBRARIES}"
+# Define BoostInterface as a genuine INTERFACE library linking to actual targets
+add_library(BoostInterface INTERFACE)
+target_link_libraries(BoostInterface INTERFACE
+    Boost::filesystem
+    Boost::iostreams
+    Boost::program_options
+    Boost::regex
 )
 
-if(NOT MSVC)
-    target_compile_options(BoostInterface INTERFACE
-        -Wno-deprecated-declarations
-        -Wno-unused-parameter
-    )
+# Link Boost::headers for header-only libs (algorithm, multi_array, etc.) if available
+if(TARGET Boost::headers)
+    target_link_libraries(BoostInterface INTERFACE Boost::headers)
 endif()
 
 # ------------------------------------------------------------
@@ -72,7 +71,6 @@ target_link_libraries(mauveAligner
 # ------------------------------------------------------------
 # EXECUTABLE: progressiveMauve
 # ------------------------------------------------------------
-# Added missing source files here (UniqueMatchFinder, AlignmentTree, etc.)
 add_executable(progressiveMauve
     mauveAligner/src/progressiveMauve.cpp
     mauveAligner/src/repeatoire.cpp
