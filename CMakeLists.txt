@@ -7,9 +7,6 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-# ------------------------------------------------------------
-# STATIC RUNTIME LINKING (WINDOWS FIX)
-# ------------------------------------------------------------
 if(MSVC)
     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded")
     add_compile_options($<$<CONFIG:Release>:/MT>)
@@ -18,28 +15,24 @@ if(MSVC)
     add_compile_options(/wd4996)
 endif()
 
-# ------------------------------------------------------------
-# WINDOWS COMPATIBILITY SETUP
-# ------------------------------------------------------------
+# --- WINDOWS SETUP ---
 set(EXTRA_SRCS "")
 set(EXTRA_LIBS "")
-
 if(WIN32)
     list(APPEND EXTRA_SRCS mauveAligner/src/win_getopt.cpp)
     list(APPEND EXTRA_LIBS winmm psapi)
 endif()
 
-# ------------------------------------------------------------
-# BOOST & COMPRESSION SETUP
-# ------------------------------------------------------------
+# --- MACOS HOMEBREW HINTS ---
+if(APPLE)
+    # icu4c is keg-only on macOS (not linked to /usr/local), so we must hint explicitly
+    list(APPEND CMAKE_PREFIX_PATH "/opt/homebrew/opt/icu4c" "/usr/local/opt/icu4c")
+endif()
+
+# --- BOOST & DEPS SETUP ---
 set(Boost_DEBUG OFF)
 set(Boost_USE_STATIC_LIBS ON) 
 set(Boost_USE_MULTITHREADED ON)
-
-# Help CMake find dependencies on macOS Homebrew
-if(APPLE)
-    list(APPEND CMAKE_PREFIX_PATH "/opt/homebrew" "/usr/local")
-endif()
 
 find_package(Boost 1.89 REQUIRED 
     COMPONENTS
@@ -49,24 +42,23 @@ find_package(Boost 1.89 REQUIRED
     regex
 )
 
-# --- ROBUST ZSTD FINDER (Fixes 'library zstd not found') ---
 find_package(ZLIB)
 find_package(BZip2)
 find_package(PkgConfig)
 
-# 1. Try PkgConfig first (Standard on Linux/Mac)
+# --- NEW: Find ICU (Required for Boost::regex) ---
+find_package(ICU COMPONENTS uc data i18n)
+
+# ZSTD Logic
 if(PKG_CONFIG_FOUND)
     pkg_check_modules(ZSTD libzstd)
 endif()
-
-# 2. Fallback: Manual find with hints
 if(NOT ZSTD_FOUND)
     find_library(ZSTD_LIB 
         NAMES zstd zstd_static libzstd
         HINTS "/opt/homebrew/lib" "/usr/local/lib"
     )
 else()
-    # If PkgConfig found it, use the specific path it gave us
     set(ZSTD_LIB ${ZSTD_LIBRARIES})
     link_directories(${ZSTD_LIBRARY_DIRS}) 
 endif()
@@ -79,23 +71,22 @@ target_link_libraries(BoostInterface INTERFACE
     Boost::regex
 )
 
-# Link compression libs explicitly
 if(ZLIB_FOUND)
     target_link_libraries(BoostInterface INTERFACE ZLIB::ZLIB)
 endif()
 if(BZIP2_FOUND)
     target_link_libraries(BoostInterface INTERFACE BZip2::BZip2)
 endif()
-
-# Link ZSTD (The critical fix)
 if(ZSTD_LIB)
     target_link_libraries(BoostInterface INTERFACE ${ZSTD_LIB})
 else()
-    # If we couldn't find the file, explicitly tell linker to try "-lzstd"
-    # and hope it is in the path.
     target_link_libraries(BoostInterface INTERFACE zstd)
 endif()
 
+# --- NEW: Link ICU if found ---
+if(ICU_FOUND)
+    target_link_libraries(BoostInterface INTERFACE ICU::uc ICU::data ICU::i18n)
+endif()
 
 if(TARGET Boost::headers)
     target_link_libraries(BoostInterface INTERFACE Boost::headers)
@@ -107,17 +98,13 @@ if(Boost_INCLUDE_DIRS)
     target_include_directories(BoostInterface INTERFACE ${Boost_INCLUDE_DIRS})
 endif()
 
-# ------------------------------------------------------------
-# SUBDIRECTORIES
-# ------------------------------------------------------------
+# --- SUBDIRECTORIES ---
 add_subdirectory(libGenome)
 add_subdirectory(libMems)
 add_subdirectory(muscle)
 add_subdirectory(sgEvolver)
 
-# ------------------------------------------------------------
-# EXECUTABLE: mauveAligner
-# ------------------------------------------------------------
+# --- EXECUTABLES ---
 add_executable(mauveAligner
     mauveAligner/src/mauveAligner.cpp
     mauveAligner/src/AlignmentTree.cpp
@@ -125,25 +112,14 @@ add_executable(mauveAligner
     mauveAligner/src/UniqueMatchFinder.cpp
     ${EXTRA_SRCS}
 )
-
 target_include_directories(mauveAligner PRIVATE
     ${PROJECT_SOURCE_DIR}/libGenome
     ${PROJECT_SOURCE_DIR}/libMems
     ${PROJECT_SOURCE_DIR}/muscle
     ${PROJECT_SOURCE_DIR}/mauveAligner/src
 )
+target_link_libraries(mauveAligner libGenome libMems libMUSCLE BoostInterface ${EXTRA_LIBS})
 
-target_link_libraries(mauveAligner
-    libGenome
-    libMems
-    libMUSCLE
-    BoostInterface
-    ${EXTRA_LIBS}
-)
-
-# ------------------------------------------------------------
-# EXECUTABLE: progressiveMauve
-# ------------------------------------------------------------
 add_executable(progressiveMauve
     mauveAligner/src/progressiveMauve.cpp
     mauveAligner/src/repeatoire.cpp
@@ -155,18 +131,10 @@ add_executable(progressiveMauve
     mauveAligner/src/RepeatHashCat.cpp
     ${EXTRA_SRCS}
 )
-
 target_include_directories(progressiveMauve PRIVATE
     ${PROJECT_SOURCE_DIR}/libGenome
     ${PROJECT_SOURCE_DIR}/libMems
     ${PROJECT_SOURCE_DIR}/muscle
     ${PROJECT_SOURCE_DIR}/mauveAligner/src
 )
-
-target_link_libraries(progressiveMauve
-    libGenome
-    libMems
-    libMUSCLE
-    BoostInterface
-    ${EXTRA_LIBS}
-)
+target_link_libraries(progressiveMauve libGenome libMems libMUSCLE BoostInterface ${EXTRA_LIBS})
