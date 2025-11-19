@@ -50,10 +50,10 @@ jobs:
         cd vcpkg
         ./bootstrap-vcpkg.bat
 
-        # Install Boost modules (Added missing header-only libraries here!)
-        ./vcpkg install boost-filesystem:x64-windows boost-iostreams:x64-windows boost-program-options:x64-windows boost-regex:x64-windows boost-algorithm:x64-windows boost-multi-array:x64-windows boost-tokenizer:x64-windows boost-format:x64-windows boost-random:x64-windows
+        # Install Boost modules
+        # Added boost-pool, boost-tuple, boost-math to fix the new errors
+        ./vcpkg install boost-filesystem:x64-windows boost-iostreams:x64-windows boost-program-options:x64-windows boost-regex:x64-windows boost-algorithm:x64-windows boost-multi-array:x64-windows boost-tokenizer:x64-windows boost-format:x64-windows boost-random:x64-windows boost-pool:x64-windows boost-tuple:x64-windows boost-math:x64-windows
 
-        # **** CRITICAL FIX ****
         # Correct way to export environment variables on Windows GitHub runners
         Add-Content $env:GITHUB_ENV "CMAKE_TOOLCHAIN_FILE=${{ github.workspace }}\vcpkg\scripts\buildsystems\vcpkg.cmake"
 
