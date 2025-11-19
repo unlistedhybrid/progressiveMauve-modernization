@@ -27,15 +27,17 @@ void AlignmentTree::readTree(istream& tree_file) {
 	stringstream blen_str;
 	TreeNode new_node;
 	new_node.distance = 0;
-	for(uint charI = 0; charI < tree_line.size(); charI++) {
+	
+	// Fixed: uint -> unsigned int
+	for(unsigned int charI = 0; charI < tree_line.size(); charI++) {
 		switch(tree_line[charI]) {
 			case '(':
 				if(node_stack.size() > 0) {
 					new_node.parents.clear();
 					new_node.parents.push_back(node_stack.top());
-					(*this)[node_stack.top()].children.push_back((*this).size());
+					(*this)[node_stack.top()].children.push_back((node_id_t)(*this).size());
 				}
-				node_stack.push((*this).size());
+				node_stack.push((node_id_t)(*this).size());
 				push_back(new_node);
 				break;
 			case ')':
@@ -51,7 +53,7 @@ void AlignmentTree::readTree(istream& tree_file) {
 
 void AlignmentTree::writeTree(ostream& os) const {
 	stack<node_id_t> node_stack;
-	stack<uint> child_stack;
+	stack<unsigned int> child_stack; // Fixed: uint -> unsigned int
 	node_stack.push(root);
 	child_stack.push(0);
 	os << "(";
