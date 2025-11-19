@@ -19,13 +19,14 @@ jobs:
       if: runner.os == 'Linux'
       run: |
         sudo apt update
-        # ADDED: pkg-config
-        sudo apt install -y cmake g++ wget libzstd-dev libbz2-dev zlib1g-dev pkg-config
+        # ADDED: libicu-dev
+        sudo apt install -y cmake g++ wget libzstd-dev libbz2-dev zlib1g-dev pkg-config libicu-dev
         cd /tmp
         wget https://github.com/boostorg/boost/releases/download/boost-1.89.0/boost-1.89.0-cmake.tar.gz
         tar xzf boost-1.89.0-cmake.tar.gz
         cd boost-1.89.0
         mkdir build && cd build
+        # BUILD_SHARED_LIBS=OFF creates static libs
         cmake .. -DCMAKE_INSTALL_PREFIX=/usr/local -DBUILD_SHARED_LIBS=OFF
         sudo cmake --build . --target install -j$(nproc)
 
@@ -35,8 +36,8 @@ jobs:
     - name: Install dependencies (macOS)
       if: runner.os == 'macOS'
       run: |
-        # ADDED: pkg-config
-        brew install boost@1.89 cmake zstd pkg-config
+        # ADDED: icu4c
+        brew install boost@1.89 cmake zstd pkg-config icu4c
         brew link boost@1.89 --force
 
     # ----------------------------
