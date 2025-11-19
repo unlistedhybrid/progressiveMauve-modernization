@@ -52,4 +52,11 @@ target_include_directories(libMems PUBLIC
     ${PROJECT_SOURCE_DIR}/muscle
 )
 
-target_link_libraries(libMems PUBLIC libGenome)
+# Link directly to Boost targets to ensure include paths are propagated on Windows
+target_link_libraries(libMems PUBLIC 
+    libGenome
+    Boost::filesystem
+    Boost::iostreams
+    Boost::program_options
+    Boost::regex
+)
