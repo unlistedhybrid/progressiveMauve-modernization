@@ -119,7 +119,9 @@ void gnCompare::DelArrayEntry( gnSeqC *array[GNSEQC_MAX], const gnSeqC ch, const
 	//check that the pair exists
 	// FIXED: Cast subscript to unsigned char
 	unsigned char u_ch = (unsigned char)ch;
-	gnSeqC* loc = strchr(m_containArray[u_ch], ch2);
+
+	// FIXED: Use the passed 'array' instead of hardcoded 'm_containArray'
+	gnSeqC* loc = strchr(array[u_ch], ch2);
 	uint32 count = 0;
 	while(loc != NULL){
 		count++;
@@ -132,8 +134,9 @@ void gnCompare::DelArrayEntry( gnSeqC *array[GNSEQC_MAX], const gnSeqC ch, const
 	gnSeqC* tmp = new gnSeqC[curlen - count];
 	uint32 tmppos = 0;
 	for(uint32 i=0; i < curlen; i++)
-		if(m_containArray[u_ch][i] != ch2)
-			tmp[tmppos++] = m_containArray[u_ch][i];
+		// FIXED: Use the passed 'array'
+		if(array[u_ch][i] != ch2)
+			tmp[tmppos++] = array[u_ch][i];
 	tmp[tmppos] = 0;
 	delete[] array[u_ch];
 	array[u_ch] = tmp;
@@ -828,3 +831,5 @@ void gnCompare::CreateRNAComparator()
 
 
 }	// end namespace genome
+
+}
