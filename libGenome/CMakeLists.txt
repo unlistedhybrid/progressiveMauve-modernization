@@ -36,10 +36,13 @@ target_include_directories(libGenome PUBLIC
     ${PROJECT_SOURCE_DIR}/libGenome/libGenome
 )
 
-# Link directly to Boost targets to ensure include paths are propagated on Windows
 target_link_libraries(libGenome PUBLIC
     Boost::filesystem
     Boost::iostreams
     Boost::program_options
     Boost::regex
 )
+
+if(TARGET Boost::headers)
+    target_link_libraries(libGenome PUBLIC Boost::headers)
+endif()
