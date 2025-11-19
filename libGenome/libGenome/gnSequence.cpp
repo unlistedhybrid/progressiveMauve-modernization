@@ -260,7 +260,7 @@ string gnSequence::ToString( const gnSeqI len, const gnSeqI offset ) const
 {
 	STACK_TRACE_START
 		string str;
-		ToString(str, len, offset);
+		(void)ToString(str, len, offset);
 		return str;
 	STACK_TRACE_END
 }
