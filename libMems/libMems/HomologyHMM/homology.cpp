@@ -313,7 +313,6 @@ bfloat Forward(HomologyDPTable** ppOutTable,Params iPar,char *aSeq,int iLen) {
     const bfloat *CurStateMemoryblock3From;
     int iPrevSlowCoord;
     int iSymbol[1];
-    if (false && iSymbol[0] == iSymbol[0]) {}   // avoid 'unused variable' warnings
     double iEmission[2];
     /* temporary storage for ordinary reals */
     double iTempResult[1];
@@ -383,7 +382,6 @@ bfloat Forward(HomologyDPTable** ppOutTable,Params iPar,char *aSeq,int iLen) {
     iPrevSlowCoord = -1;
     {
         int iPos0=iLen+0;
-        if (iPos0==iPos0) {} // avoid 'unused variable' warnings
         CurStateMemoryblock3From = dp.StateMemoryblock3.read();
         iTempProb[0] = CurStateMemoryblock3From[0];
     }
@@ -411,7 +409,6 @@ bfloat Backward(HomologyBaumWelch& bw,HomologyDPTable* pInTable,HomologyDPTable*
     const bfloat *CurStateMemoryblock1From;
     int iPrevSlowCoord;
     int iSymbol[1];
-    if (false && iSymbol[0] == iSymbol[0]) {}   // avoid 'unused variable' warnings
     double iEmission[2];
     /* temporary storage for ordinary reals */
     double iTempResult[1];
@@ -447,7 +444,6 @@ bfloat Backward(HomologyBaumWelch& bw,HomologyDPTable* pInTable,HomologyDPTable*
     iPrevSlowCoord = -1;
     {
         int iPos0=iLen+0;
-        if (iPos0==iPos0) {} // avoid 'unused variable' warnings
         CurStateMemoryblock3Secondary = dp2.StateMemoryblock3.read();
         iTempProb[2] = CurStateMemoryblock3Secondary[0];
         bw.scaleCounts(iTempProb[2]);
@@ -536,7 +532,6 @@ bfloat Backward(HomologyBaumWelch& bw,HomologyDPTable* pInTable,HomologyDPTable*
     iPrevSlowCoord = -1;
     {
         int iPos0=0;
-        if (iPos0==iPos0) {} // avoid 'unused variable' warnings
         CurStateMemoryblock1From = dp.StateMemoryblock1.read();
         iTempProb[0] = CurStateMemoryblock1From[0];
     }
@@ -559,7 +554,6 @@ bfloat Viterbi_recurse(HomologyDPTable** ppOutTable,Params iPar,char *aSeq,int i
     const bfloat *CurStateMemoryblock1From;
     int iPrevSlowCoord;
     int iSymbol[1];
-    if (false && iSymbol[0] == iSymbol[0]) {}   // avoid 'unused variable' warnings
     double iEmission[2];
     /* temporary storage for ordinary reals */
     double iTempResult[1];
@@ -640,7 +634,6 @@ bfloat Viterbi_recurse(HomologyDPTable** ppOutTable,Params iPar,char *aSeq,int i
     iPrevSlowCoord = -1;
     {
         int iPos0=0;
-        if (iPos0==iPos0) {} // avoid 'unused variable' warnings
         CurStateMemoryblock1From = dp.StateMemoryblock1.read();
         iTempProb[0] = CurStateMemoryblock1From[0];
     }
@@ -663,7 +656,6 @@ Path& Viterbi_trace(HomologyDPTable* pInTable,Params iPar,char *aSeq,int iLen) {
     SimplePath* pPath = new SimplePath();
     vector<int> emit;
     int iSymbol[1];
-    if (false && iSymbol[0] == iSymbol[0]) {}   // avoid 'unused variable' warnings
     double iEmission[2];
     /* temporary vector storage */
     bfloat iTempVector[9];
@@ -697,7 +689,6 @@ Path& Viterbi_trace(HomologyDPTable* pInTable,Params iPar,char *aSeq,int iLen) {
     iPrevSlowCoord = -1;
     {
         int iPos0=0;
-        if (iPos0==iPos0) {} // avoid 'unused variable' warnings
         iTempIntVec[0] = 0;
         while (iTempIntVec[0] != 3) {
             iTempIntVec[1] = 2;
