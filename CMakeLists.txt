@@ -8,17 +8,14 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # ------------------------------------------------------------
-# STATIC RUNTIME LINKING (THE FIX)
+# STATIC RUNTIME LINKING (WINDOWS FIX)
 # ------------------------------------------------------------
-# This forces the compiler to bake system DLLs into the .exe
 if(MSVC)
     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded")
     add_compile_options($<$<CONFIG:Release>:/MT>)
     add_compile_options($<$<CONFIG:Debug>:/MTd>)
-    
-    # Disable specific warnings
-    add_compile_options(/wd4834) # Disable [[nodiscard]] warning
-    add_compile_options(/wd4996) # Disable deprecation warnings
+    add_compile_options(/wd4834)
+    add_compile_options(/wd4996)
 endif()
 
 # ------------------------------------------------------------
@@ -28,19 +25,14 @@ set(EXTRA_SRCS "")
 set(EXTRA_LIBS "")
 
 if(WIN32)
-    # 1. Compile win_getopt.cpp for Windows
     list(APPEND EXTRA_SRCS mauveAligner/src/win_getopt.cpp)
-    
-    # 2. Link System Libraries
     list(APPEND EXTRA_LIBS winmm psapi)
 endif()
 
 # ------------------------------------------------------------
-# BOOST SETUP
+# BOOST & COMPRESSION SETUP
 # ------------------------------------------------------------
 set(Boost_DEBUG OFF)
-
-# CHANGED: Set to ON to include Boost inside the exe
 set(Boost_USE_STATIC_LIBS ON) 
 set(Boost_USE_MULTITHREADED ON)
 
@@ -52,14 +44,29 @@ find_package(Boost 1.89 REQUIRED
     regex
 )
 
-add_library(BoostInterface INTERFACE)
+# --- NEW: Find Compression Libraries (Required by Boost::iostreams) ---
+find_package(ZLIB)
+find_package(BZip2)
+find_library(ZSTD_LIB NAMES zstd zstd_static)
 
+add_library(BoostInterface INTERFACE)
 target_link_libraries(BoostInterface INTERFACE
     Boost::filesystem
     Boost::iostreams
     Boost::program_options
     Boost::regex
 )
+
+# Explicitly link compression libs if found (Fixes 'library zstd not found')
+if(ZLIB_FOUND)
+    target_link_libraries(BoostInterface INTERFACE ZLIB::ZLIB)
+endif()
+if(BZIP2_FOUND)
+    target_link_libraries(BoostInterface INTERFACE BZip2::BZip2)
+endif()
+if(ZSTD_LIB)
+    target_link_libraries(BoostInterface INTERFACE ${ZSTD_LIB})
+endif()
 
 if(TARGET Boost::headers)
     target_link_libraries(BoostInterface INTERFACE Boost::headers)
@@ -70,14 +77,10 @@ endif()
 if(Boost_INCLUDE_DIRS)
     target_include_directories(BoostInterface INTERFACE ${Boost_INCLUDE_DIRS})
 endif()
-if(Boost_INCLUDE_DIR)
-    target_include_directories(BoostInterface INTERFACE ${Boost_INCLUDE_DIR})
-endif()
 
 # ------------------------------------------------------------
 # SUBDIRECTORIES
 # ------------------------------------------------------------
-
 add_subdirectory(libGenome)
 add_subdirectory(libMems)
 add_subdirectory(muscle)
