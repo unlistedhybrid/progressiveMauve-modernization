@@ -834,5 +834,3 @@ void SortedMerList::Create(const gnSequence& seq, const uint64 seed){
 }
 
 } // namespace mems
-
-}
