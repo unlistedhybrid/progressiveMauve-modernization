@@ -567,7 +567,7 @@ void SortedMerList::FillSML(gnSeqC* seq_buf, gnSeqI seq_len, boolean circular, v
 void SortedMerList::FillSML(const gnSequence& seq, vector<bmer>& sml_array){
 	gnSeqI seq_len = seq.length();
 	Array<gnSeqC> seq_buf( seq_len );
-	seq.ToArray(seq_buf.data, seq_len);
+	(void)seq.ToArray(seq_buf.data, seq_len);
 	FillSML(seq_buf.data, seq_len, seq.isCircular(), sml_array);
 }
 
@@ -806,9 +806,9 @@ void SortedMerList::Create(const gnSequence& seq, const uint64 seed){
 	// use the nifty Array class as a wrapper for the buffer to ensure correct deallocation
 	gnSeqI buf_len = seq.isCircular() ? seq_len + seed_length : seq_len;
 	Array<gnSeqC> seq_buf( buf_len );
-	seq.ToArray(seq_buf.data, seq_len);
+	(void)seq.ToArray(seq_buf.data, seq_len);
 	if( seq.isCircular() )
-		seq.ToArray(seq_buf.data + seq_len, seed_length-1);
+		(void)seq.ToArray(seq_buf.data + seq_len, seed_length-1);
 
 	// set header information
 	header.length = seq_len;
