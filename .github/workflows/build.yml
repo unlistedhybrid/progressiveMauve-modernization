@@ -19,13 +19,13 @@ jobs:
       if: runner.os == 'Linux'
       run: |
         sudo apt update
-        sudo apt install -y cmake g++ wget
+        # ADDED: libzstd-dev libbz2-dev zlib1g-dev
+        sudo apt install -y cmake g++ wget libzstd-dev libbz2-dev zlib1g-dev
         cd /tmp
         wget https://github.com/boostorg/boost/releases/download/boost-1.89.0/boost-1.89.0-cmake.tar.gz
         tar xzf boost-1.89.0-cmake.tar.gz
         cd boost-1.89.0
         mkdir build && cd build
-        # CHANGED: BUILD_SHARED_LIBS=OFF ensures we get static .a libraries
         cmake .. -DCMAKE_INSTALL_PREFIX=/usr/local -DBUILD_SHARED_LIBS=OFF
         sudo cmake --build . --target install -j$(nproc)
 
@@ -35,7 +35,8 @@ jobs:
     - name: Install dependencies (macOS)
       if: runner.os == 'macOS'
       run: |
-        brew install boost@1.89 cmake
+        # ADDED: zstd
+        brew install boost@1.89 cmake zstd
         brew link boost@1.89 --force
 
     # ----------------------------
@@ -51,7 +52,6 @@ jobs:
         cd vcpkg
         ./bootstrap-vcpkg.bat
 
-        # CRITICAL: Use x64-windows-static to match the /MT flag in CMakeLists.txt
         $triplet = "x64-windows-static"
         
         ./vcpkg install boost-filesystem:$triplet boost-iostreams:$triplet boost-program-options:$triplet boost-regex:$triplet boost-algorithm:$triplet boost-multi-array:$triplet boost-tokenizer:$triplet boost-format:$triplet boost-random:$triplet boost-pool:$triplet boost-tuple:$triplet boost-math:$triplet boost-graph:$triplet boost-property-map:$triplet
@@ -67,7 +67,6 @@ jobs:
       run: |
         mkdir build
         cd build
-        # Explicitly request static libs
         cmake .. -DCMAKE_BUILD_TYPE=Release -DBoost_USE_STATIC_LIBS=ON
         cmake --build . --parallel
 
@@ -80,7 +79,6 @@ jobs:
       run: |
         mkdir build
         cd build
-        # Pass the static triplet to CMake
         cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE="${{ env.CMAKE_TOOLCHAIN_FILE }}" -DVCPKG_TARGET_TRIPLET="${{ env.VCPKG_TARGET_TRIPLET }}"
         cmake --build . --config Release --parallel
 
