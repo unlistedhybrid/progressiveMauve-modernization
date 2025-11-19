@@ -10,8 +10,13 @@
 #include "config.h"
 #endif
 
-//#include "mauveAligner.h"
-#include "getopt.h"
+// Win32 Getopt Conditional
+#ifdef _WIN32
+#include "win_getopt.h"
+#else
+#include <getopt.h>
+#endif
+
 #include <sstream>
 #include <stdexcept>
 #include "libMems/Matrix.h"
@@ -26,7 +31,6 @@
 #include "libMems/Islands.h"
 #include "libMems/MuscleInterface.h"
 #include "libMems/Backbone.h"
-//#include "libMems/twister.h"
 
 #include "libMems/ProgressiveAligner.h"
 #include "libMems/PairwiseMatchFinder.h"
@@ -72,7 +76,7 @@ public:
 class OptionList : public vector< MauveOption* >
 {
 public:
-	OptionList() : opt_list(NULL){};
+	OptionList() : opt_list(NULL), config_opt(0) {};
 	~OptionList()
 	{
 		if( opt_list != NULL )
@@ -135,17 +139,15 @@ void printMatchSizes()
 	UngappedLocalAlignment< SparseAbstractMatch<> > sula;
 	CompactGappedAlignment<> cga;
 	MatchHashEntry	mhe;
-	bitset_t bitset;
 	Match m;
 	cerr << "sizeof(UngappedLocalAlignment< HybridAbstractMatch<> >) " << sizeof(ula) << endl;
 	cerr << "sizeof(UngappedLocalAlignment< SparseAbstractMatch<> >) " << sizeof(sula) << endl;
 	cerr << "sizeof(m) " << sizeof(m) << endl;
 	cerr << "sizeof(CompactGappedAlignment<>) " << sizeof(cga) << endl;
-	// cerr << "sizeof(boost::dynamic_bitset) " << sizeof(bitset) << endl;
 	cerr << "sizeof(MatchHashEntry) " << sizeof(mhe) << endl;
 }
 
-#ifndef WIN32
+#ifndef _WIN32
 #include <signal.h>
 #endif
 
@@ -161,7 +163,7 @@ void terminateProgram( int sig )
 	exit(sig);	
 }
 
-#ifdef WIN32
+#ifdef _WIN32
 BOOL WINAPI handler(DWORD dwCtrlType)
 {
 	switch(dwCtrlType)
@@ -183,7 +185,7 @@ int doAlignment(int argc, char* argv[]);
 
 int main( int argc, char* argv[] )
 {
-#if	WIN32
+#ifdef	_WIN32
 // Multi-tasking does not work well in CPU-bound
 // console apps running under Win32.
 // Reducing the process priority allows GUI apps
@@ -342,7 +344,7 @@ int doAlignment( int argc, char* argv[] ){
 	int ac = argc;
 	char** av = argv;
 	int indexptr;
-	while( (opt = getopt_long( ac, av, "", mauve_options.getOptions(), &indexptr )) != EOF ){
+	while( (opt = getopt_long( ac, av, "", mauve_options.getOptions(), &indexptr )) != -1 ){
 		if( opt == 0 )
 		{
 			mauve_options[mauve_options.config_opt]->set = true;
@@ -401,11 +403,9 @@ int doAlignment( int argc, char* argv[] ){
 	vector<gnSequence*> seq_table;
 	vector<DNAFileSML*> sml_table;
 	unsigned int mer_size = 0;	// Use default settings
-	bool create_LCBs = true;
+	
 	string output_file = "";
 	string tree_filename = "";
-
-	bool lcb_match_input_format = false;
 
 	size_t seqI;
 	
@@ -514,8 +514,8 @@ int doAlignment( int argc, char* argv[] ){
 		if( mer_size == 0 )
 		{
 			size_t avg = 0;
-			for( int seqI = 0; seqI < pairwise_match_list.seq_table.size(); seqI++ )
-				avg += pairwise_match_list.seq_table[seqI]->length();
+			for( int i = 0; i < pairwise_match_list.seq_table.size(); i++ )
+				avg += pairwise_match_list.seq_table[i]->length();
 			avg /= pairwise_match_list.seq_table.size();
 			mer_size = getDefaultSeedWeight( avg );
 		}
