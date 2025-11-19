@@ -7,10 +7,17 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
+# Disable specific MSVC warnings that are cluttering the output
+if(MSVC)
+    add_compile_options(/wd4834) # Disable [[nodiscard]] warning
+    add_compile_options(/wd4996) # Disable deprecation warnings
+endif()
+
 set(Boost_DEBUG OFF)
 set(Boost_USE_STATIC_LIBS OFF)
 set(Boost_USE_MULTITHREADED ON)
 
+# Find Boost with all necessary components
 find_package(Boost 1.89 REQUIRED 
     COMPONENTS
     filesystem
@@ -19,8 +26,12 @@ find_package(Boost 1.89 REQUIRED
     regex
 )
 
-# Define BoostInterface as a genuine INTERFACE library linking to actual targets
+# ------------------------------------------------------------
+# ROBUST BOOST INTERFACE
+# ------------------------------------------------------------
 add_library(BoostInterface INTERFACE)
+
+# 1. Add compiled library targets
 target_link_libraries(BoostInterface INTERFACE
     Boost::filesystem
     Boost::iostreams
@@ -28,20 +39,28 @@ target_link_libraries(BoostInterface INTERFACE
     Boost::regex
 )
 
-# Link Boost::headers for header-only libs (algorithm, multi_array, etc.) if available
+# 2. Add Header targets (Fixes Windows "Cannot open include file" error)
 if(TARGET Boost::headers)
     target_link_libraries(BoostInterface INTERFACE Boost::headers)
+elseif(TARGET Boost::boost)
+    target_link_libraries(BoostInterface INTERFACE Boost::boost)
+endif()
+
+# 3. Manually add include directories (Fixes cases where targets don't propagate paths)
+if(Boost_INCLUDE_DIRS)
+    target_include_directories(BoostInterface INTERFACE ${Boost_INCLUDE_DIRS})
+endif()
+if(Boost_INCLUDE_DIR)
+    target_include_directories(BoostInterface INTERFACE ${Boost_INCLUDE_DIR})
 endif()
 
 # ------------------------------------------------------------
-# SHARED LIBRARIES
+# SUBDIRECTORIES
 # ------------------------------------------------------------
 
 add_subdirectory(libGenome)
 add_subdirectory(libMems)
 add_subdirectory(muscle)
-
-# sgEvolver is optional tools
 add_subdirectory(sgEvolver)
 
 # ------------------------------------------------------------
