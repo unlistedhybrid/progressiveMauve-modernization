@@ -1,3 +1,7 @@
+{
+type: uploaded file
+fileName: unlistedhybrid/progressivemauve-modernization/progressiveMauve-modernization-23f0f950ad6a086ef923cac62a5b11dec15144f0/libMems/libMems/Backbone.cpp
+fullContent:
 /*******************************************************************************
  * $Id: Backbone.cpp,v 1.12 2004/04/19 23:11:19 darling Exp $
  * This file is copyright 2002-2007 Aaron Darling and authors listed in the AUTHORS file.
@@ -252,7 +256,8 @@ void checkForAllGapColumns( IntervalList& iv_list )
 	for( size_t ivI = 0; ivI < iv_list.size(); ivI++ )
 	{
 		vector< string > aln;
-		mems::GetAlignment( iv_list[ivI], iv_list.seq_table, aln );
+		const Interval& iv = iv_list[ivI];
+		mems::GetAlignment( iv, iv_list.seq_table, aln );
 		for( size_t colI = 0; colI < aln[0].size(); ++colI )
 		{
 			size_t rowI = 0;
@@ -1200,4 +1205,3 @@ void writeBackboneSeqCoordinates( backbone_list_t& bb_list, IntervalList& iv_lis
 
 
 }  // namespace mems
-
