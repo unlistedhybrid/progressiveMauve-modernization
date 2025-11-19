@@ -11,7 +11,14 @@
 #endif
 
 #include "mauveAligner.h"
-#include "getopt.h" 
+
+// **** FIXED: Conditional Getopt ****
+#ifdef _WIN32
+#include "win_getopt.h"
+#else
+#include <getopt.h>
+#endif
+
 #include <sstream>
 #include <stdexcept>
 #include "libGenome/gnSequence.h"
