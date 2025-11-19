@@ -235,6 +235,7 @@ unsigned long long aStatFileSize( const char * path ) {
 	f_size += file_data.nFileSizeLow;
 	return f_size;
 #endif
+	return 0;
 }
 
 
@@ -250,8 +251,8 @@ unsigned long aStatSize( const char * path ) {
 #error "libc aStatSize not implemented"
 #elif defined USE_WIN32
 	return aStatFileSize( path ) / sizeof(record_t);
-	printf("Implement me!  WIN32 aStatSize");
 #endif
+	return 0;
 }
 
 
