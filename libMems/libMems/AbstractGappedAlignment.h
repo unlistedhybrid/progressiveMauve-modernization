@@ -93,7 +93,7 @@ void GetAlignment( const AbstractMatch& ga, const std::vector< genome::gnSequenc
 		if( ga.LeftEnd(seqI) == NO_MATCH )
 			continue;
 		std::string cur_seq;
-		seq_table[seqI]->ToString( cur_seq, ga.Length(seqI), ga.LeftEnd(seqI) );
+		(void)seq_table[seqI]->ToString( cur_seq, ga.Length(seqI), ga.LeftEnd(seqI) );
 		if( ga.Orientation(seqI) == AbstractMatch::reverse )
 			comp_filter->ReverseFilter(cur_seq);
 		std::size_t cI = 0; 
@@ -106,4 +106,3 @@ void GetAlignment( const AbstractMatch& ga, const std::vector< genome::gnSequenc
 }
 
 #endif // __AbstractGappedAlignment_h__
-
