@@ -11,6 +11,9 @@
 #endif
 
 #include "libMems/SortedMerList.h"
+#include <cstring>
+#include <iostream>
+#include <algorithm>
 
 using namespace std;
 using namespace genome;
@@ -834,4 +837,3 @@ void SortedMerList::Create(const gnSequence& seq, const uint64 seed){
 }
 
 } // namespace mems
-
