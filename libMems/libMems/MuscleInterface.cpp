@@ -1,3 +1,7 @@
+{
+type: uploaded file
+fileName: unlistedhybrid/progressivemauve-modernization/progressiveMauve-modernization-23f0f950ad6a086ef923cac62a5b11dec15144f0/libMems/libMems/MuscleInterface.cpp
+fullContent:
 /*******************************************************************************
  * $Id: MuscleInterface.cpp,v 1.27 2004/03/01 02:40:08 darling Exp $
  * This file is copyright 2002-2007 Aaron Darling and authors listed in the AUTHORS file.
@@ -718,7 +722,7 @@ bool MuscleInterface::CallMuscle( vector< string >& aln_matrix, const vector< st
 	stringstream debug_fname;
 	debug_fname << "muscle_failure_" << failure_count++ << ".txt";
 	ofstream debug_file( debug_fname.str().c_str() );
-	gnFASSource::Write(seq, debug_file, false);
+	gnFASSource::Write( seq, debug_file, false );
 	debug_file.close();
 	return false;
 }
@@ -822,7 +826,7 @@ void msaFromSeqTable(MSA& msa, const vector< string >& seq_table, unsigned id_ba
 
 bool MuscleInterface::RefineFast( GappedAlignment& ga, size_t windowsize )
 {
-	const vector< string > seq_table = GetAlignment( ga, vector< gnSequence* >() );
+	vector< string > seq_table = GetAlignment( ga, vector< gnSequence* >() );
 	vector< string > aln_table;
 	for( uint seqI = 0; seqI < ga.SeqCount(); seqI++ )
 	{
@@ -924,8 +928,8 @@ void stripGaps( std::string& str )
 bool MuscleInterface::ProfileAlign( const GappedAlignment& ga1, const GappedAlignment& ga2, GappedAlignment& aln, bool anchored )
 {
 	try{
-		const vector< string > aln1 = GetAlignment( ga1, vector< gnSequence* >() );
-		const vector< string > aln2 = GetAlignment( ga2, vector< gnSequence* >() );
+		vector< string > aln1 = GetAlignment( ga1, vector< gnSequence* >() );
+		vector< string > aln2 = GetAlignment( ga2, vector< gnSequence* >() );
 		vector< uint > order;
 		ostringstream input_seq_stream;
 		gnSequence seq;
@@ -1019,7 +1023,7 @@ bool MuscleInterface::ProfileAlign( const GappedAlignment& ga1, const GappedAlig
 			}
 			gnSeqI len = cur_line.size();
 			len = cur_line[ len - 1 ] == '\r' ? len - 1 : len;
-			uint seqI = aln_matrix.size() - 1;
+			// unused variable seqI removed here
 			aln_matrix[ order[ordI] ] += cur_line.substr( 0, len );
 		}
 		for( size_t i = 0; i < aln_matrix.size(); i++ )
@@ -1053,8 +1057,8 @@ bool MuscleInterface::ProfileAlign( const GappedAlignment& ga1, const GappedAlig
 bool MuscleInterface::ProfileAlignFast( const GappedAlignment& ga1, const GappedAlignment& ga2, GappedAlignment& aln, bool anchored )
 {
 	try{
-		const vector< string > aln1 = GetAlignment( ga1, vector< gnSequence* >() );
-		const vector< string > aln2 = GetAlignment( ga2, vector< gnSequence* >() );
+		vector< string > aln1 = GetAlignment( ga1, vector< gnSequence* >() );
+		vector< string > aln2 = GetAlignment( ga2, vector< gnSequence* >() );
 		vector< uint > order;
 		vector< string > aln11( ga1.Multiplicity() );
 		vector< string > aln22( ga2.Multiplicity() );
@@ -1188,6 +1192,8 @@ void MuscleInterface::CreateTree( const NumericMatrix<double>& distances, const 
 	tt.ToFile( tf );
 }
 
+
+}
 
 }
 
