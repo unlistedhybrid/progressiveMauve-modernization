@@ -1,6 +1,6 @@
 /////////////////////////////////////////////////////////////////////////////
 // File:            gnCompare.cpp
-// Purpose:         Coparator for all Sequences
+// Purpose:         Comparator for all Sequences
 // Description:     Compares sequences
 // Changes:        
 // Version:         libGenome 0.5.1 
@@ -37,7 +37,8 @@ const gnCompare *gnCompare::RNASeqCompare(){
 }
 
 gnCompare::gnCompare( const gnCompareType c_type ){
-	for( gnSeqC i = 0; i < GNSEQC_MAX; ++i ){
+	// FIXED: Use uint32 for loop to prevent signed char overflow/infinite loop
+	for( uint32 i = 0; i < GNSEQC_MAX; ++i ){
 		m_pairArray[i] = new gnSeqC[1];
 		m_pairArray[i][0] = 0;
 		m_containArray[i] = new gnSeqC[1];
@@ -62,7 +63,8 @@ boolean gnCompare::Contains( gnSeqC ch, gnSeqC ch2, boolean case_sensitive) cons
 		ch = toupper(ch);
 		ch2 = toupper(ch2);
 	}
-	if(strchr(m_containArray[ch], ch2) == 0)
+	// FIXED: Cast subscript to unsigned char
+	if(strchr(m_containArray[(unsigned char)ch], ch2) == 0)
 		return false;
 	return true;
 }
@@ -82,28 +84,19 @@ boolean gnCompare::Contains( const string &seq, const string &seq2, boolean case
 //	public:
 gnCompare::gnCompare()
 {
-	for( gnSeqC i = 0; i < GNSEQC_MAX; ++i ){
+	// FIXED: Use uint32 loop index
+	for( uint32 i = 0; i < GNSEQC_MAX; ++i ){
 		m_pairArray[i] = new gnSeqC[1];
 		m_pairArray[i][0] = 0;
 		m_containArray[i] = new gnSeqC[1];
 		m_containArray[i][0] = 0;
 	}
 }
-/*
-gnCompare::gnCompare( const gnCompare &sf )
-{
-	m_name = sf.m_name;
-	for( gnSeqC i = 0; i < GNSEQC_MAX; ++i ){
-		m_pairArray[i] = new gnSeqC[strlen(sf.m_pairArray[i])+1];
-		strcpy(m_pairArray[i], sf.m_pairArray[i]);
-		m_containArray[i] = new gnSeqC[strlen(sf.m_containArray[i])+1];
-		strcpy(m_containArray[i], sf.m_containArray[i]);
-	}
-}
-*/
+
 gnCompare::~gnCompare()
 {
-	for( gnSeqC i = 0; i < GNSEQC_MAX; ++i ){
+	// FIXED: Use uint32 loop index
+	for( uint32 i = 0; i < GNSEQC_MAX; ++i ){
 		delete[] m_pairArray[i];
 		delete[] m_containArray[i];
 	}
@@ -111,18 +104,22 @@ gnCompare::~gnCompare()
 
 
 void gnCompare::AddArrayEntry( gnSeqC *array[GNSEQC_MAX], const gnSeqC ch, const gnSeqC ch2){
-	uint32 curlen = strlen(array[ch]);
+	// FIXED: Cast subscript to unsigned char
+	unsigned char u_ch = (unsigned char)ch;
+	uint32 curlen = strlen(array[u_ch]);
 	gnSeqC* tmp = new gnSeqC[curlen + 2];
-	strcpy(tmp, array[ch]);
+	strcpy(tmp, array[u_ch]);
 	tmp[curlen] = ch2;
 	tmp[curlen+1] = 0;
-	delete[] array[ch];
-	array[ch] = tmp;
+	delete[] array[u_ch];
+	array[u_ch] = tmp;
 }
 
 void gnCompare::DelArrayEntry( gnSeqC *array[GNSEQC_MAX], const gnSeqC ch, const gnSeqC ch2){
 	//check that the pair exists
-	gnSeqC* loc = strchr(m_containArray[ch], ch2);
+	// FIXED: Cast subscript to unsigned char
+	unsigned char u_ch = (unsigned char)ch;
+	gnSeqC* loc = strchr(m_containArray[u_ch], ch2);
 	uint32 count = 0;
 	while(loc != NULL){
 		count++;
@@ -131,15 +128,15 @@ void gnCompare::DelArrayEntry( gnSeqC *array[GNSEQC_MAX], const gnSeqC ch, const
 	if(count == 0)
 		return;
 
-	uint32 curlen = strlen(array[ch]);
+	uint32 curlen = strlen(array[u_ch]);
 	gnSeqC* tmp = new gnSeqC[curlen - count];
 	uint32 tmppos = 0;
 	for(uint32 i=0; i < curlen; i++)
-		if(m_containArray[ch][i] != ch2)
-			tmp[tmppos++] = m_containArray[ch][i];
+		if(m_containArray[u_ch][i] != ch2)
+			tmp[tmppos++] = m_containArray[u_ch][i];
 	tmp[tmppos] = 0;
-	delete[] array[ch];
-	array[ch] = tmp;
+	delete[] array[u_ch];
+	array[u_ch] = tmp;
 }
 
 
@@ -831,4 +828,3 @@ void gnCompare::CreateRNAComparator()
 
 
 }	// end namespace genome
-
