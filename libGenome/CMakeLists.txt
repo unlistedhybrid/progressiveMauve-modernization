@@ -36,13 +36,5 @@ target_include_directories(libGenome PUBLIC
     ${PROJECT_SOURCE_DIR}/libGenome/libGenome
 )
 
-target_link_libraries(libGenome PUBLIC
-    Boost::filesystem
-    Boost::iostreams
-    Boost::program_options
-    Boost::regex
-)
-
-if(TARGET Boost::headers)
-    target_link_libraries(libGenome PUBLIC Boost::headers)
-endif()
+# Link against our robust BoostInterface
+target_link_libraries(libGenome PUBLIC BoostInterface)
