@@ -52,7 +52,10 @@ private:
 	MatchList& mlist;
 };
 
+// Fixed: Guard against redefinition (Warning C4005)
+#ifndef NELEMS
 #define NELEMS(a) ( sizeof( a ) / sizeof( *a ) )
+#endif
 
 
 /**
@@ -238,7 +241,7 @@ try{
 	};
 
 	int indexptr;
-	while( (opt = getopt_long( ac, av, short_args, long_opts, &indexptr )) != EOF ){
+	while( (opt = getopt_long( ac, av, short_args, long_opts, &indexptr )) != -1 ){
 		switch( opt ){
 			case 0:
 				switch(config_opt){
