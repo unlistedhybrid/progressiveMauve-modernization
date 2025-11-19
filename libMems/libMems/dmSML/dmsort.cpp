@@ -554,7 +554,7 @@ int InitdmSML( long working_mb, long buffer_size, const char* input_filename, co
 		if ( fgets(buf, sizeof(buf), fp) )
 		{
 			sscanf(buf, "MemTotal: %ld kB", &memTotal);
-			fprintf( stderr, buf );
+			fprintf( stderr, "%s", buf );
 		}
 		fclose(fp);
 		desired_ws_size = memTotal * 512;
