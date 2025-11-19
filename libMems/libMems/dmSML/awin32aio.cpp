@@ -13,7 +13,7 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <cstring>
-#include <cstdlib> // Added for malloc/free if needed, though you use global malloc
+#include <cstdlib>
 
 static VOID CALLBACK DummyCompletionRoutine( DWORD err, DWORD nbytes, LPOVERLAPPED lpo ) {
     printf( "completion routine!\n" );
@@ -61,7 +61,7 @@ int WriteWIN32( aFILE * file, aIORec * rec ) {
 	if( rec->pos != CURRENT_POS ){
 		offset_t tmppos = rec->pos;
 		tmppos >>= 32;
-		file->filep_high = (DWORD)tmppos; // Cast to DWORD to suppress conversion warnings
+		file->filep_high = (DWORD)tmppos; 
 		tmppos = rec->pos;
 		tmppos <<= 32;
 		tmppos >>= 32;
@@ -119,8 +119,6 @@ int ReadWIN32( aFILE * file, aIORec * rec ) {
             return( 1 );
         default:
             printf( "error with ReadFileEx -- Last Error: %u\n", GetLastError() );
-            // Use %p for pointers (HANDLE, void*, Function Pointers)
-            // Use %zu for size_t or cast to DWORD/%u
             printf( "called:  ReadFileEx( %p, %p, %u, %p, %p )\n", 
                 (void*)file->w32handle, 
                 rec->buf, 
