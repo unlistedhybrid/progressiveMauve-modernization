@@ -54,7 +54,8 @@ bool MaskedMemHash::HashMatch(list<idmer>& match_list){
 	{
 		match_number <<= 1;
 		if( mhe.Start(seqI) != NO_MATCH )
-			match_number |= 1;
+			// FIXED: Use 1ULL to prevent 32-bit integer promotion issues
+			match_number |= 1ULL;
 	}
 	if( seq_mask == 0 || match_number == seq_mask )
 		AddHashEntry(mhe);
@@ -63,3 +64,4 @@ bool MaskedMemHash::HashMatch(list<idmer>& match_list){
 }
 
 } // namespace mems
+
