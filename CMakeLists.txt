@@ -7,9 +7,6 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-# ------------------------------------------------------------
-# STATIC RUNTIME LINKING (WINDOWS FIX)
-# ------------------------------------------------------------
 if(MSVC)
     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded")
     add_compile_options($<$<CONFIG:Release>:/MT>)
@@ -18,9 +15,7 @@ if(MSVC)
     add_compile_options(/wd4996)
 endif()
 
-# ------------------------------------------------------------
-# WINDOWS COMPATIBILITY SETUP
-# ------------------------------------------------------------
+# --- WINDOWS SETUP ---
 set(EXTRA_SRCS "")
 set(EXTRA_LIBS "")
 if(WIN32)
@@ -28,17 +23,19 @@ if(WIN32)
     list(APPEND EXTRA_LIBS winmm psapi)
 endif()
 
-# ------------------------------------------------------------
-# BOOST & COMPRESSION SETUP
-# ------------------------------------------------------------
+# --- MACOS & ICU PATHS (The Critical Fix) ---
+if(APPLE)
+    # ICU is "keg-only" on Homebrew, meaning it's not in the standard path.
+    # We must manually add these paths so 'find_package' and the linker can see it.
+    list(APPEND CMAKE_PREFIX_PATH "/opt/homebrew/opt/icu4c" "/usr/local/opt/icu4c")
+    include_directories("/opt/homebrew/opt/icu4c/include" "/usr/local/opt/icu4c/include")
+    link_directories("/opt/homebrew/opt/icu4c/lib" "/usr/local/opt/icu4c/lib")
+endif()
+
+# --- BOOST & DEPS SETUP ---
 set(Boost_DEBUG OFF)
 set(Boost_USE_STATIC_LIBS ON) 
 set(Boost_USE_MULTITHREADED ON)
-
-# macOS Hints
-if(APPLE)
-    list(APPEND CMAKE_PREFIX_PATH "/opt/homebrew" "/usr/local")
-endif()
 
 find_package(Boost 1.89 REQUIRED 
     COMPONENTS
@@ -52,7 +49,10 @@ find_package(ZLIB)
 find_package(BZip2)
 find_package(PkgConfig)
 
-# ZSTD Logic (Required for Boost::iostreams)
+# --- FIND ICU (Required by Boost::regex) ---
+find_package(ICU REQUIRED COMPONENTS uc data i18n)
+
+# ZSTD Logic
 if(PKG_CONFIG_FOUND)
     pkg_check_modules(ZSTD libzstd)
 endif()
@@ -72,9 +72,9 @@ target_link_libraries(BoostInterface INTERFACE
     Boost::iostreams
     Boost::program_options
     Boost::regex
+    ICU::uc ICU::data ICU::i18n # Explicitly link ICU
 )
 
-# Link compression libs if found
 if(ZLIB_FOUND)
     target_link_libraries(BoostInterface INTERFACE ZLIB::ZLIB)
 endif()
@@ -84,7 +84,6 @@ endif()
 if(ZSTD_LIB)
     target_link_libraries(BoostInterface INTERFACE ${ZSTD_LIB})
 else()
-    # Fallback if specific library file wasn't found
     target_link_libraries(BoostInterface INTERFACE zstd)
 endif()
 
@@ -98,17 +97,13 @@ if(Boost_INCLUDE_DIRS)
     target_include_directories(BoostInterface INTERFACE ${Boost_INCLUDE_DIRS})
 endif()
 
-# ------------------------------------------------------------
-# SUBDIRECTORIES
-# ------------------------------------------------------------
+# --- SUBDIRECTORIES ---
 add_subdirectory(libGenome)
 add_subdirectory(libMems)
 add_subdirectory(muscle)
 add_subdirectory(sgEvolver)
 
-# ------------------------------------------------------------
-# EXECUTABLES
-# ------------------------------------------------------------
+# --- EXECUTABLES ---
 add_executable(mauveAligner
     mauveAligner/src/mauveAligner.cpp
     mauveAligner/src/AlignmentTree.cpp
