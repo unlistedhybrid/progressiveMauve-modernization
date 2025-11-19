@@ -275,6 +275,7 @@ void applyBackbone( IntervalList& iv_list, string& bbcols_fname, string& bb_fnam
  */
 int doAlignment( int argc, char* argv[] ){
 //try{
+    cerr << "DEBUG: Entering doAlignment()" << endl; // DEBUG
 	OptionList mauve_options;
 	MauveOption opt_island_gap_size( mauve_options, "island-gap-size", required_argument, "<number> Alignment gaps above this size in nucleotides are considered to be islands [20]" );
 	MauveOption opt_profile( mauve_options, "profile", required_argument, "<file> (Not yet implemented) Read an existing sequence alignment in XMFA format and align it to other sequences or alignments" );
@@ -442,6 +443,8 @@ int doAlignment( int argc, char* argv[] ){
 	{
 		mer_size = atoi( opt_seed_weight.arg_value.c_str() );
 	}
+    
+    cerr << "DEBUG: Loading sequences..." << endl; // DEBUG
 	
 	if( seq_files.size() == 1 ){
 		LoadMFASequences( pairwise_match_list, seq_files[0], &cout );
@@ -452,6 +455,8 @@ int doAlignment( int argc, char* argv[] ){
 		// testing: rewrite seq files in RAW format
 		LoadAndCreateRawSequences( pairwise_match_list, &cout );
 //		LoadSequences( pairwise_match_list, &cout );
+        
+        cerr << "DEBUG: Sequences loaded. Loading/Creating SMLs..." << endl; // DEBUG
 		if(opt_solid_seeds.set)
 			pairwise_match_list.LoadSMLs( mer_size, &cout, SOLID_SEED, true );
 		else if(opt_coding_seeds.set)
@@ -459,6 +464,7 @@ int doAlignment( int argc, char* argv[] ){
 		else
 			pairwise_match_list.LoadSMLs( mer_size, &cout, CODING_SEED );
 	}
+    cerr << "DEBUG: SMLs loaded/created successfully." << endl; // DEBUG
 
 	ostream* match_out;
 	if( opt_output.set ){
@@ -496,21 +502,27 @@ int doAlignment( int argc, char* argv[] ){
 			for( seqI = 0; seqI < pairwise_match_list.seq_filename.size(); seqI++ )
 				pairwise_match_list.seq_table.push_back( new gnSequence() );
 	}else if( !opt_seed_family.set ){
+        cerr << "DEBUG: Preparing to find matches (single seed)..." << endl; // DEBUG
 		if( pairwise_match_list.seq_table.size() > 4 )
 		{
+            cerr << "DEBUG: Using UniqueMatchFinder (seqs > 4)..." << endl; // DEBUG
 			UniqueMatchFinder umf;
 			umf.LogProgress( &cout );
 			umf.FindMatches( pairwise_match_list );
+            cerr << "DEBUG: UniqueMatchFinder finished." << endl; // DEBUG
 			umf.Clear();
 		}else{
+            cerr << "DEBUG: Using PairwiseMatchFinder (seqs <= 4)..." << endl; // DEBUG
 			PairwiseMatchFinder pmf;
 			pmf.LogProgress( &cout );
 			pmf.FindMatches( pairwise_match_list );
+            cerr << "DEBUG: PairwiseMatchFinder finished." << endl; // DEBUG
 			pmf.Clear();
 		}
 		cout << "done.\n";
 	}else{
 		// use an entire seed family to do the search
+        cerr << "DEBUG: Preparing to find matches (seed family)..." << endl; // DEBUG
 		if( mer_size == 0 )
 		{
 			size_t avg = 0;
@@ -534,6 +546,7 @@ int doAlignment( int argc, char* argv[] ){
 			char pattern[65];
 			getPatternText( seed_pattern, pattern );
 			cout << "\nSearching with seed pattern " << pattern << "\n";
+            cerr << "DEBUG: Searching with seed pattern " << pattern << endl; // DEBUG
 			MatchList cur_list;
 			cur_list.seq_filename = pairwise_match_list.seq_filename;
 			cur_list.seq_table = pairwise_match_list.seq_table;
@@ -545,6 +558,7 @@ int doAlignment( int argc, char* argv[] ){
 				cur_list.LoadSMLs(mer_size, &cout, length_ranks[seedI].second);
 			}
 			umf.FindMatches( cur_list );
+            cerr << "DEBUG: Matches found for this pattern." << endl; // DEBUG
 			umf.ClearSequences();
 			for( size_t smlI = 0; smlI < cur_list.sml_table.size(); smlI++ )
 				delete cur_list.sml_table[smlI];	// free memory
@@ -581,6 +595,7 @@ int doAlignment( int argc, char* argv[] ){
 	SlotAllocator<MatchHashEntry>& allocator = SlotAllocator<MatchHashEntry>::GetSlotAllocator();
 	allocator.Purge();
 	
+    cerr << "DEBUG: Initializing ProgressiveAligner..." << endl; // DEBUG
 	ProgressiveAligner aligner( pairwise_match_list.seq_table.size() );
 	if( opt_skip_gapped_alignment.set )
 		aligner.setGappedAlignment(false);
@@ -713,11 +728,13 @@ int doAlignment( int argc, char* argv[] ){
 	interval_list.seq_table = pairwise_match_list.seq_table;
 	interval_list.seq_filename = pairwise_match_list.seq_filename;
 
+    cerr << "DEBUG: Starting alignment..." << endl; // DEBUG
 	if( opt_profile.set )
 		; //aligner.alignPP(profile_1, profile_2, interval_list );
 	else
 		aligner.align( interval_list.seq_table, interval_list );
 
+    cerr << "DEBUG: Alignment complete. Writing output..." << endl; // DEBUG
 	if( !opt_disable_backbone.set )
 	{
 
@@ -748,5 +765,6 @@ int doAlignment( int argc, char* argv[] ){
 			delete match_out;
 	}
 
+    cerr << "DEBUG: Exiting doAlignment." << endl; // DEBUG
 	return 0;
 }
