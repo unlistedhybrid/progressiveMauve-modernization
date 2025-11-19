@@ -1,0 +1,106 @@
+name: Build
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    # ----------------------------
+    # LINUX
+    # ----------------------------
+    - name: Install dependencies (Linux)
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt update
+        sudo apt install -y cmake g++ wget
+        cd /tmp
+        wget https://github.com/boostorg/boost/releases/download/boost-1.89.0/boost-1.89.0-cmake.tar.gz
+        tar xzf boost-1.89.0-cmake.tar.gz
+        cd boost-1.89.0
+        mkdir build && cd build
+        # CHANGED: BUILD_SHARED_LIBS=OFF ensures we get static .a libraries
+        cmake .. -DCMAKE_INSTALL_PREFIX=/usr/local -DBUILD_SHARED_LIBS=OFF
+        sudo cmake --build . --target install -j$(nproc)
+
+    # ----------------------------
+    # MACOS
+    # ----------------------------
+    - name: Install dependencies (macOS)
+      if: runner.os == 'macOS'
+      run: |
+        brew install boost@1.89 cmake
+        brew link boost@1.89 --force
+
+    # ----------------------------
+    # WINDOWS
+    # ----------------------------
+    - name: Install dependencies (Windows)
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        choco install cmake -y
+
+        git clone https://github.com/Microsoft/vcpkg.git
+        cd vcpkg
+        ./bootstrap-vcpkg.bat
+
+        # CRITICAL: Use x64-windows-static to match the /MT flag in CMakeLists.txt
+        $triplet = "x64-windows-static"
+        
+        ./vcpkg install boost-filesystem:$triplet boost-iostreams:$triplet boost-program-options:$triplet boost-regex:$triplet boost-algorithm:$triplet boost-multi-array:$triplet boost-tokenizer:$triplet boost-format:$triplet boost-random:$triplet boost-pool:$triplet boost-tuple:$triplet boost-math:$triplet boost-graph:$triplet boost-property-map:$triplet
+
+        Add-Content $env:GITHUB_ENV "CMAKE_TOOLCHAIN_FILE=${{ github.workspace }}\vcpkg\scripts\buildsystems\vcpkg.cmake"
+        Add-Content $env:GITHUB_ENV "VCPKG_TARGET_TRIPLET=$triplet"
+
+    # ----------------------------
+    # BUILD (LINUX & MACOS)
+    # ----------------------------
+    - name: Build (Linux/macOS)
+      if: runner.os != 'Windows'
+      run: |
+        mkdir build
+        cd build
+        # Explicitly request static libs
+        cmake .. -DCMAKE_BUILD_TYPE=Release -DBoost_USE_STATIC_LIBS=ON
+        cmake --build . --parallel
+
+    # ----------------------------
+    # BUILD (WINDOWS)
+    # ----------------------------
+    - name: Build (Windows)
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        mkdir build
+        cd build
+        # Pass the static triplet to CMake
+        cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE="${{ env.CMAKE_TOOLCHAIN_FILE }}" -DVCPKG_TARGET_TRIPLET="${{ env.VCPKG_TARGET_TRIPLET }}"
+        cmake --build . --config Release --parallel
+
+    # ----------------------------
+    # SAVE ARTIFACTS
+    # ----------------------------
+    - name: Stage Binaries
+      shell: bash
+      run: |
+        mkdir dist
+        if [ "${{ runner.os }}" == "Windows" ]; then
+          cp build/Release/progressiveMauve.exe dist/
+          cp build/Release/mauveAligner.exe dist/
+        else
+          cp build/progressiveMauve dist/
+          cp build/mauveAligner dist/
+        fi
+
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: progressiveMauve-${{ runner.os }}
+        path: dist/*
