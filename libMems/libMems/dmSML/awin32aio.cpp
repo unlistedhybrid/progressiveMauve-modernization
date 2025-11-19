@@ -4,8 +4,6 @@
 
 #include "libMems/dmSML/awin32aio.h"
 #include "libMems/dmSML/util.h"
-
-// Added for printf
 #include <cstdio>
 
 #ifdef USE_WIN32
@@ -13,28 +11,28 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <cstring>
-#include <cstdlib>
 
-static VOID CALLBACK DummyCompletionRoutine( DWORD err, DWORD nbytes, LPOVERLAPPED lpo ) {
-    printf( "completion routine!\n" );
-}
-
+// No completion routine needed for synchronous I/O
 
 int OpenWIN32( aFILE * file, const char *path, int mode ) {
     HANDLE result;
     DWORD access = mode == A_READ ? GENERIC_READ : GENERIC_WRITE;
     DWORD disposition = mode == A_READ ? OPEN_EXISTING : CREATE_ALWAYS;
+    
+    // CHANGED: Removed FILE_FLAG_OVERLAPPED to force synchronous (blocking) mode.
+    // This ensures data is fully read/written before the function returns.
     result = CreateFile( 
         path, 
         access, 
         FILE_SHARE_DELETE | FILE_SHARE_READ | FILE_SHARE_WRITE,
         nullptr,
         disposition,
-        FILE_FLAG_OVERLAPPED,
+        FILE_ATTRIBUTE_NORMAL, // Was FILE_FLAG_OVERLAPPED
         nullptr );
+
     if( result == INVALID_HANDLE_VALUE ) {
-    	access = GetLastError();
-    	printf( "Error opening %s, code %u\n", path, access );
+    	DWORD err = GetLastError();
+    	printf( "Error opening %s, code %u\n", path, err );
         return( 0 );
     }
     file->w32handle = result;
@@ -48,38 +46,36 @@ int CloseWIN32( aFILE * file ) {
 
 
 int WriteWIN32( aFILE * file, aIORec * rec ) {
+    DWORD bytesWritten = 0;
+    OVERLAPPED ov = {0}; // Use stack-allocated OVERLAPPED for offset specification
 
-    static offset_t total_bytes = 0;
-    DWORD err;
     if( file->mode != A_WRITE ) {
         return( 0 );
     }
-
-    rec->w32overlapped = static_cast<OVERLAPPED*>(malloc( sizeof( *(rec->w32overlapped) ) ));
-    std::memset( rec->w32overlapped, 0, sizeof( *(rec->w32overlapped) ) );
 	
+    // Handle 64-bit offsets
 	if( rec->pos != CURRENT_POS ){
 		offset_t tmppos = rec->pos;
-		tmppos >>= 32;
-		file->filep_high = (DWORD)tmppos; 
-		tmppos = rec->pos;
-		tmppos <<= 32;
-		tmppos >>= 32;
-		file->filep_low = (DWORD)tmppos;
-	}
+		ov.OffsetHigh = (DWORD)(tmppos >> 32);
+		ov.Offset = (DWORD)(tmppos & 0xFFFFFFFF);
+	} else {
+        // If CURRENT_POS, we generally let the file pointer be. 
+        // However, when using OVERLAPPED with blocking files, it updates the file ptr 
+        // if we don't specify an offset. But to be safe with libMems logic:
+        ov.Offset = 0xFFFFFFFF; 
+        ov.OffsetHigh = 0xFFFFFFFF;
+    }
 
-    rec->w32overlapped->OffsetHigh = file->filep_high;
-    rec->w32overlapped->Offset = file->filep_low;
-
-    total_bytes += rec->size * rec->count;
-    if( WriteFileEx( 
+    // WriteFile in blocking mode returns non-zero on success
+    if( WriteFile( 
         file->w32handle, 
         rec->buf, 
-        (DWORD)(rec->size*rec->count), 
-        rec->w32overlapped,
-        DummyCompletionRoutine ) == 0 ) {
-        err = GetLastError();
-        printf( "error with WriteFileEx: %u\n", err );
+        (DWORD)(rec->size * rec->count), 
+        &bytesWritten,
+        (rec->pos == CURRENT_POS) ? nullptr : &ov ) == 0 ) {
+        
+        DWORD err = GetLastError();
+        printf( "error with WriteFile: %u\n", err );
         return( 0 );
     }
     return( 1 );
@@ -87,63 +83,45 @@ int WriteWIN32( aFILE * file, aIORec * rec ) {
 
 
 int ReadWIN32( aFILE * file, aIORec * rec ) {
-    DWORD err;
+    DWORD bytesRead = 0;
+    OVERLAPPED ov = {0};
+
     if( file->mode != A_READ ) {
         return( 0 );
     }
-    rec->w32overlapped = static_cast<OVERLAPPED*>(malloc( sizeof( *(rec->w32overlapped) ) ));
-    std::memset( rec->w32overlapped, 0, sizeof( *(rec->w32overlapped) ) );
 
+    // Handle 64-bit offsets
 	if( rec->pos != CURRENT_POS ){
 		offset_t tmppos = rec->pos;
-		tmppos >>= 32;
-		file->filep_high = (DWORD)tmppos;
-		tmppos = rec->pos;
-		tmppos <<= 32;
-		tmppos >>= 32;
-		file->filep_low = (DWORD)tmppos;
+		ov.OffsetHigh = (DWORD)(tmppos >> 32);
+		ov.Offset = (DWORD)(tmppos & 0xFFFFFFFF);
 	}
 
-    rec->w32overlapped->OffsetHigh = file->filep_high;
-    rec->w32overlapped->Offset = file->filep_low;
-    if( ReadFileEx( 
+    // ReadFile in blocking mode halts execution until data is in the buffer.
+    // This guarantees 'rec->buf' is full when we return.
+    if( ReadFile( 
         file->w32handle, 
         rec->buf, 
-        (DWORD)(rec->size*rec->count), 
-        rec->w32overlapped,
-        DummyCompletionRoutine ) == 0 ) {
-        err = GetLastError();
-        switch( err ) {
-        case ERROR_HANDLE_EOF:
-            printf( "readfileex says EOF -- we'll pretend it worked\n" );
-            return( 1 );
-        default:
-            printf( "error with ReadFileEx -- Last Error: %u\n", GetLastError() );
-            printf( "called:  ReadFileEx( %p, %p, %u, %p, %p )\n", 
-                (void*)file->w32handle, 
-                rec->buf, 
-                (unsigned int)(rec->size*rec->count), 
-                (void*)rec->w32overlapped,
-                (void*)DummyCompletionRoutine );
-            return( 0 );
+        (DWORD)(rec->size * rec->count), 
+        &bytesRead,
+        (rec->pos == CURRENT_POS) ? nullptr : &ov ) == 0 ) {
+        
+        DWORD err = GetLastError();
+        if (err == ERROR_HANDLE_EOF) {
+            // EOF is fine, just return success with 0 bytes read (handled by caller)
+            return 1; 
         }
+        printf( "error with ReadFile -- Last Error: %u\n", err );
+        return( 0 );
     }
     return( 1 );
 }
 
 
 int QueryLastCompleteWIN32( aFILE * file ) {
-    DWORD result;
-    if( file->queuetail && file->queuetail->w32overlapped ) {
-        result = WaitForSingleObject( file->w32handle, 0 );
-        if( result != WAIT_TIMEOUT ) {
-            return( 1 );
-        } else {
-            return( 0 );
-        }
-    } else {
-        return( 0 );
-    }
+    // Since we are now using Synchronous I/O, the operation is ALWAYS complete
+    // by the time the Read/Write function returns.
+    return( 1 );
 }
 
 #endif /* USE_WIN32 */
