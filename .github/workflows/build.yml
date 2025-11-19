@@ -1,14 +1,20 @@
 name: Build
+
 on: [push, pull_request]
+
 jobs:
   build:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
+
     steps:
     - uses: actions/checkout@v4
-    
+
+    # ----------------------------
+    # LINUX
+    # ----------------------------
     - name: Install dependencies (Linux)
       if: runner.os == 'Linux'
       run: |
@@ -21,24 +27,39 @@ jobs:
         mkdir build && cd build
         cmake .. -DCMAKE_INSTALL_PREFIX=/usr/local -DBUILD_SHARED_LIBS=ON
         sudo cmake --build . --target install -j$(nproc)
-    
+
+    # ----------------------------
+    # MACOS
+    # ----------------------------
     - name: Install dependencies (macOS)
       if: runner.os == 'macOS'
       run: |
         brew install boost@1.89 cmake
         brew link boost@1.89 --force
-    
+
+    # ----------------------------
+    # WINDOWS
+    # ----------------------------
     - name: Install dependencies (Windows)
       if: runner.os == 'Windows'
+      shell: pwsh
       run: |
         choco install cmake -y
-        # Setup vcpkg for Boost installation
+
         git clone https://github.com/Microsoft/vcpkg.git
         cd vcpkg
-        .\bootstrap-vcpkg.bat
-        .\vcpkg install boost-filesystem:x64-windows boost-iostreams:x64-windows boost-program-options:x64-windows boost-regex:x64-windows
-        echo "CMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake" >> $env:GITHUB_ENV
-    
+        ./bootstrap-vcpkg.bat
+
+        # Install Boost modules
+        ./vcpkg install boost-filesystem:x64-windows boost-iostreams:x64-windows boost-program-options:x64-windows boost-regex:x64-windows
+
+        # **** CRITICAL FIX ****
+        # Correct way to export environment variables on Windows GitHub runners
+        Add-Content $env:GITHUB_ENV "CMAKE_TOOLCHAIN_FILE=${{ github.workspace }}\vcpkg\scripts\buildsystems\vcpkg.cmake"
+
+    # ----------------------------
+    # BUILD (LINUX & MACOS)
+    # ----------------------------
     - name: Build (Linux/macOS)
       if: runner.os != 'Windows'
       run: |
@@ -46,9 +67,13 @@ jobs:
         cd build
         cmake .. -DCMAKE_BUILD_TYPE=Release
         cmake --build . --parallel
-    
+
+    # ----------------------------
+    # BUILD (WINDOWS)
+    # ----------------------------
     - name: Build (Windows)
       if: runner.os == 'Windows'
+      shell: pwsh
       run: |
         mkdir build
         cd build
