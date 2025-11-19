@@ -18,9 +18,10 @@
 #include "libGenome/gnDebug.h"
 #include "libGenome/gnSequence.h"
 #include "libGenome/gnException.h"
-#include "stdlib.h"
+#include <cstdlib>
 #include <string>
 #include <vector>
+#include <algorithm>
 #include "libMems/SeedMasks.h"
 
 namespace mems {
@@ -72,7 +73,7 @@ public:
 	SortedMerList();
 	SortedMerList( const SortedMerList& sa );
 	SortedMerList& operator=(const SortedMerList& sa);
-	~SortedMerList();
+	virtual ~SortedMerList();
 	
 	/**
 	 * Set data structures to default values
@@ -218,8 +219,7 @@ public:
 	 * Returns a translation table for Protein sequence.
 	 */
 	static const uint8* ProteinTable();
-	/** 
-	 * Places a copy of the binary encoded sequence data into dest.
+	/** * Places a copy of the binary encoded sequence data into dest.
 	 * @param len The length in sequence characters to copy
 	 * @param offset The sequence offset to start copying from
 	 * @throws IndexOutOfBounds if offset or len are invalid
@@ -303,9 +303,7 @@ protected:
 
 bool bmer_lessthan(const bmer& a_v, const bmer& m_v);
 bool bmer_id_lessthan(const bmer& a_v, const bmer& m_v);
-
 int bmer_compare(const void* a_v, const void* m_v);
-bool bmer_id_lessthan(const bmer& a_v, const bmer& m_v);
 
 //less than function for STL sort functions
 inline
@@ -314,8 +312,19 @@ bool bmer_lessthan(const bmer& a_v, const bmer& m_v){
 };
 
 inline
+bool bmer_id_lessthan(const bmer& a_v, const bmer& m_v){
+    if (a_v.mer < m_v.mer) return true;
+    if (a_v.mer > m_v.mer) return false;
+    return a_v.position < m_v.position;
+}
+
+inline
 int bmer_compare(const void* a_v, const void* m_v){
-	return (int)((int64)(((bmer*)a_v)->mer) - (int64)(((bmer*)m_v)->mer));
+    const bmer* a = (const bmer*)a_v;
+    const bmer* m = (const bmer*)m_v;
+    if (a->mer < m->mer) return -1;
+    if (a->mer > m->mer) return 1;
+    return 0;
 }
 
 }
