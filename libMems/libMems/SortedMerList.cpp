@@ -275,6 +275,7 @@ void SortedMerList::SetMerMaskSize(uint32 mer_size){
 		mask_size = mer_size;
 
 	// calculate the mer mask
+	// FIXED: Use ULL to prevent MSVC truncation
 	mer_mask = UINT32_MAX;
 	mer_mask <<= 32;
 	mer_mask |= UINT32_MAX;
@@ -609,7 +610,8 @@ uint64 SortedMerList::RevCompMer( uint64 mer_a, int mer_length ) const
 		mer_c <<= OPT_HEADER_ALPHABET_BITS;
 	}
 	mer_c <<= 64 - (OPT_HEADER_ALPHABET_BITS * (mer_length+1));
-	mer_c |= 1;
+	// FIXED: Use 1ULL to force 64-bit constant
+	mer_c |= 1ULL;
 	return mer_c;
 }
 
@@ -653,7 +655,8 @@ void SortedMerList::FillDnaSML(const gnSequence& seq, vector<bmer>& sml_array){
 		rcur_suffix.mer <<= alpha_bits;
 	}
 	rcur_suffix.mer <<= dead_bits - alpha_bits;
-	rcur_suffix.mer |= 1;
+	// FIXED: Use 1ULL
+	rcur_suffix.mer |= 1ULL;
 
 	//add the first mer
 	if(cur_suffix.mer < rcur_suffix.mer)
@@ -702,7 +705,8 @@ void SortedMerList::FillDnaSML(const gnSequence& seq, vector<bmer>& sml_array){
 		rcur_suffix.mer >>= alpha_bits;
 		rcur_suffix.mer |= tmp_rseq;
 		rcur_suffix.mer &= create_mask;
-		rcur_suffix.mer |= 1;
+		// FIXED: Use 1ULL
+		rcur_suffix.mer |= 1ULL;
 		if(cur_suffix.mer < rcur_suffix.mer)
 			sml_array.push_back(cur_suffix);
 		else
@@ -729,12 +733,16 @@ uint64 SortedMerList::GetSeedMer( gnSeqI offset ) const
 	uint64 mer_a = SortedMerList::GetMer( offset );
 	uint64 mer_b = SortedMerList::GetMer( offset + 1 );
 	uint64 seed_mer = 0;
-	uint64 alpha_mask = 1;
+	
+	// FIXED: Use 1ULL to prevent MSVC 32-bit overflow
+	uint64 alpha_mask = 1ULL;
 	alpha_mask <<= OPT_HEADER_ALPHABET_BITS;
 	alpha_mask--;
 	alpha_mask <<= 62;
 	uint64 cur_alpha_mask = alpha_mask;
-	uint64 char_mask = 1;
+	
+	// FIXED: Use 1ULL
+	uint64 char_mask = 1ULL;
 	char_mask <<= header.seed_length - 1;
 	uint64 cur_mer = mer_a;
 	const int mer_transition = 64 / OPT_HEADER_ALPHABET_BITS;
@@ -824,3 +832,5 @@ void SortedMerList::Create(const gnSequence& seq, const uint64 seed){
 }
 
 } // namespace mems
+
+}
