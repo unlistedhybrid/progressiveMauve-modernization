@@ -48,69 +48,69 @@ public:
 		data.open( filename );
 	}
 
-	gnRAWSequence* Clone() const override {return new gnRAWSequence(*this);}
+ virtual gnRAWSequence* Clone() const override {return new gnRAWSequence(*this);}
 
-	gnSeqI contigListSize() const override {return 1;}
-	gnSeqI contigListLength() const override {return 1;}
-	uint32 contigIndexByBase( const gnSeqI baseI) const override {
+	virtual gnSeqI contigListSize() const override {return 1;}
+	virtual gnSeqI contigListLength() const override {return 1;}
+	virtual uint32 contigIndexByBase( const gnSeqI baseI) const override {
 		if(baseI >= data.size()) Throw_gnEx(SeqIndexOutOfBounds());
 		return 0;
 	}
-	gnRAWSequence contig( const uint32 contigI) const override { 
+	virtual gnRAWSequence contig( const uint32 contigI) const override { 
 		if(contigI>0) Throw_gnEx(FragmentIndexOutOfBounds()); 
 		return *this;
 	}
-	gnRAWSequence contigByBase( const gnSeqI baseI) const override {
+	virtual gnRAWSequence contigByBase( const gnSeqI baseI) const override {
 		if(baseI >= data.size()) Throw_gnEx(SeqIndexOutOfBounds());
 		return *this;
 	}
-	gnSeqI contigStart( const uint32 contigI) const override {
+ virtual gnSeqI contigStart( const uint32 contigI) const override {
 		if(contigI>0) Throw_gnEx(FragmentIndexOutOfBounds()); 
 		return 0;
 	}
-	gnSeqI contigLength( const uint32 contigI) const override {
+ virtual gnSeqI contigLength( const uint32 contigI) const override {
 		if(contigI>0) Throw_gnEx(FragmentIndexOutOfBounds()); 
 		return data.size();
 	}
-	uint32 contigIndexByName( std::string& contigName) const override {
+ virtual uint32 contigIndexByName( std::string& contigName) const override {
 		return 0;
 	}
-	std::string contigName( const uint32 contigI) const override {
+ virtual std::string contigName( const uint32 contigI) const override {
 		if(contigI>0) Throw_gnEx(FragmentIndexOutOfBounds()); 
 		return "";
 	}
-	gnSequence contigByName( std::string& contigName) const override {
+ virtual gnSequence contigByName( std::string& contigName) const override {
 		Throw_gnEx(FragmentIndexOutOfBounds());
 	}
-	void merge([[maybe_unused]] const gnSeqI startI, [[maybe_unused]] const gnSeqI endI) override { throw; }
-	void mergeContigs([[maybe_unused]] const uint32 startC, [[maybe_unused]] const uint32 endC) override { throw; }
-	void splitContig([[maybe_unused]] const gnSeqI splitI, [[maybe_unused]] const uint32 contigI=ALL_CONTIGS) override { throw; }
+ virtual void merge([[maybe_unused]] const gnSeqI startI, [[maybe_unused]] const gnSeqI endI) override { throw; }
+ virtual void mergeContigs([[maybe_unused]] const uint32 startC, [[maybe_unused]] const uint32 endC) override { throw; }
+ virtual void splitContig([[maybe_unused]] const gnSeqI splitI, [[maybe_unused]] const uint32 contigI=ALL_CONTIGS) override { throw; }
 
-	void setContigName( [[maybe_unused]] const uint32 contigI, [[maybe_unused]] const std::string& contig_name) override { throw; }
+ virtual void setContigName( [[maybe_unused]] const uint32 contigI, [[maybe_unused]] const std::string& contig_name) override { throw; }
 
-	uint32 getFeatureListLength() const override {
+ virtual uint32 getFeatureListLength() const override {
 		return 0;
 	}
-	gnBaseFeature* getFeature([[maybe_unused]] const uint32 featureI) const override { Throw_gnEx(FeatureIndexOutOfBounds()); }
-	void getContainedFeatures([[maybe_unused]] const gnLocation& lt, [[maybe_unused]] std::vector<gnBaseFeature*>& feature_vector, [[maybe_unused]] std::vector<uint32>& index_vector) const override {}
-	void getIntersectingFeatures([[maybe_unused]] const gnLocation& lt, [[maybe_unused]] std::vector<gnBaseFeature*>& feature_vector, [[maybe_unused]] std::vector<uint32>& index_vector) const override {}
-	uint32 addFeature([[maybe_unused]] gnBaseFeature* feature) override { throw; }
-	void removeFeature([[maybe_unused]] const uint32 featureI) override { Throw_gnEx(FeatureIndexOutOfBounds()); }
-	void getBrokenFeatures([[maybe_unused]] const gnLocation& lt, [[maybe_unused]] std::vector<gnBaseFeature*>& feature_vector) const override {};
-	uint32 getHeaderListLength([[maybe_unused]] const uint32 contigI) const override { return 0; }
-	gnBaseHeader* getHeader([[maybe_unused]] const uint32 contigI, [[maybe_unused]] const uint32 headerI) const override {Throw_gnEx(HeaderIndexOutOfBounds());};
-	void addHeader([[maybe_unused]] const uint32 contigI, [[maybe_unused]] gnBaseHeader* header, [[maybe_unused]] const uint32 headerI) override {Throw_gnEx(FragmentIndexOutOfBounds());}
-	void removeHeader([[maybe_unused]] const uint32 contigI, [[maybe_unused]] const uint32 headerI) override { Throw_gnEx(HeaderIndexOutOfBounds()); }
-	void setReverseComplement( const bool revComp, const uint32 contigI=ALL_CONTIGS) override {Throw_gnEx(FragmentIndexOutOfBounds());};
-	bool isReverseComplement( const uint32 contigI=ALL_CONTIGS ) override {return false;}
-	bool isCircular() const override { return false; }
-	void setCircular( const bool value ) override {}
+ virtual gnBaseFeature* getFeature([[maybe_unused]] const uint32 featureI) const override { Throw_gnEx(FeatureIndexOutOfBounds()); }
+ virtual void getContainedFeatures([[maybe_unused]] const gnLocation& lt, [[maybe_unused]] std::vector<gnBaseFeature*>& feature_vector, [[maybe_unused]] std::vector<uint32>& index_vector) const override {}
+ virtual void getIntersectingFeatures([[maybe_unused]] const gnLocation& lt, [[maybe_unused]] std::vector<gnBaseFeature*>& feature_vector, [[maybe_unused]] std::vector<uint32>& index_vector) const override {}
+ virtual uint32 addFeature([[maybe_unused]] gnBaseFeature* feature) override { throw; }
+ virtual void removeFeature([[maybe_unused]] const uint32 featureI) override { Throw_gnEx(FeatureIndexOutOfBounds()); }
+ virtual void getBrokenFeatures([[maybe_unused]] const gnLocation& lt, [[maybe_unused]] std::vector<gnBaseFeature*>& feature_vector) const override {};
+ virtual uint32 getHeaderListLength([[maybe_unused]] const uint32 contigI) const override { return 0; }
+ virtual gnBaseHeader* getHeader([[maybe_unused]] const uint32 contigI, [[maybe_unused]] const uint32 headerI) const override {Throw_gnEx(HeaderIndexOutOfBounds());};
+ virtual void addHeader([[maybe_unused]] const uint32 contigI, [[maybe_unused]] gnBaseHeader* header, [[maybe_unused]] const uint32 headerI) override {Throw_gnEx(FragmentIndexOutOfBounds());}
+ virtual void removeHeader([[maybe_unused]] const uint32 contigI, [[maybe_unused]] const uint32 headerI) override { Throw_gnEx(HeaderIndexOutOfBounds()); }
+ virtual void setReverseComplement( const bool revComp, const uint32 contigI=ALL_CONTIGS) override {Throw_gnEx(FragmentIndexOutOfBounds());};
+ virtual bool isReverseComplement( const uint32 contigI=ALL_CONTIGS ) override {return false;}
+ virtual bool isCircular() const override { return false; }
+ virtual void setCircular( const bool value ) override {}
 	
-	void globalToLocal(uint32& contigI, gnSeqI& baseI) const override {};
-	void localToGlobal(const uint32 contigI, gnSeqI& baseI) const override {};
-	void globalToSource(uint32& contigI, gnSeqI& baseI) const override {};
-	void localToSource(uint32& contigI, [[maybe_unused]] gnSeqI& baseI) const override {};
-	[[nodiscard]] bool LoadSource(const std::string sourcename) override {
+ virtual void globalToLocal(uint32& contigI, gnSeqI& baseI) const override {};
+ virtual void localToGlobal(const uint32 contigI, gnSeqI& baseI) const override {};
+ virtual void globalToSource(uint32& contigI, gnSeqI& baseI) const override {};
+ virtual void localToSource(uint32& contigI, [[maybe_unused]] gnSeqI& baseI) const override {};
+ virtual [[nodiscard]] bool LoadSource(const std::string sourcename) override {
 		data.open( sourcename );
 		filename = sourcename;
 		return true;
@@ -149,29 +149,29 @@ public:
 	 */
 //	friend std::ostream& operator<<(std::ostream& os, const gnRAWSequence& gns); //write to source.
 
-	gnSeqI length() const override { return data.size(); }
-	gnSeqI size() const override { return data.size(); }
+ virtual gnSeqI length() const override { return data.size(); }
+ virtual gnSeqI size() const override { return data.size(); }
 
-	std::string ToString( const gnSeqI length=GNSEQI_END, const gnSeqI offset=1 ) const override
+ virtual std::string ToString( const gnSeqI length=GNSEQI_END, const gnSeqI offset=1 ) const override
 	{
 		gnSeqI len = length == GNSEQI_END ?  data.size() - offset - 1 : length;
 		std::string asdf(data.data()+offset-1, len);
 		return asdf;
 	}
 
-	[[nodiscard]] bool ToString( std::string& str, const gnSeqI length=GNSEQI_END, const gnSeqI offset=1 ) const override
+ virtual [[nodiscard]] bool ToString( std::string& str, const gnSeqI length=GNSEQI_END, const gnSeqI offset=1 ) const override
 	{
 		gnSeqI len = length == GNSEQI_END ? data.size() - offset - 1 : length;
 		str.assign(data.data()+offset-1,len);
 		return true;
 	}
-	[[nodiscard]] bool ToArray( gnSeqC* pSeqC, gnSeqI length, const gnSeqI offset=1 ) const override
+ virtual [[nodiscard]] bool ToArray( gnSeqC* pSeqC, gnSeqI length, const gnSeqI offset=1 ) const override
 	{
 		gnSeqI len = length == GNSEQI_END ? data.size() - offset - 1 : length;
 		memcpy(pSeqC, data.data()+offset-1, len);
 		return true;
 	}
-	gnSeqC GetSeqC( const gnSeqI offset ) const override
+ virtual gnSeqC GetSeqC( const gnSeqI offset ) const override
 	{
 		return *(data.data()+(offset-1));
 	}
@@ -180,8 +180,8 @@ public:
 		return *(data.data()+(offset-1));
 	}
 
-	gnSeqI find([[maybe_unused]] const gnSequence& search, [[maybe_unused]] const gnSeqI offset=0) const override {return GNSEQI_ERROR;}
-	gnSeqI find([[maybe_unused]] const gnRAWSequence& search, [[maybe_unused]] const gnSeqI offset=0) const override {return GNSEQI_ERROR;}
+	virtual gnSeqI find([[maybe_unused]] const gnSequence& search, [[maybe_unused]] const gnSeqI offset=0) const override {return GNSEQI_ERROR;}
+	virtual gnSeqI find([[maybe_unused]] const gnRAWSequence& search, [[maybe_unused]] const gnSeqI offset=0) const override {return GNSEQI_ERROR;}
 	
 private:
 	boost::iostreams::mapped_file_source data;
