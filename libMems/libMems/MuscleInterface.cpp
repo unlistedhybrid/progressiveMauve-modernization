@@ -32,6 +32,8 @@
 
 #include <sstream>
 #include <fstream>
+#include <vector>
+#include <string>
 
 using namespace std;
 using namespace genome;
@@ -430,7 +432,6 @@ bool MuscleInterface::Align( GappedAlignment& cr, Match* r_begin, Match* r_end, 
 	bool create_ok = true;
 	uint seq_count = seq_table.size();
 	//seq_count = r_begin->Multiplicity();
-	uint seqI;
 	uint align_seqs = 0;
 	vector< string > tmp_mat = vector< string >( seq_count );
 try{
@@ -443,7 +444,7 @@ try{
 	vector< uint > seqs;
 	const gnFilter* rc_filter = gnFilter::DNAComplementFilter();
 	
-	for( seqI = 0; seqI < seq_count; seqI++ ){
+	for( uint seqI = 0; seqI < seq_count; seqI++ ){
 
 		// skip this sequence if it's undefined
 		if( (r_end != NULL && r_end->Start( seqI ) == NO_MATCH ) ||
@@ -530,7 +531,6 @@ bool MuscleInterface::Align( GappedAlignment& cr, AbstractMatch* r_begin, Abstra
 	//     if k = 1, n == repeat match multiplicity, where n >= 2
 	//     
 	uint seq_count = r_begin->Multiplicity();
-	uint seqI;
 	uint align_seqs = 0;
 	vector< string > tmp_mat = vector< string >( seq_count );
 try{
@@ -544,7 +544,7 @@ try{
 	const gnFilter* rc_filter = gnFilter::DNAComplementFilter();
 	
 	//std::cout << "getting regions between match components to align" << std::endl;
-	for( seqI = 0; seqI < seq_count; seqI++ ){
+	for( uint seqI = 0; seqI < seq_count; seqI++ ){
 
 		// skip this sequence if it's undefined
 		if( (r_end != NULL && r_end->Start( seqI ) == NO_MATCH ) ||
@@ -770,7 +770,7 @@ bool MuscleInterface::CallMuscleFast( vector< string >& aln_matrix, const vector
 
 bool MuscleInterface::Refine( GappedAlignment& ga, size_t windowsize )
 {
-	const vector< string >& seq_table = GetAlignment( ga, vector< gnSequence* >() );
+	const vector< string > seq_table = GetAlignment( ga, vector< gnSequence* >() );
 	vector< string > aln_table;
 	for( uint seqI = 0; seqI < ga.SeqCount(); seqI++ )
 	{
@@ -822,7 +822,7 @@ void msaFromSeqTable(MSA& msa, const vector< string >& seq_table, unsigned id_ba
 
 bool MuscleInterface::RefineFast( GappedAlignment& ga, size_t windowsize )
 {
-	const vector< string >& seq_table = GetAlignment( ga, vector< gnSequence* >() );
+	const vector< string > seq_table = GetAlignment( ga, vector< gnSequence* >() );
 	vector< string > aln_table;
 	for( uint seqI = 0; seqI < ga.SeqCount(); seqI++ )
 	{
@@ -924,8 +924,8 @@ void stripGaps( std::string& str )
 bool MuscleInterface::ProfileAlign( const GappedAlignment& ga1, const GappedAlignment& ga2, GappedAlignment& aln, bool anchored )
 {
 	try{
-		const vector< string >& aln1 = GetAlignment( ga1, vector< gnSequence* >() );
-		const vector< string >& aln2 = GetAlignment( ga2, vector< gnSequence* >() );
+		const vector< string > aln1 = GetAlignment( ga1, vector< gnSequence* >() );
+		const vector< string > aln2 = GetAlignment( ga2, vector< gnSequence* >() );
 		vector< uint > order;
 		ostringstream input_seq_stream;
 		gnSequence seq;
@@ -1053,8 +1053,8 @@ bool MuscleInterface::ProfileAlign( const GappedAlignment& ga1, const GappedAlig
 bool MuscleInterface::ProfileAlignFast( const GappedAlignment& ga1, const GappedAlignment& ga2, GappedAlignment& aln, bool anchored )
 {
 	try{
-		const vector< string >& aln1 = GetAlignment( ga1, vector< gnSequence* >() );
-		const vector< string >& aln2 = GetAlignment( ga2, vector< gnSequence* >() );
+		const vector< string > aln1 = GetAlignment( ga1, vector< gnSequence* >() );
+		const vector< string > aln2 = GetAlignment( ga2, vector< gnSequence* >() );
 		vector< uint > order;
 		vector< string > aln11( ga1.Multiplicity() );
 		vector< string > aln22( ga2.Multiplicity() );
@@ -1188,5 +1188,7 @@ void MuscleInterface::CreateTree( const NumericMatrix<double>& distances, const 
 	tt.ToFile( tf );
 }
 
+
+}
 
 }
