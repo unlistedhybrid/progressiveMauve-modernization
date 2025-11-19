@@ -7,8 +7,16 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-# Disable specific MSVC warnings that are cluttering the output
+# ------------------------------------------------------------
+# STATIC RUNTIME LINKING (THE FIX)
+# ------------------------------------------------------------
+# This forces the compiler to bake system DLLs into the .exe
 if(MSVC)
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded")
+    add_compile_options($<$<CONFIG:Release>:/MT>)
+    add_compile_options($<$<CONFIG:Debug>:/MTd>)
+    
+    # Disable specific warnings
     add_compile_options(/wd4834) # Disable [[nodiscard]] warning
     add_compile_options(/wd4996) # Disable deprecation warnings
 endif()
@@ -20,13 +28,10 @@ set(EXTRA_SRCS "")
 set(EXTRA_LIBS "")
 
 if(WIN32)
-    # 1. Compile win_getopt.cpp for Windows (Fixes: unresolved external symbol getopt_long)
-    # IMPORTANT: Ensure win_getopt.cpp is physically located at mauveAligner/src/win_getopt.cpp
+    # 1. Compile win_getopt.cpp for Windows
     list(APPEND EXTRA_SRCS mauveAligner/src/win_getopt.cpp)
     
-    # 2. Link System Libraries (Fixes: unresolved external symbol timeGetTime, GetProcessMemoryInfo)
-    # winmm = Windows Multimedia API
-    # psapi = Process Status API
+    # 2. Link System Libraries
     list(APPEND EXTRA_LIBS winmm psapi)
 endif()
 
@@ -34,7 +39,9 @@ endif()
 # BOOST SETUP
 # ------------------------------------------------------------
 set(Boost_DEBUG OFF)
-set(Boost_USE_STATIC_LIBS OFF)
+
+# CHANGED: Set to ON to include Boost inside the exe
+set(Boost_USE_STATIC_LIBS ON) 
 set(Boost_USE_MULTITHREADED ON)
 
 find_package(Boost 1.89 REQUIRED 
@@ -84,7 +91,7 @@ add_executable(mauveAligner
     mauveAligner/src/AlignmentTree.cpp
     mauveAligner/src/alignmentProjector.cpp
     mauveAligner/src/UniqueMatchFinder.cpp
-    ${EXTRA_SRCS}  # <--- Adds win_getopt.cpp on Windows
+    ${EXTRA_SRCS}
 )
 
 target_include_directories(mauveAligner PRIVATE
@@ -99,7 +106,7 @@ target_link_libraries(mauveAligner
     libMems
     libMUSCLE
     BoostInterface
-    ${EXTRA_LIBS}  # <--- Links winmm.lib and psapi.lib on Windows
+    ${EXTRA_LIBS}
 )
 
 # ------------------------------------------------------------
@@ -114,7 +121,7 @@ add_executable(progressiveMauve
     mauveAligner/src/AlignmentTree.cpp
     mauveAligner/src/alignmentProjector.cpp
     mauveAligner/src/RepeatHashCat.cpp
-    ${EXTRA_SRCS}  # <--- Adds win_getopt.cpp on Windows
+    ${EXTRA_SRCS}
 )
 
 target_include_directories(progressiveMauve PRIVATE
@@ -129,5 +136,5 @@ target_link_libraries(progressiveMauve
     libMems
     libMUSCLE
     BoostInterface
-    ${EXTRA_LIBS}  # <--- Links winmm.lib and psapi.lib on Windows
+    ${EXTRA_LIBS}
 )
