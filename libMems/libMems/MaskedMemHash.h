@@ -1,44 +1,66 @@
 /*******************************************************************************
- * $Id: MaskedMemHash.h,v 1.3 2004/03/01 02:40:08 darling Exp $
+ * $Id: MaskedMemHash.cpp,v 1.3 2004/03/01 02:40:08 darling Exp $
  * This file is copyright 2002-2007 Aaron Darling and authors listed in the AUTHORS file.
- * This file is licensed under the GPL.
+ * Please see the file called COPYING for licensing, copying, and modification
  * Please see the file called COPYING for licensing details.
  * **************
  ******************************************************************************/
-
-#ifndef _MaskedMemHash_h_
-#define _MaskedMemHash_h_
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
 
-#include "libMems/MemHash.h"
+#include "libMems/MaskedMemHash.h"
+#include <list>
 
+using namespace std;
+using namespace genome;
 namespace mems {
 
-/**
- * Finds matches that meet a particular sequence mask, e.g. 0b11111 for 5-way matches
- * Doesn't filter anything unless a mask is set using SetMask().  The
- * filter can be cleared by calling SetMask(0)
- */
-class MaskedMemHash : public MemHash{
-public:
-	MaskedMemHash();
-	~MaskedMemHash(){};
-	MaskedMemHash(const MaskedMemHash& mh);
-	MaskedMemHash& operator=( const MaskedMemHash& mh );
-	virtual MaskedMemHash* Clone() const override;
-	virtual void SetMask( uint64 seq_mask ) { this->seq_mask = seq_mask; }
-protected:
-	/**
-	 * Can't find subsets when there is only one permitted sequence mask!
-	 */
-	virtual void FindSubsets(const Match& mhe, std::vector<Match>& subset_matches) {};
-	[[nodiscard]] virtual bool HashMatch(std::list<idmer>& match_list) override;
-	uint64 seq_mask;
-};
-
+MaskedMemHash::MaskedMemHash(){
+	seq_mask = 0;
 }
 
-#endif //_MaskedMemHash_h_
+
+MaskedMemHash::MaskedMemHash(const MaskedMemHash& mh) : MemHash(mh){
+	*this = mh;
+}
+
+MaskedMemHash& MaskedMemHash::operator=( const MaskedMemHash& mh ){
+	seq_mask = mh.seq_mask;
+	return *this;
+}
+
+MaskedMemHash* MaskedMemHash::Clone() const{
+	return new MaskedMemHash(*this);
+}
+
+bool MaskedMemHash::HashMatch(list<idmer>& match_list){
+	//check that there is at least one forward component
+	match_list.sort(&idmer_id_lessthan);
+	// initialize the hash entry
+	MatchHashEntry mhe = MatchHashEntry(seq_count, GetSar(0)->SeedLength());
+	mhe.SetLength(GetSar(0)->SeedLength());
+	
+	//Fill in the new Match and set direction parity if needed.
+	list<idmer>::iterator iter = match_list.begin();
+	for(; iter != match_list.end(); iter++)
+		mhe.SetStart(iter->id, iter->position + 1);
+	SetDirection(mhe);
+	mhe.CalculateOffset();
+	uint64 match_number = 0;
+	// compute "MatchNumber"
+	for( uint seqI = 0; seqI < mhe.SeqCount(); seqI++ )
+	{
+		match_number <<= 1;
+		if( mhe.Start(seqI) != NO_MATCH )
+			// FIXED: Use 1ULL to prevent 32-bit integer promotion issues
+			match_number |= 1ULL;
+	}
+	if( seq_mask == 0 || match_number == seq_mask )
+		AddHashEntry(mhe);
+
+	return true;
+}
+
+} // namespace mems
