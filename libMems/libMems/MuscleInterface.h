@@ -20,6 +20,8 @@
 #include "libMems/GappedAligner.h"
 
 // attempt to auto-link the MUSCLE library on windows
+// DISABLED for CMake build compatibility. CMake handles linking explicitly.
+/*
 #if defined(WIN64)&&defined(NDEBUG)&&!defined(FASTDEBUG)&&defined(_OPENMP)
 #pragma comment(lib, "MUSCLE64omp.lib")
 #endif
@@ -44,6 +46,7 @@
 #if defined(WIN32)&&!defined(WIN64)&&defined(FASTDEBUG)&&!defined(_OPENMP)
 #pragma comment(lib, "MUSCLEfd.lib")
 #endif
+*/
 
 namespace mems {
 
@@ -67,18 +70,15 @@ public:
 	 */
 	void ParseMusclePath( const char* argv0 );
 
-	/** 
-	 * Set the path to the muscle executable
+	/** * Set the path to the muscle executable
 	 * Defaults to "muscle"
 	 */
 	void SetMusclePath( const std::string& path );
 
-	/** 
-	 * Set the arguments to use when executing muscle 
+	/** * Set the arguments to use when executing muscle 
 	 */
 	void SetExtraMuscleArguments( const std::string& extra_args );
-	/** 
-	 * Get the arguments to use when executing muscle 
+	/** * Get the arguments to use when executing muscle 
 	 */
 	std::string GetExtraMuscleArguments(){ return this->extra_muscle_arguments; };
 
