@@ -56,11 +56,11 @@ public:
 		if(baseI >= data.size()) Throw_gnEx(SeqIndexOutOfBounds());
 		return 0;
 	}
-	virtual gnRAWSequence contig( const uint32 contigI) const { 
+	gnRAWSequence contig( const uint32 contigI) const { 
 		if(contigI>0) Throw_gnEx(FragmentIndexOutOfBounds()); 
 		return *this;
 	}
-	virtual gnRAWSequence contigByBase( const gnSeqI baseI) const {
+	gnRAWSequence contigByBase( const gnSeqI baseI) const {
 		if(baseI >= data.size()) Throw_gnEx(SeqIndexOutOfBounds());
 		return *this;
 	}
@@ -110,7 +110,7 @@ public:
  virtual void localToGlobal(const uint32 contigI, gnSeqI& baseI) const override {};
  virtual void globalToSource(uint32& contigI, gnSeqI& baseI) const override {};
  virtual void localToSource(uint32& contigI, [[maybe_unused]] gnSeqI& baseI) const override {};
- virtual [[nodiscard]] bool LoadSource(const std::string sourcename) override {
+ [[nodiscard]] virtual bool LoadSource(const std::string sourcename) override {
 		data.open( sourcename );
 		filename = sourcename;
 		return true;
@@ -159,13 +159,13 @@ public:
 		return asdf;
 	}
 
- virtual [[nodiscard]] bool ToString( std::string& str, const gnSeqI length=GNSEQI_END, const gnSeqI offset=1 ) const override
+ [[nodiscard]] virtual bool ToString( std::string& str, const gnSeqI length=GNSEQI_END, const gnSeqI offset=1 ) const override
 	{
 		gnSeqI len = length == GNSEQI_END ? data.size() - offset - 1 : length;
 		str.assign(data.data()+offset-1,len);
 		return true;
 	}
- virtual [[nodiscard]] bool ToArray( gnSeqC* pSeqC, gnSeqI length, const gnSeqI offset=1 ) const override
+ [[nodiscard]] virtual bool ToArray( gnSeqC* pSeqC, gnSeqI length, const gnSeqI offset=1 ) const override
 	{
 		gnSeqI len = length == GNSEQI_END ? data.size() - offset - 1 : length;
 		memcpy(pSeqC, data.data()+offset-1, len);
@@ -181,7 +181,7 @@ public:
 	}
 
 	virtual gnSeqI find([[maybe_unused]] const gnSequence& search, [[maybe_unused]] const gnSeqI offset=0) const override {return GNSEQI_ERROR;}
-	virtual gnSeqI find([[maybe_unused]] const gnRAWSequence& search, [[maybe_unused]] const gnSeqI offset=0) const override {return GNSEQI_ERROR;}
+	virtual gnSeqI find([[maybe_unused]] const gnRAWSequence& search, [[maybe_unused]] const gnSeqI offset=0) const {return GNSEQI_ERROR;}
 	
 private:
 	boost::iostreams::mapped_file_source data;
