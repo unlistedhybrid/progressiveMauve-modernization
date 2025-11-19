@@ -91,8 +91,11 @@ static unsigned GetAlphaSize(ALPHA Alpha)
 	case ALPHA_RNA:
 	case ALPHA_DNA:
 		return 4;
+
+	case ALPHA_Undefined:
+	default:
+		Quit("Invalid Alpha=%d", Alpha);
 		}
-	Quit("Invalid Alpha=%d", Alpha);
 	return 0;
 	}
 
@@ -285,5 +288,4 @@ void ReportInvalidLetters()
 	Warning("Assuming %s (see -seqtype option), invalid letters found: %s",
 	  ALPHAToStr(g_Alpha.get()), Str);
 	}
-} 
-
+}
