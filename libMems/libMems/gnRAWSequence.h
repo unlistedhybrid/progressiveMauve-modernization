@@ -50,17 +50,17 @@ public:
 
  virtual gnRAWSequence* Clone() const override {return new gnRAWSequence(*this);}
 
-	virtual gnSeqI contigListSize() const override {return 1;}
-	virtual gnSeqI contigListLength() const override {return 1;}
-	virtual uint32 contigIndexByBase( const gnSeqI baseI) const override {
+	virtual gnSeqI contigListSize() const {return 1;}
+	virtual gnSeqI contigListLength() const {return 1;}
+	virtual uint32 contigIndexByBase( const gnSeqI baseI) const {
 		if(baseI >= data.size()) Throw_gnEx(SeqIndexOutOfBounds());
 		return 0;
 	}
-	virtual gnRAWSequence contig( const uint32 contigI) const override { 
+	virtual gnRAWSequence contig( const uint32 contigI) const { 
 		if(contigI>0) Throw_gnEx(FragmentIndexOutOfBounds()); 
 		return *this;
 	}
-	virtual gnRAWSequence contigByBase( const gnSeqI baseI) const override {
+	virtual gnRAWSequence contigByBase( const gnSeqI baseI) const {
 		if(baseI >= data.size()) Throw_gnEx(SeqIndexOutOfBounds());
 		return *this;
 	}
