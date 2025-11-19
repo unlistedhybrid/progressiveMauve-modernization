@@ -373,7 +373,7 @@ void LoadMFASequences( MatchListType& mlist, const std::string& mfa_filename, st
 	genome::gnSequence file_sequence;
 	// Load the sequence and tell the user if it loaded successfully
 	try{
-		file_sequence.LoadSource( mfa_filename );
+		(void)file_sequence.LoadSource( mfa_filename );
 	}catch( genome::gnException& gne ){
 		if( gne.GetCode() == genome::FileNotOpened() )
 			std::cerr << "Error loading " << mfa_filename << std::endl;
