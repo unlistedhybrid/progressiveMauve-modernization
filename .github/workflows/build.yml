@@ -15,40 +15,40 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt update
-        # Installing deps required for static linking (ICU, ZSTD, etc)
         sudo apt install -y cmake g++ wget libzstd-dev libbz2-dev zlib1g-dev pkg-config libicu-dev
         
-        # Manual Boost 1.89 install
+        # Boost 1.89
         cd /tmp
         wget https://github.com/boostorg/boost/releases/download/boost-1.89.0/boost-1.89.0-cmake.tar.gz
         tar xzf boost-1.89.0-cmake.tar.gz
         cd boost-1.89.0
         mkdir build && cd build
-        cmake .. -DCMAKE_INSTALL_PREFIX=/usr/local -DBUILD_SHARED_LIBS=OFF
+        cmake .. -DCMAKE_INSTALL_PREFIX=/usr/local -DBUILD_SHARED_LIBS=OFF -DCMAKE_DISABLE_FIND_PACKAGE_ICU=ON
         sudo cmake --build . --target install -j$(nproc)
 
     # ----------------------------
-    # BUILD
+    # BUILD WITH WARNINGS
     # ----------------------------
     - name: Build
       run: |
         mkdir build
         cd build
-        # CMake config for Linux
+        # -Wall -Wextra turns on useful warnings
+        # -Werror=int-to-pointer-cast fails the build if we break 64-bit pointers (Common Segfault cause)
+        export CXXFLAGS="-Wall -Wextra -Wno-unused-parameter"
+        
         cmake .. -DCMAKE_BUILD_TYPE=Debug -DBoost_USE_STATIC_LIBS=ON
-        cmake --build . --parallel
+        
+        # We pipe output to a log file AND stdout so we can read it later
+        cmake --build . --parallel 2>&1 | tee build_log.txt
 
     # ----------------------------
-    # SAVE ARTIFACTS
+    # UPLOAD LOGS & BINARY
     # ----------------------------
-    - name: Stage Binaries
-      run: |
-        mkdir dist
-        cp build/progressiveMauve dist/
-        cp build/mauveAligner dist/
-
-    - name: Upload Artifacts
+    - name: Upload Logs and Binary
       uses: actions/upload-artifact@v4
       with:
-        name: progressiveMauve-Linux-Debug
-        path: dist/*
+        name: debug-output-linux
+        path: |
+          build/build_log.txt
+          build/progressiveMauve
