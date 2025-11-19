@@ -13,11 +13,30 @@ if(MSVC)
     add_compile_options(/wd4996) # Disable deprecation warnings
 endif()
 
+# ------------------------------------------------------------
+# WINDOWS COMPATIBILITY SETUP
+# ------------------------------------------------------------
+set(EXTRA_SRCS "")
+set(EXTRA_LIBS "")
+
+if(WIN32)
+    # 1. Compile win_getopt.cpp for Windows (Fixes: unresolved external symbol getopt_long)
+    # IMPORTANT: Ensure win_getopt.cpp is physically located at mauveAligner/src/win_getopt.cpp
+    list(APPEND EXTRA_SRCS mauveAligner/src/win_getopt.cpp)
+    
+    # 2. Link System Libraries (Fixes: unresolved external symbol timeGetTime, GetProcessMemoryInfo)
+    # winmm = Windows Multimedia API
+    # psapi = Process Status API
+    list(APPEND EXTRA_LIBS winmm psapi)
+endif()
+
+# ------------------------------------------------------------
+# BOOST SETUP
+# ------------------------------------------------------------
 set(Boost_DEBUG OFF)
 set(Boost_USE_STATIC_LIBS OFF)
 set(Boost_USE_MULTITHREADED ON)
 
-# Find Boost with all necessary components
 find_package(Boost 1.89 REQUIRED 
     COMPONENTS
     filesystem
@@ -26,12 +45,8 @@ find_package(Boost 1.89 REQUIRED
     regex
 )
 
-# ------------------------------------------------------------
-# ROBUST BOOST INTERFACE
-# ------------------------------------------------------------
 add_library(BoostInterface INTERFACE)
 
-# 1. Add compiled library targets
 target_link_libraries(BoostInterface INTERFACE
     Boost::filesystem
     Boost::iostreams
@@ -39,14 +54,12 @@ target_link_libraries(BoostInterface INTERFACE
     Boost::regex
 )
 
-# 2. Add Header targets (Fixes Windows "Cannot open include file" error)
 if(TARGET Boost::headers)
     target_link_libraries(BoostInterface INTERFACE Boost::headers)
 elseif(TARGET Boost::boost)
     target_link_libraries(BoostInterface INTERFACE Boost::boost)
 endif()
 
-# 3. Manually add include directories (Fixes cases where targets don't propagate paths)
 if(Boost_INCLUDE_DIRS)
     target_include_directories(BoostInterface INTERFACE ${Boost_INCLUDE_DIRS})
 endif()
@@ -71,6 +84,7 @@ add_executable(mauveAligner
     mauveAligner/src/AlignmentTree.cpp
     mauveAligner/src/alignmentProjector.cpp
     mauveAligner/src/UniqueMatchFinder.cpp
+    ${EXTRA_SRCS}  # <--- Adds win_getopt.cpp on Windows
 )
 
 target_include_directories(mauveAligner PRIVATE
@@ -85,6 +99,7 @@ target_link_libraries(mauveAligner
     libMems
     libMUSCLE
     BoostInterface
+    ${EXTRA_LIBS}  # <--- Links winmm.lib and psapi.lib on Windows
 )
 
 # ------------------------------------------------------------
@@ -99,6 +114,7 @@ add_executable(progressiveMauve
     mauveAligner/src/AlignmentTree.cpp
     mauveAligner/src/alignmentProjector.cpp
     mauveAligner/src/RepeatHashCat.cpp
+    ${EXTRA_SRCS}  # <--- Adds win_getopt.cpp on Windows
 )
 
 target_include_directories(progressiveMauve PRIVATE
@@ -113,4 +129,5 @@ target_link_libraries(progressiveMauve
     libMems
     libMUSCLE
     BoostInterface
+    ${EXTRA_LIBS}  # <--- Links winmm.lib and psapi.lib on Windows
 )
