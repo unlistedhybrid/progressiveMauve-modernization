@@ -11,7 +11,7 @@
 #endif
 
 #include "mauveAligner.h"
-#include "getopt.h"
+#include "getopt.h" 
 #include <sstream>
 #include <stdexcept>
 #include "libGenome/gnSequence.h"
@@ -30,7 +30,8 @@
 #include "libMems/MuscleInterface.h"
 #include "libMems/DistanceMatrix.h"
 
-#include "boost/filesystem/operations.hpp"
+// Modern boost filesystem includes
+#include <boost/filesystem.hpp>
 
 using namespace std;
 using namespace genome;
@@ -49,13 +50,7 @@ private:
 
 /**
  * This application uses libMems to produce full scale multiple
- * genomic alignments.  First the command line is parsed to get the names of data files
- * and user specified options.  Next each sequence and its corresponding sorted mer list
- * are loaded.  If the sorted mer list fails to load a new one is created.  
- * If it is necessary to find matches in the sequences instead of loading them, each 
- * sequence and SML are added to a MemHash which searches for exact matches.  
- * Then LCBs are found if the user requested it.  Finally, either the MatchList or the
- * LCB list is written to disk.
+ * genomic alignments.
  */
 int doAlignment( int argc, char* argv[] ){
 try{
@@ -79,29 +74,31 @@ try{
 	vector<string> sml_files;
 	vector<gnSequence*> seq_table;
 	vector<DNAFileSML*> sml_table;
-	uint seed_size = 0;	// Use default settings
+	
+	// Fixed: uint -> unsigned int, boolean -> bool
+	unsigned int seed_size = 0;	// Use default settings
 	int seed_rank = 0;
-	boolean recursive = true;
-	boolean lcb_extension = true;
-	boolean gapped_alignment = true;
-	boolean create_LCBs = true;
-	boolean calculate_coverage = false;
+	bool recursive = true;
+	bool lcb_extension = true;
+	bool gapped_alignment = true;
+	bool create_LCBs = true;
+	bool calculate_coverage = false;
 	int64 LCB_size = -1;
 	string output_file = "";
-	boolean read_matches = false;
-	boolean read_lcbs = false;
-	boolean find_repeats = false;
-	boolean print_stats = false;
-	boolean eliminate_overlaps = false;
-	boolean nway_filter = false;
-	boolean collinear_genomes = false;
+	bool read_matches = false;
+	bool read_lcbs = false;
+	bool find_repeats = false;
+	bool print_stats = false;
+	bool eliminate_overlaps = false;
+	bool nway_filter = false;
+	bool collinear_genomes = false;
 	string match_input_file = "";
 	string lcb_stats_file = "";
 	string island_file = "";
 	string lcb_file = "";
 	string tree_filename = "";
 	string coverage_list_file = "";
-	boolean output_alignment = false;
+	bool output_alignment = false;
 	string alignment_output_dir = "";
 	string alignment_output_format = "";
 	string alignment_output_file = "";
@@ -109,14 +106,14 @@ try{
 	string offset_log = "";
 	string merge_log = "";
 	// island related
-	uint island_size = 0;
-	uint island_break_min = 0;
+	unsigned int island_size = 0;
+	unsigned int island_break_min = 0;
 	// backbone related
-	uint backbone_size = 0;
-	uint max_backbone_gap = 0;
+	unsigned int backbone_size = 0;
+	unsigned int max_backbone_gap = 0;
 	int64 min_r_gap_length = -1;
 	string backbone_file = "";
-	boolean output_backbone = false;
+	bool output_backbone = false;
 	// for parallelization of LCB alignment
 	vector< int > realign_lcbs;
 	string muscle_args = "";
@@ -125,11 +122,11 @@ try{
 	string permutation_filename;
 	int64 permutation_weight = -1;
 
-	boolean lcb_match_input_format = false;
+	bool lcb_match_input_format = false;
 	int opt_max_extension_iters = -1;
 
-	uint seqI;
-	boolean print_version = false;
+	unsigned int seqI;
+	bool print_version = false;
 	int max_gapped_alignment_length = -1;
 	
 	ostream* detail_list_out = NULL;	/**< output stream for detail list */
@@ -388,7 +385,7 @@ try{
 		}
 	}
 	// now read in the seq and sml file names from av
-	boolean seq_name_arg = true;
+	bool seq_name_arg = true;
 	for( int optI = optind; optI < argc; optI++ ){
 		if( seq_name_arg )
 			seq_files.push_back( av[ optI ] );
@@ -628,7 +625,7 @@ try{
 	
 	// at this point any SortedMerLists used to identify the initial set of MUMs
 	// are no longer necessary.  Free them
-	for( uint smlI = 0; smlI < match_list.sml_table.size(); smlI++ ){
+	for( unsigned int smlI = 0; smlI < match_list.sml_table.size(); smlI++ ){
 		match_list.sml_table[ smlI ]->Clear();
 		delete match_list.sml_table[ smlI ];
 	}
@@ -748,7 +745,7 @@ try{
 			align_out.close();
 		}
 	}
-	uint lcbI;
+	unsigned int lcbI;
 	
 	// output alignments in another format if the user asked for it
 	if( alignment_output_dir != "" ){
@@ -898,7 +895,7 @@ void print_usage( const char* pname ){
 	
 	const vector< string >& formats = gnAlignedSequences::getSupportedFormats();
 	cerr << "Supported alignment output formats are: ";
-	for( int formatI = 0; formatI < formats.size(); formatI++ ){
+	for( size_t formatI = 0; formatI < formats.size(); formatI++ ){
 		if( formatI > 0 )
 			cerr << ", ";
 		cerr << formats[ formatI ];
