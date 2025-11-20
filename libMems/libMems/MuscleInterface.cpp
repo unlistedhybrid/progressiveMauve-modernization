@@ -1,7 +1,3 @@
-{
-type: uploaded file
-fileName: unlistedhybrid/progressivemauve-modernization/progressiveMauve-modernization-23f0f950ad6a086ef923cac62a5b11dec15144f0/libMems/libMems/MuscleInterface.cpp
-fullContent:
 /*******************************************************************************
  * $Id: MuscleInterface.cpp,v 1.27 2004/03/01 02:40:08 darling Exp $
  * This file is copyright 2002-2007 Aaron Darling and authors listed in the AUTHORS file.
@@ -1192,9 +1188,5 @@ void MuscleInterface::CreateTree( const NumericMatrix<double>& distances, const 
 	tt.ToFile( tf );
 }
 
-
-}
-
-}
 
 }
