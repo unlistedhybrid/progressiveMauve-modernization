@@ -101,10 +101,7 @@ gnFileContig* gnFASSource::GetContig( const uint32 i ) const
 boolean gnFASSource::SeqRead( const gnSeqI start, char* buf, gnSeqI& bufLen, const uint32 contigI ) 
 {
 	boolean result = true;
-#pragma omp critical
-{
 	result = SeqReadImpl( start, buf, bufLen, contigI );
-}
 	return result;
 }
 
@@ -580,4 +577,3 @@ boolean gnFASSource::ParseStream( istream& fin )
 
 
 }	// end namespace genome
-
