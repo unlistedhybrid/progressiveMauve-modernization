@@ -25,9 +25,6 @@ namespace mems {
 
 typedef UngappedLocalAlignment< HybridAbstractMatch<> > Match;
 
-static uint seq_compare_start;
-
-
 }
 
 #endif // _Match_h_
