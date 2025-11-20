@@ -238,7 +238,6 @@ void DistKmer6_6(const SeqVect &v, DistFunc &DF)
 	for (unsigned uSeq1 = 0; uSeq1 < uSeqCount; ++uSeq1)
 		{
 		Seq &s1 = *(v[uSeq1]);
-		const char *pName1 = s1.GetName();
 
 		double dCommonTupleCount11 = uCommonTupleCount[uSeq1][uSeq1];
 		if (0 == dCommonTupleCount11)
@@ -291,4 +290,4 @@ double PctIdToHeightMAFFT(double dPctId)
 	{
 	return PctIdToMAFFTDist(dPctId);
 	}
-} 
+}
