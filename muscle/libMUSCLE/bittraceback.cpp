@@ -106,7 +106,6 @@ void BitTraceBack(char **TraceBack, unsigned uLengthA, unsigned uLengthB,
 	PWEdge Edge;
 	Edge.uPrefixLengthA = uLengthA;
 	Edge.uPrefixLengthB = uLengthB;
-	char Bits = TraceBack[uLengthA][uLengthB];
 	Edge.cType = LastEdge;
 	for (;;)
 		{
