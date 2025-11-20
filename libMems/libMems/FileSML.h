@@ -13,12 +13,6 @@
 #include "config.h"
 #endif
 
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable : 4996)
-#pragma warning(pop)
-#endif
-
 #include "libGenome/gnSequence.h"
 #include "libMems/SortedMerList.h"
 #include <boost/iostreams/device/mapped_file.hpp>
@@ -135,3 +129,4 @@ void maskNNNNN( const genome::gnSequence& in_seq, genome::gnSequence& out_seq, s
 }
 
 #endif   //_FileSML_h_
+
