@@ -15,27 +15,18 @@ static void LogMx()
 	{
 	Log("Matrix\n");
 	Log("     ");
-	for (int i = 0; i < 20; ++i)
+	for (unsigned i = 0; i < 20; ++i)
 		Log("    %c", LetterToChar(i));
 	Log("\n");
 
-	for (int i = 0; i < 20; ++i)
+	for (unsigned i = 0; i < 20; ++i)
 		{
 		Log("%c    ", LetterToChar(i));
-		for (int j = 0; j < 20; ++j)
+		for (unsigned j = 0; j < 20; ++j)
 			Log("%5.1f", Mx.get()[i][j]);
 		Log("\n");
 		}
 	Log("\n");
-	}
-
-static unsigned MxCharToLetter(char c)
-	{
-	for (unsigned Letter = 0; Letter < HeadingCount.get(); ++Letter)
-		if (Heading.get()[Letter] == c)
-			return Letter;
-	Quit("Letter '%c' has no heading", c);
-	return 0;
 	}
 
 DYN_PTR_SCOREMATRIX ReadMx(TextFile &File)
@@ -83,8 +74,8 @@ DYN_PTR_SCOREMATRIX ReadMx(TextFile &File)
 #endif
 
 // Zero out matrix
-	for (int i = 0; i < MAX_ALPHA; ++i)
-		for (int j = 0; j < MAX_ALPHA; ++j)
+	for (unsigned i = 0; i < MAX_ALPHA; ++i)
+		for (unsigned j = 0; j < MAX_ALPHA; ++j)
 			Mx.get()[i][j] = 0.0;
 
 // Read data lines
@@ -137,8 +128,8 @@ DYN_PTR_SCOREMATRIX ReadMx(TextFile &File)
 		}
 
 // Sanity check for symmetry
-	for (int i = 0; i < 20; ++i)
-		for (int j = 0; j < i; ++j)
+	for (unsigned i = 0; i < 20; ++i)
+		for (unsigned j = 0; j < i; ++j)
 			{
 			if (Mx.get()[i][j] != Mx.get()[j][i])
 				{
@@ -160,4 +151,4 @@ ExitLoop:;
 	SCOREMATRIX& sm = Mx.get();
 	return &sm;
 	}
-} 
+}
