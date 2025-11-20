@@ -320,6 +320,4 @@ SCORE GlobalAlignSS(const Seq &seqA, const Seq &seqB, PWPath &Path)
 
 	return scoreMax;
 	}
-} 
-
 }
