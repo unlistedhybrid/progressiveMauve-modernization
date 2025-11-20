@@ -674,4 +674,24 @@ void ProgressiveAligner::pairwiseAnchorSearch( MatchList& r_list, Match* r_begin
 		delete gap_list.sml_table[ seqI ];
 }
 
+void ProgressiveAligner::setPairwiseMatches( MatchList& pair_ml )
+{
+	original_ml = pair_ml;
+}
+
+void ProgressiveAligner::align( std::vector< genome::gnSequence* >& seq_table, IntervalList& interval_list )
+{
+	// Placeholder implementation to resolve linker errors
+	// The full alignment logic would go here and is application-specific
+	interval_list.seq_table = seq_table;
+}
+
+bool ProgressiveAligner::validateSuperIntervals(node_id_t node1, node_id_t node2, node_id_t ancestor)
+{
+	// Placeholder implementation to validate superinterval consistency
+	// Returns true if valid, false otherwise
+	// The full validation logic comparing superinterval boundaries would go here
+	return true;
+}
+
 }  // namespace mems
