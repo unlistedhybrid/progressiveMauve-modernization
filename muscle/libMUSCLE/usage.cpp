@@ -5,7 +5,9 @@ namespace muscle {
 
 void Credits()
 	{
+#ifdef _OPENMP
 #pragma omp critical
+#endif
 {
 	static bool Displayed = false;
 	if (!Displayed)
@@ -50,4 +52,4 @@ void Usage()
 "Fastest possible (amino acids): -maxiters 1 -diags -sv -distance1 kbit20_3\n"
 "Fastest possible (nucleotides): -maxiters 1 -diags\n");
 	}
-} 
+}
