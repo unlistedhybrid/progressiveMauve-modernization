@@ -160,8 +160,7 @@ void DiffTrees(const Tree &Tree1, const Tree &Tree2, Tree &Diffs,
 	const unsigned uNodeCount2 = Tree2.GetNodeCount();
 	
 	const unsigned uLeafCount = Tree1.GetLeafCount();
-	const unsigned uLeafCount2 = Tree2.GetLeafCount();
-	assert(uLeafCount == uLeafCount2);
+	assert(uLeafCount == Tree2.GetLeafCount());
 
 	if (uNodeCount != uNodeCount2)
 		Quit("DiffTrees: different node counts");
@@ -381,4 +380,4 @@ void DiffTrees(const Tree &Tree1, const Tree &Tree2, Tree &Diffs,
 	delete[] bIsBachelor1;
 	delete[] bIsDiff1;
 	}
-} 
+}
