@@ -37,12 +37,6 @@ static GAPINFO *NewGapInfo()
 	return GI;
 	}
 
-static void FreeGapInfo(GAPINFO *GI)
-	{
-	GI->Next = g_FreeList.get();
-	g_FreeList.get() = GI;
-	}
-
 // TODO: This could be much faster, no need to look
 // at all columns.
 static void FindIntersectingGaps(const MSA &msa, unsigned SeqIndex)
@@ -78,21 +72,6 @@ static void FindIntersectingGaps(const MSA &msa, unsigned SeqIndex)
 			Intersects = false;
 			}
 		}
-	}
-
-static SCORE Penalty(unsigned Length, bool Term)
-	{
-	if (0 == Length)
-		return 0;
-	SCORE s1 = g_scoreGapOpen.get() + g_scoreGapExtend.get()*(Length - 1);
-#if	DOUBLE_AFFINE
-	SCORE s2 = g_scoreGapOpen2.get() + g_scoreGapExtend2.get()*(Length - 1);
-	if (s1 > s2)
-		return s1;
-	return s2;
-#else
-	return s1;
-#endif
 	}
 
 //static SCORE ScorePair(unsigned Seq1, unsigned Seq2)
@@ -202,4 +181,4 @@ SCORE ScoreGaps(const MSA &msa, const unsigned DiffCols[], unsigned DiffColCount
 
 	return Score;
 	}
-} 
+}
