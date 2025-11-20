@@ -11,6 +11,7 @@
 #endif
 
 #include "libMems/MatchFinder.h"
+#include <cstdint>
 
 using namespace std;
 using namespace genome;
@@ -60,7 +61,7 @@ bool MatchFinder::AddSequence( SortedMerList* sar, gnSequence* seq ){
 	if(sar == NULL){
 		Throw_gnExMsg( NullPointer(), "Null SortedMerList pointer" );
 	}
-	if(sar == NULL){
+	if(seq == NULL){
 		Throw_gnExMsg( NullPointer(), "Null gnSequence pointer" );
 	}
 	
@@ -86,12 +87,12 @@ bool MatchFinder::AddSequence( SortedMerList* sar, gnSequence* seq ){
 
 }
 
-void MatchFinder::GetBreakpoint( uint32 sarI, gnSeqI startI, vector<gnSeqI>& breakpoints ) const{
+void MatchFinder::GetBreakpoint( uint32_t sarI, gnSeqI startI, vector<gnSeqI>& breakpoints ) const{
 	breakpoints.clear();
 	
 	//put the mer to break on in break_mer
 	bmer break_mer  = (*GetSar(sarI))[startI];
-	uint64 mer_mask = GetSar(sarI)->GetSeedMask();
+	uint64_t mer_mask = GetSar(sarI)->GetSeedMask();
 	bmer prev_mer = break_mer;
 	//search backwards for the first index of this mer
 	while((prev_mer.mer & mer_mask) == (break_mer.mer & mer_mask)){
@@ -105,16 +106,16 @@ void MatchFinder::GetBreakpoint( uint32 sarI, gnSeqI startI, vector<gnSeqI>& bre
 	++startI;
 
 	//find the mer's location in the other sorted mer lists
-	for(uint32 i=0; i < seq_count; ++i){
+	for(uint32_t i=0; i < seq_count; ++i){
 		if(i == sarI){
 			breakpoints.push_back(startI);
 		}else{
 			gnSeqI cur_start;
 			if(GetSar(i)->FindMer(break_mer.mer, cur_start)){
 				//we found a match, see how far backwards we can go.
-				int64 cur_matchI = cur_start;
+				int64_t cur_matchI = cur_start;
 				bmer matchmer = (*GetSar(i))[cur_start];
-				while(cur_matchI >= 0 && ((matchmer.mer & mer_mask) == (break_mer.mer && mer_mask))){
+				while(cur_matchI >= 0 && ((matchmer.mer & mer_mask) == (break_mer.mer & mer_mask))){
 					cur_matchI--;
 					matchmer = (*GetSar(i))[cur_start];
 				}
@@ -128,7 +129,7 @@ void MatchFinder::GetBreakpoint( uint32 sarI, gnSeqI startI, vector<gnSeqI>& bre
 void MatchFinder::FindMatchSeeds(){
 	vector<gnSeqI> start_points;
 
-	for(uint32 i=0; i < sar_table.size(); ++i){
+	for(uint32_t i=0; i < sar_table.size(); ++i){
 		start_points.push_back(0);
 	}
 	FindMatchSeeds( start_points );
@@ -141,14 +142,14 @@ void MatchFinder::FindMatchSeeds( const vector<gnSeqI>& start_offsets ){
 	mers_processed = 0;
 	total_mers = 0;
 	m_progress = -1;
-	for(uint32 i=0; i < sar_table.size(); ++i){
+	for(uint32_t i=0; i < sar_table.size(); ++i){
 		search_len.push_back(GNSEQI_END);
 		total_mers += search_len[i] == GNSEQI_END ? sar_table[i]->Length() : search_len[i];
 		mers_processed += start_points[ i ];
 	}
 	while( !SearchRange(start_points, search_len) ){
 		mers_processed = 0;
-		for( uint32 seqI = 0; seqI < sar_table.size(); ++seqI ){
+		for( uint32_t seqI = 0; seqI < sar_table.size(); ++seqI ){
 			if( offset_stream != NULL ){
 				if( seqI > 0 )
 					*offset_stream << '\t';
@@ -171,23 +172,23 @@ bool print_sp = false;
 //At most search_length mers in any one genome will be checked.
 bool MatchFinder::SearchRange(vector<gnSeqI>& start_points, vector<gnSeqI>& search_len){
 	//picked a semi-arbitrary number for buffer size.
-	uint32 MER_BUFFER_SIZE = 10000;
-	vector<uint32> mer_index;   // stores the indexes of the current mers in mer_vector
-	vector<uint32> mer_baseindex;   // stores the index in the SortedMerList of each of the first mers in mer_vector
+	uint32_t MER_BUFFER_SIZE = 10000;
+	vector<uint32_t> mer_index;   // stores the indexes of the current mers in mer_vector
+	vector<uint32_t> mer_baseindex;   // stores the index in the SortedMerList of each of the first mers in mer_vector
 	IdmerList cur_mers;	// stores the current mers.
 	IdmerList cur_match;	// stores the current matching mers.
-	list<uint32> sar_hitlist;	// list of sars to replace
-	uint32 read_size;
+	list<uint32_t> sar_hitlist;	// list of sars to replace
+	uint32_t read_size;
 	
 	//make sure there is at least one sequence
 	if(sar_table.size() < 1)
 		return true;
 	
 	//check for consistency in seed patterns.
-	uint64 mer_mask = sar_table[0]->GetSeedMask();
-	uint64 seed = sar_table[0]->Seed();
+	uint64_t mer_mask = sar_table[0]->GetSeedMask();
+	uint64_t seed = sar_table[0]->Seed();
 	mer_size = sar_table[0]->SeedWeight();
-	for(uint32 maskI = 0; maskI < sar_table.size(); ++maskI){
+	for(uint32_t maskI = 0; maskI < sar_table.size(); ++maskI){
 		if(seed != sar_table[maskI]->Seed()){
 			Throw_gnExMsg(InvalidData(), "Different seed patterns.");
 		}
@@ -202,14 +203,14 @@ bool MatchFinder::SearchRange(vector<gnSeqI>& start_points, vector<gnSeqI>& sear
 	// stores arrays of bmers for each sml.
 
 	vector< vector< bmer > > mer_vector;
-	for( uint vecI = 0; vecI < sar_table.size(); ++vecI ){
+	for( size_t vecI = 0; vecI < sar_table.size(); ++vecI ){
 		vector< bmer > vec;
 		mer_vector.push_back( vec );
 	}
 
 	//initialize the data structures
 	idmer newmer;
-	for(uint32 n = 0; n < sar_table.size(); ++n){
+	for(uint32_t n = 0; n < sar_table.size(); ++n){
 		read_size = MER_BUFFER_SIZE < search_len[n] ? MER_BUFFER_SIZE : search_len[n]; 
 		mer_vector[n].reserve(read_size);
 		sar_table[n]->Read(mer_vector[n], read_size, start_points[n]);
@@ -253,11 +254,11 @@ bool MatchFinder::SearchRange(vector<gnSeqI>& start_points, vector<gnSeqI>& sear
 		if( cur_match.size() > MER_REPEAT_LIMIT ){
 			// scan past the repetitive mers
 			// create the lexicographically next mer
-			uint64 next_mer = cur_match.begin()->mer;
+			uint64_t next_mer = cur_match.begin()->mer;
 			next_mer += ~mer_mask + 1;
 //			cerr << "Searching to: " << next_mer << endl;
 			gnSeqI next_pos = 0;
-			uint seqI = 0;
+			uint32_t seqI = 0;
 			for( ; seqI < sar_table.size(); ++seqI ){
 				if( !sar_table[ seqI ]->FindMer( next_mer, next_pos ))
 					++next_pos;
@@ -297,8 +298,8 @@ bool MatchFinder::SearchRange(vector<gnSeqI>& start_points, vector<gnSeqI>& sear
 			
 			// update the mers processed
 			mers_processed += mer_vector[cur_id].size();
-			float64 m_oldprogress = m_progress;
-			m_progress = ((float64)mers_processed / (float64)total_mers) * PROGRESS_GRANULARITY;
+			float64_t m_oldprogress = m_progress;
+			m_progress = ((float64_t)mers_processed / (float64_t)total_mers) * PROGRESS_GRANULARITY;
 			if( log_stream != NULL ){
 				if((int)m_oldprogress != (int)m_progress){
 					(*log_stream) << (int)((m_progress / PROGRESS_GRANULARITY) * 100) << "%..";
@@ -307,7 +308,7 @@ bool MatchFinder::SearchRange(vector<gnSeqI>& start_points, vector<gnSeqI>& sear
 				if(((int)m_oldprogress / 10) != ((int)m_progress / 10))
 					(*log_stream) << std::endl;
 			}
-			uint32 read_size = MER_BUFFER_SIZE;
+			uint32_t read_size = MER_BUFFER_SIZE;
 			if(MER_BUFFER_SIZE + mer_baseindex[cur_id] > search_len[cur_id])
 				read_size = search_len[cur_id] - mer_baseindex[cur_id];
 
@@ -347,7 +348,7 @@ bool MatchFinder::EnumerateMatches( IdmerList& match_list ){
 	}
 	
 	match_list.sort(&idmer_id_lessthan);
-	vector<uint32> id_start;
+	vector<uint32_t> id_start;
 	vector<IdmerList::iterator> id_pos;
 	vector<IdmerList::iterator> id_end;
 	IdmerList::iterator iter = match_list.begin();
@@ -355,7 +356,7 @@ bool MatchFinder::EnumerateMatches( IdmerList& match_list ){
 	++iter2;
 	id_start.push_back(0);
 	id_pos.push_back(iter);
-	for(uint32 i=0; iter2 != match_list.end(); ++i){
+	for(uint32_t i=0; iter2 != match_list.end(); ++i){
 		if(iter->id != iter2->id){
 			id_start.push_back(i);
 			id_pos.push_back(iter2);
@@ -369,14 +370,14 @@ bool MatchFinder::EnumerateMatches( IdmerList& match_list ){
 	id_end.push_back(match_list.end());
 	while(true){
 		IdmerList cur_match;
-		for(uint32 k = 0; k < id_pos.size(); ++k){
+		for(uint32_t k = 0; k < id_pos.size(); ++k){
 			cur_match.push_back(*id_pos[k]);
 		}
 		HashMatch(cur_match);
 		cur_match.clear();
 
 		//increment the iterators (like an odometer)
-		uint32 m = id_pos.size() - 1;
+		uint32_t m = id_pos.size() - 1;
 		while(true){
 			++id_pos[m];
 			if(id_pos[m] == id_end[m+1]){
@@ -392,14 +393,14 @@ bool MatchFinder::EnumerateMatches( IdmerList& match_list ){
 	return true;
 }
 /*
-bool MatchFinder::MatchAmbiguities(MatchHashEntry& mhe, uint32 match_size){
+bool MatchFinder::MatchAmbiguities(MatchHashEntry& mhe, uint32_t match_size){
 	if(ambiguity_tolerance == 0)
 		return false;
 			//check that all mers at the new position match
 	//which sequences are used in this match?
-	uint32* cur_seqs = new uint32[mhe.SeqCount()];
-	uint32 used_seqs = 0;
-	for(uint32 seqI = 0; seqI < mhe.SeqCount(); ++seqI){
+	uint32_t* cur_seqs = new uint32_t[mhe.SeqCount()];
+	uint32_t used_seqs = 0;
+	for(uint32_t seqI = 0; seqI < mhe.SeqCount(); ++seqI){
 		if(mhe[seqI] != NO_MATCH){
 			cur_seqs[used_seqs] = seqI;
 			++used_seqs;
@@ -407,14 +408,14 @@ bool MatchFinder::MatchAmbiguities(MatchHashEntry& mhe, uint32 match_size){
 	}
 	string cur_mer, mer_i;
 	gnSequence mer_seq;
-	int64 mer_to_get = mhe[cur_seqs[0]];
+	int64_t mer_to_get = mhe[cur_seqs[0]];
 	if(mer_to_get < 0){
 		mer_to_get *= -1;
 		mer_to_get += mhe.Length() - mer_size;
 	}
 	cur_mer = seq_table[cur_seqs[0]]->subseq(mer_to_get, match_size).ToString();
 	
-	for(uint32 i=1; i < used_seqs; ++i){
+	for(uint32_t i=1; i < used_seqs; ++i){
 		mer_to_get = mhe[cur_seqs[i]];
 		if(mer_to_get < 0){
 			//Convert the cur_seqs[i] entry since negative implies reverse complement
@@ -427,8 +428,8 @@ bool MatchFinder::MatchAmbiguities(MatchHashEntry& mhe, uint32 match_size){
 			return false;
 		}
 		mer_i = mer_seq.ToString();
-		uint32 ambiguity_count = 0;
-		for(uint32 baseI = 0; baseI < match_size; ++baseI)
+		uint32_t ambiguity_count = 0;
+		for(uint32_t baseI = 0; baseI < match_size; ++baseI)
 			if(cur_mer[baseI] != mer_i[baseI])
 				++ambiguity_count;
 		if(ambiguity_count > ambiguity_tolerance){
