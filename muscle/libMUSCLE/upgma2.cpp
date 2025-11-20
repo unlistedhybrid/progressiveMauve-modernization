@@ -67,6 +67,7 @@ static inline unsigned TriangleSubscript(unsigned uIndex1, unsigned uIndex2)
 	return v;
 	}
 
+#if	TRACE
 static void ListState()
 	{
 	Log("Dist matrix\n");
@@ -125,6 +126,7 @@ static void ListState()
 		  g_LeftLength.get()[i],
 		  g_RightLength.get()[i]);
 	}
+#endif
 
 void UPGMA2(const DistCalc &DC, Tree &tree, LINKAGE Linkage)
 	{
@@ -395,4 +397,4 @@ void Test()
 	Tree tree;
 	UPGMA2(DC, tree, LINKAGE_Avg);
 	}
-} 
+}
