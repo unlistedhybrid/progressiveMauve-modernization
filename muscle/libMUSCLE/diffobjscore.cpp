@@ -76,15 +76,12 @@ static SCORE ScoreColLetters(const MSA &msa, unsigned uColIndex)
 static SCORE ScoreLetters(const MSA &msa, const unsigned Edges[],
   unsigned uEdgeCount)
 	{
-	const unsigned uSeqCount = msa.GetSeqCount();
-	const unsigned uColCount = msa.GetColCount();
-
 // Letters
 	SCORE Score = 0;
 	for (unsigned uEdgeIndex = 0; uEdgeIndex < uEdgeCount; ++uEdgeIndex)
 		{
 		const unsigned uColIndex = Edges[uEdgeIndex];
-		assert(uColIndex < uColCount);
+		assert(uColIndex < msa.GetColCount());
 		Score += ScoreColLetters(msa, uColIndex);
 		}
 	return Score;
