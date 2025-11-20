@@ -24,8 +24,8 @@ MemorySML::MemorySML(const uint8* table, const uint32 alpha_bits ){
 	header.version = 0;
 }
 
-MemorySML::MemorySML(const MemorySML& msa){
-	*this = msa;
+MemorySML::MemorySML(const MemorySML& msa) : SortedMerList(msa) {
+	positions = msa.positions;
 }
 
 MemorySML& MemorySML::operator=(const MemorySML& msa ) {
