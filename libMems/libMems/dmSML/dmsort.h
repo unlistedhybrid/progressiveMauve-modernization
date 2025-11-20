@@ -72,8 +72,6 @@ enum dm_errors {
 
 static buffer_t * AllocateFree( void );
 static int ComputeBinNumber( const unsigned char key[10] );
-static int ComputeNNNNNBinNumber( const unsigned char key[10] );
-static int ComputeAsciiBinNumber( const unsigned char key[10] );
 static void DoBinning( void );
 void FinishBinning();
 offset_t CalculateDataReadSize( buffer_t* b );
