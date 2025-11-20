@@ -98,10 +98,7 @@ gnSeqI gnGBKSource::GetContigSeqLength( const uint32 i ) const
 boolean gnGBKSource::SeqRead( const gnSeqI start, char* buf, gnSeqI& bufLen, const uint32 contigI )
 {
 	boolean result = false;
-#pragma omp critical
-{
 	result = SeqReadImpl( start, buf, bufLen, contigI );
-}
 	return result;
 }
 
@@ -958,4 +955,3 @@ boolean gnGBKSource::ParseStream( istream& fin )
 }
 
 }	// end namespace genome
-
