@@ -267,7 +267,7 @@ bool MatchFinder::SearchRange(vector<gnSeqI>& start_points, vector<gnSeqI>& sear
 			vector< gnSeqI > old_starts = start_points;
 			if( seqI < sar_table.size() )
 				GetBreakpoint( seqI, next_pos, start_points );
-			for( int spI = 0; spI < start_points.size(); ++spI ){
+			for( size_t spI = 0; spI < start_points.size(); ++spI ){
 				// don't allow it to move backwards!
 				start_points[ spI ] = start_points[ spI ] < mer_index[ spI ] + mer_baseindex[ spI ] + old_starts[ spI ] ? old_starts[ spI ] + mer_index[ spI ] + mer_baseindex[ spI ] : start_points[ spI ];
 				if( spI < seqI )
