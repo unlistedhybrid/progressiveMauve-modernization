@@ -52,3 +52,4 @@ jobs:
         path: |
           build/build_log.txt
           build/progressiveMauve
+          build/mauveAligner
