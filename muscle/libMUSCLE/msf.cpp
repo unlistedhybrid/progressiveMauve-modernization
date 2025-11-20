@@ -24,14 +24,6 @@ static const char *GetPaddedName(const char *Name, int PadLength)
 	return PaddedName.get();
 	}
 
-static const char *strfind(const char *s, const char *t)
-	{
-	size_t n = strcspn(s, t);
-	if (0 == n)
-		return 0;
-	return s + n;
-	}
-
 // GCG checksum code kindly provided by Eric Martel.
 unsigned MSA::GetGCGCheckSum(unsigned uSeqIndex) const
 	{
@@ -122,4 +114,4 @@ void MSA::ToMSFFile(TextFile &File, const char *ptrComment) const
 			}
 		}
 	}
-} 
+}
