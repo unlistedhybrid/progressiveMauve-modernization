@@ -226,9 +226,25 @@ void MatchFinder::ExtendMatch(UngappedMatchType& mhe, std::vector<UngappedMatchT
 	uint64_t mer_mask = GetSar(0)->GetSeedMask();
 
 	//which sequences are used in this match?
-	uint32_t* cur_seqs = new uint32_t[mhe.SeqCount()];
+	if(GetSar(0) == NULL){
+		std::cerr << "ERROR: GetSar(0) is NULL in ExtendMatch!\n";
+		return;
+	}
+	
+	uint32_t seq_cnt = mhe.SeqCount();
+	if(seq_cnt > seq_count || seq_cnt == 0){
+		std::cerr << "ERROR: ExtendMatch invalid SeqCount: " << seq_cnt << " (seq_count=" << seq_count << ")\n";
+		return;
+	}
+	
+	uint32_t* cur_seqs = new uint32_t[seq_cnt];
 	uint32_t used_seqs = 0;
-	for(uint32_t seqI = 0; seqI < mhe.SeqCount(); ++seqI){
+	for(uint32_t seqI = 0; seqI < seq_cnt; ++seqI){
+		if(seqI >= seq_count){
+			std::cerr << "ERROR: seqI " << seqI << " >= seq_count " << seq_count << "\n";
+			delete[] cur_seqs;
+			return;
+		}
 		if(mhe[seqI] != NO_MATCH){
 			cur_seqs[used_seqs] = seqI;
 			++used_seqs;
@@ -270,6 +286,11 @@ void MatchFinder::ExtendMatch(UngappedMatchType& mhe, std::vector<UngappedMatchT
 			mhe.SetLength(mhe.Length() + jump_size);
 			maxlen -= jump_size;
 			for(j=0; j < used_seqs; ++j){
+				if(cur_seqs[j] >= seq_count){
+					std::cerr << "ERROR: cur_seqs[" << j << "]=" << cur_seqs[j] << " >= seq_count=" << seq_count << "\n";
+					delete[] cur_seqs;
+					return;
+				}
 				if(mhe[cur_seqs[j]] > 0){
 					mhe.SetStart(cur_seqs[j], mhe[cur_seqs[j]] - jump_size);
 					if(mhe[cur_seqs[j]] <= 0)
@@ -277,6 +298,16 @@ void MatchFinder::ExtendMatch(UngappedMatchType& mhe, std::vector<UngappedMatchT
 				}
 			}
 			//check that all mers at the new position match
+			if(used_seqs == 0){
+				std::cerr << "ERROR: used_seqs is 0 in ExtendMatch loop\n";
+				delete[] cur_seqs;
+				return;
+			}
+			if(cur_seqs[0] >= seq_count){
+				std::cerr << "ERROR: cur_seqs[0]=" << cur_seqs[0] << " >= seq_count=" << seq_count << "\n";
+				delete[] cur_seqs;
+				return;
+			}
 			int64_t mer_to_get = mhe[cur_seqs[0]];
 			if(mer_to_get < 0){
 				mer_to_get *= -1;
@@ -291,6 +322,11 @@ void MatchFinder::ExtendMatch(UngappedMatchType& mhe, std::vector<UngappedMatchT
 			cur_mer &= mer_mask;
 
 			for(i=1; i < used_seqs; ++i){
+				if(cur_seqs[i] >= seq_count){
+					std::cerr << "ERROR: cur_seqs[" << i << "]=" << cur_seqs[i] << " >= seq_count=" << seq_count << "\n";
+					delete[] cur_seqs;
+					return;
+				}
 				mer_to_get = mhe[cur_seqs[i]];
 				if(mer_to_get < 0){
 					//Convert the cur_seqs[i] entry since negative implies reverse complement
@@ -321,6 +357,11 @@ void MatchFinder::ExtendMatch(UngappedMatchType& mhe, std::vector<UngappedMatchT
 		if(i < used_seqs){
 			mhe.SetLength(mhe.Length() - jump_size);
 			for(;j > 0; j--){
+				if(cur_seqs[j-1] >= seq_count){
+					std::cerr << "ERROR: cur_seqs[" << (j-1) << "]=" << cur_seqs[j-1] << " >= seq_count=" << seq_count << "\n";
+					delete[] cur_seqs;
+					return;
+				}
 				if(mhe[cur_seqs[j - 1]] >= 0)
 					mhe.SetStart(cur_seqs[j - 1], mhe[cur_seqs[j - 1]] + jump_size);
 			}
@@ -338,6 +379,11 @@ void MatchFinder::ExtendMatch(UngappedMatchType& mhe, std::vector<UngappedMatchT
 				std::cerr << "oh sheethockey mushrooms\n";
 			mhe.SetLength(mhe.Length() - unmatched_diff);
 			for(j=0; j < used_seqs; ++j){
+				if(cur_seqs[j] >= seq_count){
+					std::cerr << "ERROR: cur_seqs[" << j << "]=" << cur_seqs[j] << " >= seq_count=" << seq_count << "\n";
+					delete[] cur_seqs;
+					return;
+				}
 				if(mhe[cur_seqs[j]] > 0){
 					mhe.SetStart(cur_seqs[j], mhe[cur_seqs[j]] + unmatched_diff);
 					if(mhe[cur_seqs[j]] > GetSar(cur_seqs[j])->Length() )
