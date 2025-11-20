@@ -104,33 +104,6 @@ static void FindBestColsCombo(const MSA &msa, const SCORE Score[],
 	*ptruBestColCount = uBestColCount;
 	}
 
-static void ListBestCols(const MSA &msa, const SCORE Score[], const SCORE SmoothScore[],
-  unsigned BestCols[], unsigned uBestColCount)
-	{
-	const unsigned uColCount = msa.GetColCount();
-	const unsigned uSeqCount = msa.GetSeqCount();
-
-	Log("Col  ");
-	for (unsigned uSeqIndex = 0; uSeqIndex < uSeqCount; ++uSeqIndex)
-		Log("%u", uSeqIndex%10);
-	Log("  ");
-
-	for (unsigned uColIndex = 0; uColIndex < uColCount; ++uColIndex)
-		{
-		Log("%3u  ", uColIndex);
-		for (unsigned uSeqIndex = 0; uSeqIndex < uSeqCount; ++uSeqIndex)
-			Log("%c", msa.GetChar(uSeqIndex, uColIndex));
-
-		Log("  %10.3f", Score[uColIndex]);
-		Log("  %10.3f", SmoothScore[uColIndex]);
-
-		for (unsigned i = 0; i < uBestColCount; ++i)
-			if (BestCols[i] == uColIndex)
-				Log(" <-- Best");
-		Log("\n");
-		}
-	}
-
 // If two best columns are found within a window, choose
 // the highest-scoring. If more than two, choose the one
 // closest to the center of the window.
@@ -161,7 +134,6 @@ void MergeBestCols(const SCORE Scores[], const unsigned BestCols[],
 			}
 		else if (uCountWithinWindow > 1)
 			{
-			unsigned uWindowCenter = uBestColIndex + uWindowLength/2;
 			int iClosestDist = uWindowLength;
 			unsigned uClosestCol = uBestColIndex;
 			for (unsigned i = n + 1; i < n + uCountWithinWindow; ++i)
@@ -218,4 +190,4 @@ void FindAnchorCols(const MSA &msa, unsigned AnchorCols[],
 	delete[] SmoothScore;
 	delete[] BestCols;
 	}
-} 
+}
