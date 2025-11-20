@@ -211,11 +211,11 @@ void SortedMerList::FindAll(const string& query_seq, vector<gnSeqI> result) {
 	matchI = bsearch(merle, 0, last_pos);
 
 	//first seek backwards
-	int64 cur_matchI = matchI;
+	int64 cur_matchI = static_cast<int64>(matchI);
 	matchmer = (*this)[matchI];
 	while(cur_matchI >= 0 && matchmer.mer == merle.mer){
 		cur_matchI--;
-		matchmer = (*this)[cur_matchI];
+		matchmer = (*this)[static_cast<gnSeqI>(cur_matchI)];
 	}
 	int64 first_matchI = cur_matchI+1;
 
@@ -403,7 +403,7 @@ void SortedMerList::translate(uint8* dest, const gnSeqC* src, const gnSeqI len) 
 	const uint32 alpha_bits = OPT_HEADER_ALPHABET_BITS;
 	dest[cur_byte] = 0;
 	for(uint32 i=0; i < len; i++){
-		uint8 tmp = header.translation_table[src[i]];
+		uint8 tmp = header.translation_table[static_cast<unsigned char>(src[i])];
 		if(start_bit + alpha_bits <= 8){
 			tmp <<= 8 - start_bit - alpha_bits;
 			dest[cur_byte] |= tmp;
@@ -437,7 +437,7 @@ void SortedMerList::translate32(uint32* dest, const gnSeqC* src, const gnSeqI le
 			cerr << "Input sequences must be unaligned and ungapped!\n";
 			throw "Gap in genome sequence\n";
 		}
-		uint32 tmp = header.translation_table[src[i]];
+		uint32 tmp = header.translation_table[static_cast<unsigned char>(src[i])];
 		if(start_bit + alpha_bits <= 32){
 			tmp <<= 32 - start_bit - alpha_bits;
 			dest[cur_word] |= tmp;
@@ -753,7 +753,7 @@ uint64 SortedMerList::GetSeedMer( gnSeqI offset ) const
 	const int mer_transition = 64 / OPT_HEADER_ALPHABET_BITS;
 	int patternI = 0;
 	int rshift_amt = 64 - OPT_HEADER_ALPHABET_BITS;
-	for( ; patternI < header.seed_length; patternI++ ){
+	for( ; patternI < static_cast<int>(header.seed_length); patternI++ ){
 		if( patternI == mer_transition ){
 			cur_mer = mer_b;
 			cur_alpha_mask = alpha_mask;
