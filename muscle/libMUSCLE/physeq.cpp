@@ -52,8 +52,8 @@ void MSA::ToPhySequentialFile(TextFile &File) const
 		FixName(Name);
 		File.PutFormat("%-10.10s", Name);
 
-		int BlockIndex = 0;
-		int Col = 0;
+		unsigned BlockIndex = 0;
+		unsigned Col = 0;
 		for (;;)
 			{
 			const unsigned MaxCols = (BlockIndex == 0) ? (BLOCKSIZE - 10) : BLOCKSIZE;
@@ -87,7 +87,7 @@ void MSA::ToPhyInterleavedFile(TextFile &File) const
 	if (0 == ColCount)
 		return;
 
-	int Col = 0;
+	unsigned Col = 0;
 	for (;;)
 		{
 		const unsigned ColBlockStart = Col;
@@ -128,4 +128,4 @@ void MSA::ToPhyInterleavedFile(TextFile &File) const
 		File.PutChar('\n');
 		}
 	}
-} 
+}
