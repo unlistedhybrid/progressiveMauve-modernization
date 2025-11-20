@@ -204,9 +204,8 @@ void DistKmer4_6(const SeqVect &v, DistFunc &DF)
 				}
 #if	TRACE
 			{
-			Seq &s1 = *(v[uSeq1]);
 			Seq &s2 = *(v[uSeq2]);
-			const char *pName1 = s1.GetName();
+			const char *pName1 = (*(v[uSeq1])).GetName();
 			const char *pName2 = s2.GetName();
 			Log("Common count %s(%d) - %s(%d) =%u\n",
 			  pName1, uSeq1, pName2, uSeq2, uSum);
