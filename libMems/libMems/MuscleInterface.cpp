@@ -428,11 +428,9 @@ MuscleInterface& MuscleInterface::operator=( const MuscleInterface& ci ){
 	//     with SeqCount & Multiplicity, as well as seq_table[ seqI ]->length()/seq_table[ 0 ]->length(i),
 	//     for now, leave like this. hopefully sooner than later, make pretty!
 bool MuscleInterface::Align( GappedAlignment& cr, Match* r_begin, Match* r_end, vector< gnSequence* >& seq_table ){
-	gnSeqI gap_size = 0;
 	bool create_ok = true;
 	uint seq_count = seq_table.size();
 	//seq_count = r_begin->Multiplicity();
-	uint align_seqs = 0;
 	vector< string > tmp_mat = vector< string >( seq_count );
 try{
 
@@ -459,7 +457,7 @@ try{
 		getInterveningCoordinates( seq_table, r_begin, r_end, seqI, gap_start, gap_end );
 
 		int64 diff = gap_end - gap_start;
-		if( diff <= 0 || diff > max_alignment_length ){
+		if( diff <= 0 || diff > static_cast<int64>(max_alignment_length) ){
 			starts.push_back( NO_MATCH );
 			continue;	// skip this sequence if it's either too big or too small
 		}
@@ -522,7 +520,6 @@ try{
 static int failure_count = 0;
 
 bool MuscleInterface::Align( GappedAlignment& cr, AbstractMatch* r_begin, AbstractMatch* r_end, vector< gnSequence* >& seq_table){
-	gnSeqI gap_size = 0;
 	bool create_ok = true;
 	//tjt: set the seq_count to a match m's multiplicity
 	//     even though all components n of match m could be 
@@ -531,7 +528,6 @@ bool MuscleInterface::Align( GappedAlignment& cr, AbstractMatch* r_begin, Abstra
 	//     if k = 1, n == repeat match multiplicity, where n >= 2
 	//     
 	uint seq_count = r_begin->Multiplicity();
-	uint align_seqs = 0;
 	vector< string > tmp_mat = vector< string >( seq_count );
 try{
 
@@ -572,22 +568,14 @@ try{
 		int64 diff = gap_end - gap_start;
 		
 		//diff <= 0 ||
-		if( diff <= 0 || diff > max_alignment_length ){
+		if( diff <= 0 || diff > static_cast<int64>(max_alignment_length) ){
 			starts.push_back( NO_MATCH );
 			continue;	// skip this sequence if it's either too big or too small
 		}
 
 		seqs.push_back( seqI );
 
-		// extract sequence data
-		if (0 )
-		{
-			starts.push_back( gap_start );
-			seq_data.push_back( "A" );
-			std::cout << "A" << std::endl;
-			diff = 1;
-		}
-// the gnSequence pointers are shared across threads and have a common ifstream
+		// the gnSequence pointers are shared across threads and have a common ifstream
 		if( r_end == NULL || r_end->Start( seqI ) > 0 ){
 			starts.push_back( gap_start );
 			//std::cout << seq_table[ 0 ]->ToString( diff , gap_start ) << std::endl;
@@ -618,33 +606,7 @@ try{
 			cout << "Muscle was unable to align:\n";
 			return false;
 		}
-        
-        //fill in regions between adjacent seeds with gaps
-        //if aln_matrix is smaller than multiplicity, then we know 
-        //that there are some regions between seeds that have len == 0
-        if (aln_matrix.size() != r_begin->Multiplicity() && 0)
-        {
-            for( uint seqI = 0; seqI < starts.size(); seqI++ )
-            {
-                //if this a position between two adjacent matches..
-                if (starts.at(seqI) == NO_MATCH)
-                {
-                    //calculate the number of gaps to fill in
-                    int64 gap_end = r_end != NULL ? r_end->Start( seqI ) : seq_table[ seqI ]->length() + 1;
-		            int64 gap_start = r_begin != NULL ? r_begin->End( seqI ) + 1 : 1;
-                    if( r_end == NULL || r_end->Start( seqI ) > 0 ){
-			            starts[seqI] = 0;//gap_start;
-			            seq_data.insert(seq_data.begin()+(seqI),"");
-		            }else{
-			            starts[seqI] = 0;//-gap_start;
-			            seq_data.insert(seq_data.begin()+(seqI),"");
-		            }
-                    string tmp(aln_matrix[0].length(), '-');
-                    aln_matrix.insert(aln_matrix.begin()+(seqI), tmp);
-                    seqs.insert(seqs.begin()+(seqI),seqI);
-                }
-            }
-        }
+
 		gnSeqI aln_length = aln_matrix.size() == 0 ? 0 : aln_matrix[0].length();
 		cr = GappedAlignment( seq_count, aln_length );
 		vector< string > aln_mat = vector< string >( seq_count );
@@ -1019,7 +981,6 @@ bool MuscleInterface::ProfileAlign( const GappedAlignment& ga1, const GappedAlig
 			}
 			gnSeqI len = cur_line.size();
 			len = cur_line[ len - 1 ] == '\r' ? len - 1 : len;
-			// unused variable seqI removed here
 			aln_matrix[ order[ordI] ] += cur_line.substr( 0, len );
 		}
 		for( size_t i = 0; i < aln_matrix.size(); i++ )
