@@ -344,9 +344,9 @@ void RestructureReadSMLBins( void ) {
 			seq_word++;
 		}
 		
-		translate_length = b->io_size - mask_length + 1 - (word_remainder / 2);
+		translate_length = b->io_size - static_cast<offset_t>(mask_length) + 1 - (word_remainder / 2);
 		if( b->io_size + b->input_pos >= NumRecs ){
-			translate_length += mask_length - 1;
+			translate_length += static_cast<offset_t>(mask_length) - 1;
 		}
 		
 #ifndef NO_RESTRUCTURE_PERF_TEST
@@ -386,7 +386,7 @@ void RestructureReadSMLBins( void ) {
         }
 
 #ifndef NO_RESTRUCTURE_PERF_TEST
-		for( seqI = b->io_size - mask_length + 1; seqI > 0; seqI-- ){
+		for( seqI = b->io_size - static_cast<offset_t>(mask_length) + 1; seqI > 0; seqI-- ){
 			bit = 1;
 			bit <<= mask_length - 1;
 			mer = 0;
@@ -432,7 +432,7 @@ void RestructureReadSMLBins( void ) {
 			}
 		}
 
-		extras = b->io_size - mask_length + 1 < 6 ? b->io_size - mask_length + 1 : 6;
+		extras = b->io_size - static_cast<offset_t>(mask_length) + 1 < 6 ? b->io_size - static_cast<offset_t>(mask_length) + 1 : 6;
 		
 		for(; seqI < static_cast<offset_t>(extras); seqI++ ){
 			b->recs[ seqI ] = begin[ seqI ];
@@ -618,12 +618,12 @@ int InitdmSML( long working_mb, long buffer_size, const char* input_filename, co
 	mask_length = header.seed_length;
 	mask_weight = header.seed_weight;
 	
-	if( NumRecs <= mask_length - 1 ){
+	if( NumRecs <= static_cast<offset_t>(mask_length) - 1 ){
 	        printf( "Sequence must be at least %d characters in length\n", mask_length );
 		return SEQUENCE_TOO_SHORT;
 	}
 
-	NumRecs -= mask_length - 1;
+	NumRecs -= static_cast<offset_t>(mask_length) - 1;
 	printf( "NumRecs is: %llu \n", NumRecs );
     RecsProcessed = 0;
     RecsUnread = NumRecs;
@@ -834,9 +834,6 @@ void SortReading( void ) {
 
 int comp_keys( record_t a, record_t b ){
 	int compval;
-	sml_t *mer_a, *mer_b;
-	mer_a = reinterpret_cast<sml_t*>(&a);
-	mer_b = reinterpret_cast<sml_t*>(&b);
 	compval = COMPARE_KEYS( a, b );
 	return compval;
 }
@@ -1274,8 +1271,6 @@ int dmsort() {
 
 extern "C" {
 int dmSML( const char* input_file, const char* output_file, const char* const* scratch_paths, uint64 seed ) {
-	long working_mb = 300;
-	long buffer_size = 1000;
 	int rval = 0;
 	int i = 0;
 	rval = InitdmSML( 0, 0, input_file, output_file, scratch_paths, seed );
