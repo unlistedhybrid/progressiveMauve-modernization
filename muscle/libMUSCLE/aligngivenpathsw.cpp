@@ -57,8 +57,6 @@ static void AppendUnalignedTerminals(const MSA &msaA, unsigned &uColIndexA, unsi
 	Log("AppendUnalignedTerminals ColIxA=%u ColIxB=%u ColIxCmb=%u\n",
 	  uColIndexA, uColIndexB, uColIndexCombined);
 #endif
-	const unsigned uLengthA = msaA.GetColCount();
-	const unsigned uLengthB = msaB.GetColCount();
 
 	unsigned uNewColCount = uColCountA;
 	if (uColCountB > uNewColCount)
@@ -203,10 +201,8 @@ void AlignTwoMSAsGivenPathSW(const PWPath &Path, const MSA &msaA, const MSA &msa
 			{
 			assert(uPrefixLengthA > 0);
 			assert(uPrefixLengthB > 0);
-			const unsigned uColA = uPrefixLengthA - 1;
-			const unsigned uColB = uPrefixLengthB - 1;
-			assert(uColIndexA == uColA);
-			assert(uColIndexB == uColB);
+			assert(uColIndexA == uPrefixLengthA - 1);
+			assert(uColIndexB == uPrefixLengthB - 1);
 			AppendMatch(msaA, uColIndexA, msaB, uColIndexB, uSeqCountA, uSeqCountB,
 			  msaCombined, uColIndexCombined);
 			break;
@@ -214,16 +210,14 @@ void AlignTwoMSAsGivenPathSW(const PWPath &Path, const MSA &msaA, const MSA &msa
 		case 'D':
 			{
 			assert(uPrefixLengthA > 0);
-			const unsigned uColA = uPrefixLengthA - 1;
-			assert(uColIndexA == uColA);
+			assert(uColIndexA == uPrefixLengthA - 1);
 			AppendDelete(msaA, uColIndexA, uSeqCountA, uSeqCountB, msaCombined, uColIndexCombined);
 			break;
 			}
 		case 'I':
 			{
 			assert(uPrefixLengthB > 0);
-			const unsigned uColB = uPrefixLengthB - 1;
-			assert(uColIndexB == uColB);
+			assert(uColIndexB == uPrefixLengthB - 1);
 			AppendInsert(msaB, uColIndexB, uSeqCountA, uSeqCountB, msaCombined, uColIndexCombined);
 			break;
 			}
@@ -237,4 +231,4 @@ void AlignTwoMSAsGivenPathSW(const PWPath &Path, const MSA &msaA, const MSA &msa
 	AppendUnalignedTerminals(msaA, uColIndexA, uInsertColCountA, msaB, uColIndexB,
 	  uInsertColCountB, uSeqCountA, uSeqCountB, msaCombined, uColIndexCombined);
 	}
-} 
+}
