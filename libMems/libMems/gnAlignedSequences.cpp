@@ -166,17 +166,17 @@ bool gnAlignedSequences::outputPhylip(ostream& os) const
 		<< "  Bases in Each Aligned Sequence: " << sequences[0].length() << endl;
 	
 	int offset = 10;
-	uint seqI;
+	size_t seqI;
 	for( seqI = 0; seqI < sequences.size(); seqI++ )
 	{
 		int position = 0;
 		const string& seq = sequences[ seqI ];
 		string seqName = names[ seqI ].substr( 0, offset );
-		seqName.append( offset - seqName.length() + 1, ' ' ); 
+		seqName.append( offset - seqName.length() + 1, ' '); 
 		
 		os << seqName;
 
-		for ( position=0; position + offset < seq.size(); position += offset){
+		for ( position=0; position + offset < static_cast<int>(seq.size()); position += offset){
 			if ( position % 50 == 0)
 				os << endl;
 			os.write( seq.data() + position, offset );
@@ -196,7 +196,7 @@ bool gnAlignedSequences::outputPhylip(ostream& os) const
 uint64 countGaps( string& seq );
 uint64 countGaps( string& seq ){
 	uint gap_count = 0;
-	for( uint charI = 0; charI < seq.length(); charI++ )
+	for( size_t charI = 0; charI < seq.length(); charI++ )
 		if( seq[ charI ] == '-' )
 			gap_count++;
 	return gap_count;
@@ -213,18 +213,18 @@ bool gnAlignedSequences::outputClustalW(ostream& os) const
 		seq_pos = positions;
 	vector< string > seq_names;
 	int pos;
-	uint seqI = 0;
+	size_t seqI = 0;
 	int longestNameSize = 0;
 	for( ; seqI < sequences.size(); seqI++ )
 	{
 		seq_names.push_back( names[ seqI ].substr( 0, 30 ) );
-		if ( seq_names[ seq_names.size() - 1 ].length() > longestNameSize)
+		if ( seq_names[ seq_names.size() - 1 ].length() > static_cast<size_t>(longestNameSize))
 			longestNameSize=seq_names[ seq_names.size() - 1 ].length();
 	}
 	// add space padding to the names
 	for( seqI = 0; seqI < seq_names.size(); seqI++ )
-		seq_names[ seqI ] += string( (longestNameSize - seq_names[ seqI ].length()) + 6, ' ' ); 
-	for (pos=0; pos+60 < alignedSeqsSize(); pos+=60)
+		seq_names[ seqI ] += string( (longestNameSize - static_cast<int>(seq_names[ seqI ].length())) + 6, ' ' ); 
+	for (pos=0; pos+60 < static_cast<int>(alignedSeqsSize()); pos+=60)
 	{
 		os << endl
 		   << endl;
@@ -242,7 +242,7 @@ bool gnAlignedSequences::outputClustalW(ostream& os) const
 		}
 	}
 	
-	if (pos<alignedSeqsSize())
+	if (pos < static_cast<int>(alignedSeqsSize()))
 	{
 		os << endl
 		   << endl;
@@ -277,14 +277,14 @@ bool gnAlignedSequences::outputMSF(ostream& os) const
 	}
 	
 	int pos = 0;
-	for ( ; pos+60<(*(*alignedSequences.begin()).second).size(); pos+=60)
+	for ( ; pos+60 < static_cast<int>((*(*alignedSequences.begin()).second).size()); pos+=60)
 	{
 		// output spaces until sequence ordinates
-		for (int i=0; i<longestSeqNameLength+2; i++)
+		for (size_t i=0; i < longestSeqNameLength+2; i++)
 			os << " ";
 		
 		os << pos+1;
-		for (int i=0; i<54; i++) // output appropriate number of spaces on ordinate line
+		for (size_t i=0; i<54; i++) // output appropriate number of spaces on ordinate line
 			os << " ";
 		os << pos+60 << endl;
 		
@@ -297,7 +297,7 @@ bool gnAlignedSequences::outputMSF(ostream& os) const
 			os << (*(*sequenceItr).first) << "  ";
 			
 			string seq = (*(*sequenceItr).second).substr(pos, 60);
-			for (int i=0; i<60; i++)
+			for (size_t i=0; i<60; i++)
 			{
 				if (seq[i]=='-')
 					os << ".";
@@ -310,14 +310,14 @@ bool gnAlignedSequences::outputMSF(ostream& os) const
 		os << endl;
 	}
 	
-	if (pos<(*(*alignedSequences.begin()).second).size())
+	if (pos < static_cast<int>((*(*alignedSequences.begin()).second).size()))
 	{
 		// output spaces until sequence ordinates
-		for (int i=0; i<longestSeqNameLength+2; i++)
+		for (size_t i=0; i < longestSeqNameLength+2; i++)
 			os << " ";
 		
 		os << pos+1;
-		for (size_t i=0; i<(*(*alignedSequences.begin()).second).size()-pos; i++) // output appropriate number of spaces on ordinate line
+		for (size_t i=0; i < (*(*alignedSequences.begin()).second).size()-pos; i++) // output appropriate number of spaces on ordinate line
 			os << " ";
 		os << (*(*alignedSequences.begin()).second).size() << endl;
 		
@@ -361,15 +361,15 @@ bool gnAlignedSequences::outputNexus(ostream& os) const
 	   
 	list <pair <string*, string*> >::const_iterator sequenceItr = alignedSequences.begin();
 	int i;
-	int seqI;
+	size_t seqI;
 	int longestSeqNameLength = 0;
 	for( seqI = 0; seqI < sequences.size(); seqI++ ){
-		if( names[ seqI ].length() > longestSeqNameLength )
+		if( names[ seqI ].length() > static_cast<size_t>(longestSeqNameLength) )
 			longestSeqNameLength = names[ seqI ].length();
 	}
 	
 	int pos = 1;
-	for ( ; pos+59 < sequences[0].size(); pos+=60)
+	for ( ; pos+59 < static_cast<int>(sequences[0].size()); pos+=60)
 	{
 		os << "[";
 		// output spaces until sequence ordinates
@@ -397,7 +397,7 @@ bool gnAlignedSequences::outputNexus(ostream& os) const
 	}
 	
 	// write out the last little bit
-	if (pos - 1 < sequences[0].size())
+	if (pos - 1 < static_cast<int>(sequences[0].size()))
 	{
 		// output spaces until sequence ordinates
 		os << "[";
@@ -406,7 +406,7 @@ bool gnAlignedSequences::outputNexus(ostream& os) const
 			os << " ";
 		
 		os << pos;
-		for (i=0; i < sequences[0].size() - pos + 1; i++) // output appropriate number of spaces on ordinate line
+		for (i=0; i < static_cast<int>(sequences[0].size()) - pos + 1; i++) // output appropriate number of spaces on ordinate line
 			os << " ";
 		os << pos+59 << "]" << endl;
 		
@@ -428,87 +428,7 @@ bool gnAlignedSequences::outputNexus(ostream& os) const
 	
 	return true;
 }
-/*
-bool gnAlignedSequences::outputNexus(ostream& os) const
-{
-	os << "begin data;" << endl
-	   << "  dimensions ntax=" << alignedSequences.size() << " nchar=" 
-	   << alignedSequences.begin()->second->size() << ";" << endl
-	   << "  ;" << endl
-	   << "  matrix" << endl;
-	   
-	list <pair <string*, string*> >::const_iterator sequenceItr = alignedSequences.begin();
-	int i;
-	int longestSeqNameLength = 0;
-	for ( ; sequenceItr != alignedSequences.end(); sequenceItr++)
-	{
-		if ( sequenceItr->first->length() > longestSeqNameLength )
-			longestSeqNameLength = sequenceItr->first->length();
-	}
-	
-	int pos = 1;
-	for ( ; pos+59 < alignedSequences.begin()->second->size(); pos+=60)
-	{
-		os << "[";
-		// output spaces until sequence ordinates
-		for (i = 0; i < longestSeqNameLength+2; i++)
-			os << " ";
-		
-		os << pos;
-		for (i = 0; i < 54; i++) // output appropriate number of spaces on ordinate line
-			os << " ";
-		os << pos+59 << "]" << endl;
-		
-		for (sequenceItr=alignedSequences.begin(); sequenceItr != alignedSequences.end(); sequenceItr++)
-		{
-			os << (*(*sequenceItr).first);
-			
-			int spaces = longestSeqNameLength - sequenceItr->first->length();
-			for (i = 0; i < spaces + 2; i++)
-				os << " ";
-				
-			string seq = sequenceItr->second->substr( pos, 60 );
-			for (i = 0; i < 60; i++)
-				os << seq[i];
-			os << endl;
-		}
-		
-		os << endl;
-	}
-	
-	if (pos - 1 < alignedSequences.begin()->second->size())
-	{
-		// output spaces until sequence ordinates
-		os << "[";
-		// output spaces until sequence ordinates
-		for (i = 0; i < longestSeqNameLength + 2; i++)
-			os << " ";
-		
-		os << pos;
-		for (i=0; i < alignedSequences.begin()->second->size() - pos + 1; i++) // output appropriate number of spaces on ordinate line
-			os << " ";
-		os << pos+59 << "]" << endl;
-		
-		for (sequenceItr = alignedSequences.begin(); sequenceItr != alignedSequences.end(); sequenceItr++)
-		{
-			os << *(sequenceItr->first);
-			
-			int spaces = longestSeqNameLength-(*(*sequenceItr).first).length();
-			for (i=0; i<spaces+2; i++)
-				os << " ";
-				
-			string seq = (*(*sequenceItr).second).substr( pos, (*(*alignedSequences.begin()).second).size()-pos+1 );
-			for (i=0; i<seq.length(); i++)
-				os << seq[i];
-			os << endl;
-		}
-		
-		os << endl;
-	}
-	
-	return false;
-}
-*/
+
 bool gnAlignedSequences::outputMega(ostream& os) const
 {
 	os << "#MEGA" << endl
@@ -518,7 +438,7 @@ bool gnAlignedSequences::outputMega(ostream& os) const
 	int longestSeqNameLength = 0;
 
 	for ( ; sequenceItr!=alignedSequences.end(); sequenceItr++){
-		if (sequenceItr->first->length() > longestSeqNameLength)
+		if (sequenceItr->first->length() > static_cast<size_t>(longestSeqNameLength))
 			longestSeqNameLength = sequenceItr->first->length();
 	}
 	
@@ -538,7 +458,7 @@ bool gnAlignedSequences::outputMega(ostream& os) const
 				os << " ";
 
 			string seq = sequenceItr->second->substr( pos, write_chars );
-			for (int i = 0; i < write_chars; i++)
+			for (size_t i = 0; i < static_cast<size_t>(write_chars); i++)
 				os << seq[i];
 			os << endl;
 		}
@@ -563,9 +483,9 @@ bool gnAlignedSequences::outputCodon(ostream& os) const
 		int position = 0;
 		string seq = (*(*sequenceItr).second);
 		string seqName = (*(*sequenceItr).first);
-		if (seqName.size() <= offset) 
+		if (seqName.size() <= static_cast<size_t>(offset))
 		{
-			for (size_t i=seqName.size(); i<offset; i++)
+			for (size_t i=seqName.size(); i<static_cast<size_t>(offset); i++)
 				seqName += " ";
 		}
 		
@@ -579,21 +499,21 @@ bool gnAlignedSequences::outputCodon(ostream& os) const
 		
 		os << seqName;
 		int count = 0;
-		for ( ; position+3<seq.size(); position+=3)
+		for ( ; position+3 < static_cast<int>(seq.size()); position+=3)
 		{
 			if (count == 20)
 			{
 				count = 0;
 				os << endl;
 			}
-			for (size_t i=position; i<position+3; i++)
+			for (size_t i=position; i < static_cast<size_t>(position+3); i++)
 			   os << seq[i];
 			   
 			os << ' ';
 			count++;
 		}
 		
-		for ( ; position < seq.size(); position++)
+		for ( ; position < static_cast<int>(seq.size()); position++)
 			os << seq[position];
 		
 		os << endl;
@@ -615,9 +535,9 @@ bool gnAlignedSequences::outputWithConsensus(ostream& os)
 		int position = 0;
 		string seq = (*(*sequenceItr).second);
 		string seqName = (*(*sequenceItr).first);
-		if (seqName.size() <= offset) 
+		if (seqName.size() <= static_cast<size_t>(offset))
 		{
-			for (size_t i=seqName.size(); i<offset; i++)
+			for (size_t i=seqName.size(); i<static_cast<size_t>(offset); i++)
 				seqName += " ";
 		}
 		
@@ -631,21 +551,21 @@ bool gnAlignedSequences::outputWithConsensus(ostream& os)
 		
 		os << seqName;
 		int count = 0;
-		for ( ; position+10<seq.size(); position+=10)
+		for ( ; position+10 < static_cast<int>(seq.size()); position+=10)
 		{
 			if (count == 5)
 			{
 				count = 0;
 				os << endl;
 			}
-			for (size_t i=position; i<position+10; i++)
+			for (size_t i=position; i < static_cast<size_t>(position+10); i++)
 			   os << seq[i];
 			   
 			os << ' ';
 			count++;
 		}
 		
-		for ( ; position < seq.size(); position++)
+		for ( ; position < static_cast<int>(seq.size()); position++)
 			os << seq[position];
 		
 		os << endl;
@@ -654,7 +574,7 @@ bool gnAlignedSequences::outputWithConsensus(ostream& os)
 	int position = 0;
 	int count = 0;
 	os << "Consensus:";
-	for ( ; position+10<consensus.size(); position+=10)
+	for ( ; position+10 < static_cast<int>(consensus.size()); position+=10)
 	{
 		if (count == 5)
 		{
@@ -668,7 +588,7 @@ bool gnAlignedSequences::outputWithConsensus(ostream& os)
 		count++;
 	}
 	
-	for ( ; position < consensus.size(); position++)
+	for ( ; position < static_cast<int>(consensus.size()); position++)
 		os << consensus[position];
 	
 	os << endl;
@@ -956,7 +876,7 @@ bool gnAlignedSequences::readMSFAlignment()
 	getline(alignmentFile, line);
 	
 	// remove format's initial annotation
-	while (line.find("//")<0 || line.find("//")>line.size())
+	while (line.find("//") >= line.size())
 		getline(alignmentFile, line);
 		
 	bool constructSuccess = constructMSFAlignedSequenceList(alignmentFile);
@@ -1035,7 +955,7 @@ bool gnAlignedSequences::readNexusAlignment()
 	getline(alignmentFile, line);
 	
 	// remove format's initial annotation
-	while (line.find("begin data;")<0 || line.find("begin data;")>line.length()) // searching for "begin data;"
+	while (line.find("begin data;") >= line.length()) // searching for "begin data;"
 		getline(alignmentFile, line);
 		
 	bool constructSuccess = constructNexusAlignedSequenceList(alignmentFile);
@@ -1090,7 +1010,7 @@ bool gnAlignedSequences::constructClustalWAlignedSequenceList(ifstream& alignmen
 		while (line[0] != ' ' && line[0] != '\0')
 		{
 			string sequenceName;
-			int i;
+			size_t i;
 			for (i=0; line[i] != ' '; i++)
 				sequenceName += line[i];
 				
@@ -1142,7 +1062,7 @@ bool gnAlignedSequences::constructPhylipAlignedSequenceList(ifstream& alignmentF
 			cout << sequenceName << endl;
 			const gnFilter* newFilter = gnFilter::fullDNASeqFilter();
 			string sequenceBases;
-			for(int i=10; i < line.length(); i++)
+			for(size_t i=10; i < line.length(); i++)
 			{
 				if ((*newFilter).IsValid(line[i]))
 			    	sequenceBases += line[i];
@@ -1165,7 +1085,7 @@ bool gnAlignedSequences::constructPhylipAlignedSequenceList(ifstream& alignmentF
 			while (line[10]==' ' && line[0]!='\0' && line.length()>0)
 			{
 				const gnFilter* newFilter = gnFilter::fullDNASeqFilter();
-				for(int i=0; i < line.length(); i++)
+				for(size_t i=0; i < line.length(); i++)
 				{
 					if ((*newFilter).IsValid(line[i]))
 				    	sequenceBases += line[i];
@@ -1197,7 +1117,7 @@ bool gnAlignedSequences::constructMSFAlignedSequenceList(ifstream& alignmentFile
 		while (!coordinates(line))
 		{
 			string sequenceName;
-			int i;
+			size_t i;
 
 			for (i=0; line[i] == ' '; i++) {}
 
@@ -1243,12 +1163,12 @@ bool gnAlignedSequences::constructNexusAlignedSequenceList(ifstream& alignmentFi
 	getline(alignmentFile, line);
 	
 	// searching for "endblock;"
-	while (alignmentFile.good() && (line.find("endblock;")<0 || line.find("endblock;")>line.length())) 
+	while (alignmentFile.good() && line.find("endblock;") >= line.length()) 
 	{
 		while (line[0]!='[' && line[0]!=' ' && line[0]!='\n' && line[0]!='\r' && alignmentFile.good())
 		{
 			string sequenceName;
-			int i;
+			size_t i;
 			for (i=0; line[i] != ' '; i++)
 				sequenceName += line[i];
 				
@@ -1301,7 +1221,7 @@ bool gnAlignedSequences::constructMegaAlignedSequenceList(ifstream& alignmentFil
 		while (line.length()>0 && line[0]=='#')
 		{
 			string sequenceName;
-			for (int i=1; line[i] != ' '; i++)
+			for (size_t i=1; line[i] != ' '; i++)
 				sequenceName += line[i];
 				
 			const gnFilter* newFilter = gnFilter::fullDNASeqFilter();
@@ -1498,7 +1418,7 @@ void gnAlignedSequences::addSequence(gnSequence seqToAdd, string seqName, int co
 
 void gnAlignedSequences::addAllSegments(gnAlignedSequences &alignment, unsigned start, unsigned stop)
 {
-	for ( uint seqI = 0; seqI < alignment.sequences.size(); seqI++ ){
+	for ( size_t seqI = 0; seqI < alignment.sequences.size(); seqI++ ){
 		if (stop == 0 || stop == alignment.sequences[ seqI ].size()-1)
 			stop = alignment.sequences[ seqI ].size();
 		string seq = alignment.sequences[ seqI ].substr(start, stop-start+1);
