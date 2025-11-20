@@ -132,10 +132,10 @@ void MatchIdentityMatrix( const AbstractMatchType& amt, const std::vector< genom
 
 	for( seqI = 0; seqI < seq_count; seqI++ ){
 		for( seqJ = seq_count; seqJ > 0; seqJ-- ){
-			if( seqI == seqJ - 1 )
+			if( seqI == seqJ - 1 ) {
 				// set the diagonal to identical
 				identity( seqI, seqJ - 1 ) = 1;
-			else if( seqI < seqJ - 1 ){
+			} else if( seqI < seqJ - 1 ){
 				// determine the length of the shorter sequence
 				gnSeqI shorter_len = amt.Length( seqI ) < amt.Length( seqJ - 1 ) ? amt.Length( seqI ) : amt.Length( seqJ - 1 );
 				// divide through
@@ -143,8 +143,9 @@ void MatchIdentityMatrix( const AbstractMatchType& amt, const std::vector< genom
 				// maxes out at 1
 				if( identity( seqI, seqJ - 1 ) > 1 )
 					identity( seqI, seqJ - 1 ) = 1;
-			}else	// copy the other one
+			} else {	// copy the other one
 				identity( seqI, seqJ - 1 ) = identity( seqJ - 1, seqI );
+			}
 		}
 	}
 }
@@ -210,7 +211,7 @@ void SingleCopyDistanceMatrix( MatchVector& iv_list, std::vector< genome::gnSequ
 		}
 	}
 #pragma omp parallel for
-	for( int ivI = 0; ivI < iv_list.size(); ++ivI )
+	for( int ivI = 0; ivI < static_cast<int>(iv_list.size()); ++ivI )
 	{
 		std::vector< bitset_t > aln_table;
 #pragma omp critical
@@ -274,8 +275,8 @@ void DistanceMatrix( const MatchList& mlist, NumericMatrix<double>& distance ){
 
 inline
 void TransformDistanceIdentity( NumericMatrix<double>& identity ){
-	for( int i = 0; i < identity.cols(); i++ ){
-		for( int j = 0; j < identity.rows(); j++ ){
+	for( int i = 0; i < static_cast<int>(identity.cols()); i++ ){
+		for( int j = 0; j < static_cast<int>(identity.rows()); j++ ){
 			identity( i, j ) = 1 - identity( i, j );
 		}
 	}
@@ -324,4 +325,3 @@ void DistanceMatrix( uint seq_count, const std::vector< std::pair< uint64, uint6
 
 
 #endif	// __DistanceMatrix_h__
-
