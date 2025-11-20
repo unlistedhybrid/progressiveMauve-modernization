@@ -19,6 +19,7 @@ extern TLS<char *> g_TBM;
 extern TLS<char *> g_TBD;
 extern TLS<char *> g_TBI;
 
+#if TRACE
 static const char *LocalScoreToStr(SCORE s)
 	{
 	static TLS<char[16]> str;
@@ -27,6 +28,7 @@ static const char *LocalScoreToStr(SCORE s)
 	snprintf(str.get(), 16, "%6.1f", s);
 	return str.get();
 	}
+#endif
 
 #if TRACE
 static void ListTB(const char *TBM_, const ProfPos *PA, const ProfPos *PB,
