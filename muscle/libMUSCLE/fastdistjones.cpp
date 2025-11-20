@@ -158,7 +158,13 @@ void DistKmer20_3(const SeqVect &v, DistFunc &DF)
 				}
 			}
 		}
-	delete[] SeqList;
+	free(SeqList);
+
+	for (unsigned uWord = 0; uWord < TRIPLE_COUNT; ++uWord)
+		{
+		TripleCount &tc = *(TripleCounts.get() + uWord);
+		free(tc.m_Counts);
+		}
 	free(TripleCounts.get());
 
 	unsigned uDone = 0;
@@ -207,4 +213,4 @@ void DistKmer20_3(const SeqVect &v, DistFunc &DF)
 		}
 	ProgressStepsDone();
 	}
-} 
+}
