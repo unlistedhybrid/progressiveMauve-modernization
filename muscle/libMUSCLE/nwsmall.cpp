@@ -57,12 +57,12 @@ extern char *g_TBI.get();
 #define SetTBD(i, j, x)		TBD(i, j) = x
 #define SetTBI(i, j, x)		TBI(i, j) = x
 #else
-#define SetDPM(i, j, x)		/* empty  */
-#define SetDPD(i, j, x)		/* empty  */
-#define SetDPI(i, j, x)		/* empty  */
-#define SetTBM(i, j, x)		/* empty  */
-#define SetTBD(i, j, x)		/* empty  */
-#define SetTBI(i, j, x)		/* empty  */
+#define SetDPM(i, j, x)		do { } while(0)
+#define SetDPD(i, j, x)		do { } while(0)
+#define SetDPI(i, j, x)		do { } while(0)
+#define SetTBM(i, j, x)		do { } while(0)
+#define SetTBD(i, j, x)		do { } while(0)
+#define SetTBI(i, j, x)		do { } while(0)
 #endif
 
 #define RECURSE_D(i, j)				\
@@ -668,4 +668,4 @@ SCORE NWSmall(const ProfPos *PA, unsigned uLengthA, const ProfPos *PB,
 
 	return 0;
 	}
-} 
+}
