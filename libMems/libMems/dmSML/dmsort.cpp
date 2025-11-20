@@ -101,37 +101,6 @@ static int ComputeBinNumber( const unsigned char key[10] ) {
     return( keyval / divisor );
 }
 
-static int ComputeNNNNNBinNumber( const unsigned char key[10] ) {
-    int i;
-    unsigned int keyval = 0;
-    if( divisor == 0 ) {
-        divisor = (unsigned)16777216 / ((unsigned)NumBins - 1);
-        divisor += (unsigned)16777216 % ((unsigned)NumBins - 1) ? 1 : 0;
-        printf( "Divisor is: %u\n", divisor );
-    }
-    for( i = 0; i < 3; i++ ) {
-        keyval <<= 8;
-        keyval += key[i];
-    }
-	if( keyval == 0 )
-		return 0;
-    return ( keyval / divisor ) + 1;
-}
-
-static int ComputeAsciiBinNumber( const unsigned char key[10] ) {
-    int i;
-    unsigned int keyval = 0;
-    if( divisor == 0 ) {
-        divisor = 81450625 / NumBins;
-        divisor += 81450625 % NumBins ? 1 : 0;
-    }
-    for( i = 0; i < 4; i++ ) {
-        keyval *= 95;
-        keyval += key[i] - ' ';
-    }
-    return( keyval / divisor );
-}
-
 static offset_t         consumed_recs = 0;
 static buffer_t         *toprocess = nullptr;
 
@@ -324,7 +293,7 @@ void RestructureReadSMLBins( void ) {
 	record_t forward, reverse;
 	record_t begin[6];
 	int i;
-	offset_t seqI, extras, weight;
+	offset_t seqI, extras;
 	char* sequence;
 	sml_t *sml;
 
@@ -421,7 +390,6 @@ void RestructureReadSMLBins( void ) {
 			bit = 1;
 			bit <<= mask_length - 1;
 			mer = 0;
-			weight = 0;
 			for( i = 0; i < mask_length; i++ ){
 				if( bit & seed_mask ){
 					mer <<= 2;
@@ -787,12 +755,10 @@ void BinningPhase( void ) {
 
     int i;
     int iter;
-    int timeaccum;
 
     printf( "----------------- Starting -----------------\n" );
     printf( "working set buffers : %d\n", WS.nbufs );
     printf( "number of bins      : %d\n", NumBins );
-    timeaccum = 0;
     iter = 0;
     DisplayStatusHeader();
     while( RecsProcessed < NumRecs ) {
@@ -1164,7 +1130,6 @@ void SortingPhase( void ) {
 
     int i;
     offset_t recs_per_buffer;
-    offset_t biggest_bin = 0;
     offset_t biggest_nrecs = 0;
     
     NSortBufs = NumBinDevs;
@@ -1172,7 +1137,6 @@ void SortingPhase( void ) {
     for( i = 0; i < NumBins; i++ ) {
         if( Bins[i].nrecs > biggest_nrecs ) {
             biggest_nrecs = Bins[i].nrecs;
-            biggest_bin = i;
         }
     }
     
@@ -1225,7 +1189,6 @@ void SortingPhase( void ) {
     for( i = 1; i < NumBins; i++ ) {
         if( Bins[i].nrecs > biggest_nrecs ) {
             biggest_nrecs = Bins[i].nrecs;
-            biggest_bin = i;
         }
     }
     recs_per_buffer = biggest_nrecs;
