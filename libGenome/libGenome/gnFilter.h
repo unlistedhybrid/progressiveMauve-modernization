@@ -141,18 +141,18 @@ gnFilter* gnFilter::Clone() const
 inline
 boolean gnFilter::IsValid( const gnSeqC ch ) const
 {
-	return m_pairArray[(uint)ch] != NO_REVCOMP_CHAR;
+	return m_pairArray[(unsigned char)ch] != NO_REVCOMP_CHAR;
 }
 inline
 gnSeqC gnFilter::MakeValid( const gnSeqC ch ) const
 {
-	return (m_pairArray[(uint)ch] != NO_REVCOMP_CHAR? ch: m_defaultChar);
+	return (m_pairArray[(unsigned char)ch] != NO_REVCOMP_CHAR? ch: m_defaultChar);
 }
 inline
 gnSeqC gnFilter::Filter( const gnSeqC ch ) const
 {
 	
-	return m_pairArray[(uint)ch] != NO_REVCOMP_CHAR ? m_pairArray[(uint)ch] : m_defaultChar;
+	return m_pairArray[(unsigned char)ch] != NO_REVCOMP_CHAR ? m_pairArray[(unsigned char)ch] : m_defaultChar;
 }
 // gnSeqC[]
 inline
@@ -207,25 +207,25 @@ gnSeqC gnFilter::GetRDefaultChar() const
 inline
 void gnFilter::SetSingle( const gnSeqC ch )
 {
-	m_pairArray[(uint)ch] = ch;
+	m_pairArray[(unsigned char)ch] = ch;
 }
 inline
 void  gnFilter::SetPair( const gnSeqC ch1, const gnSeqC ch2 )
 {
-	m_pairArray[(uint)ch1] = ch2;
-//	m_pairArray[(uint)ch2] = ch1;
+	m_pairArray[(unsigned char)ch1] = ch2;
+//	m_pairArray[(unsigned char)ch2] = ch1;
 }
 inline
 boolean gnFilter::RemovePair( const gnSeqC ch )
 {
-	m_pairArray[(uint)ch] = NO_REVCOMP_CHAR;
-//	m_pairArray[(uint)tmp] = NO_REVCOMP_CHAR;
+	m_pairArray[(unsigned char)ch] = NO_REVCOMP_CHAR;
+//	m_pairArray[(unsigned char)tmp] = NO_REVCOMP_CHAR;
 	return true;
 }
 inline
 boolean gnFilter::RemoveSingle( const gnSeqC ch )
 {
-	m_pairArray[(uint)ch] = NO_REVCOMP_CHAR;
+	m_pairArray[(unsigned char)ch] = NO_REVCOMP_CHAR;
 	return true;	
 }
 
