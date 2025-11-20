@@ -674,12 +674,12 @@ void ProgressiveAligner::pairwiseAnchorSearch( MatchList& r_list, Match* r_begin
 		delete gap_list.sml_table[ seqI ];
 }
 
-void ProgressiveAligner::setPairwiseMatches( MatchList& pair_ml )
+void ProgressiveAligner::setPairwiseMatches( mems::MatchList& pair_ml )
 {
 	original_ml = pair_ml;
 }
 
-void ProgressiveAligner::align( std::vector< genome::gnSequence* >& seq_table, IntervalList& interval_list )
+void ProgressiveAligner::align( std::vector< genome::gnSequence* >& seq_table, mems::IntervalList& interval_list )
 {
 	// Placeholder implementation to resolve linker errors
 	// The full alignment logic would go here and is application-specific
