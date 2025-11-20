@@ -71,13 +71,6 @@ static int toi(char c)
 	return toi_tab[c - 'A'];
 	}
 
-static int BlosumScore(char c1, char c2)
-	{
-	int i1 = toi(c1);
-	int i2 = toi(c2);
-	return Blosum62[i1][i2];
-	}
-
 /***
 Consider a column with 5 As and 3 Bs.
 There are:
@@ -189,4 +182,4 @@ void AssignColors(const MSA &a, int **Colors)
 	for (unsigned uColIndex = 0; uColIndex < uColCount; ++uColIndex)
 		AssignColorsCol(a, uColIndex, Colors);
 	}
-} 
+}
