@@ -35,30 +35,50 @@ mems::UniqueMatchFinder* mems::UniqueMatchFinder::Clone() const{
 }
 
 
-// enumerate out every pairwise match
+// enumerate out every match with unique seeds
 bool mems::UniqueMatchFinder::EnumerateMatches( IdmerList& match_list ){
 
+	std::cerr << "DEBUG: UniqueMatchFinder::EnumerateMatches called with " << match_list.size() << " items\n";
+	
+	if(match_list.empty()){
+		std::cerr << "DEBUG: match_list is empty, returning true\n";
+		return true;
+	}
+
 	match_list.sort(&idmer_id_lessthan);
+	std::cerr << "DEBUG: List sorted\n";
+	
 	IdmerList::iterator iter = match_list.begin();
-	IdmerList::iterator iter2 = match_list.begin();
+	IdmerList::iterator iter_end = match_list.end();
 	unsigned int cur_id_count = 1;
 	IdmerList unique_list;
 	
 	// identify all of the unique seeds and add them to unique_list
-	while(iter2 != match_list.end()){
-		++iter2;
-		if(iter2 == match_list.end() || iter->id != iter2->id){
-			if( cur_id_count == 1 )
-				unique_list.push_back( *iter );
-			else
-				cur_id_count = 1;
-		}else
+	while(iter != iter_end){
+		IdmerList::iterator iter_next = iter;
+		++iter_next;
+		
+		if(iter_next == iter_end || iter->id != iter_next->id){
+			if(cur_id_count == 1){
+				std::cerr << "DEBUG: Adding unique seed with id " << iter->id << " to unique_list\n";
+				unique_list.push_back(*iter);
+			}
+			cur_id_count = 1;
+		}else{
 			cur_id_count++;
+		}
 		++iter;
 	}
+	
+	std::cerr << "DEBUG: Found " << unique_list.size() << " unique seeds\n";
+	
 	// hash all unique seeds
 	bool success = true;
-	if( unique_list.size() >= 2 )
+	if(unique_list.size() >= 2){
+		std::cerr << "DEBUG: Calling HashMatch with " << unique_list.size() << " unique seeds\n";
 		success = HashMatch(unique_list);
+	}
+	
+	std::cerr << "DEBUG: UniqueMatchFinder::EnumerateMatches returning " << (success ? "true" : "false") << "\n";
 	return success;
 }
