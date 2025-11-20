@@ -582,6 +582,3 @@ void gnFilter::CreateRNAComplementFilter(){
 }
 
 }	// end namespace genome
-
-
-}
