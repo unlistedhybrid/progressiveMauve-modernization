@@ -1,7 +1,3 @@
-{
-type: uploaded file
-fileName: unlistedhybrid/progressivemauve-modernization/progressiveMauve-modernization-23f0f950ad6a086ef923cac62a5b11dec15144f0/libMems/libMems/Backbone.cpp
-fullContent:
 /*******************************************************************************
  * $Id: Backbone.cpp,v 1.12 2004/04/19 23:11:19 darling Exp $
  * This file is copyright 2002-2007 Aaron Darling and authors listed in the AUTHORS file.
@@ -302,7 +298,7 @@ void translateToPairwiseGenomeHSS( const hss_array_t& hss_array, pairwise_genome
 
 double computeGC( std::vector< gnSequence* >& seq_table )
 {
-	const uint8* tab = SortedMerList::BasicDNATable();
+	const uint8_t* tab = SortedMerList::BasicDNATable();
 	size_t counts[4];
 	for( int i = 0; i < 4; i++ )
 		counts[i] = 0;
