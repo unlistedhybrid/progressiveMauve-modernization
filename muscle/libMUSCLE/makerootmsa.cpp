@@ -17,7 +17,6 @@ static void PathSeq(const Seq &s, const PWPath &Path, bool bRight, Seq &sOut)
 	short *esB;
 	PathToEstrings(Path, &esA, &esB);
 
-	const unsigned uSeqLength = s.Length();
 	const unsigned uEdgeCount = Path.GetEdgeCount();
 
 	sOut.Clear();
@@ -166,9 +165,7 @@ void MakeRootMSA(const SeqVect &v, const Tree &GuideTree, ProgNode Nodes[],
 	const unsigned uSeqCount = v.GetSeqCount();
 	unsigned uColCount = uInsane;
 	unsigned uSeqIndex = 0;
-	const unsigned uTreeNodeCount = GuideTree.GetNodeCount();
-	const unsigned uRootNodeIndex = GuideTree.GetRootNodeIndex();
-	const PWPath &RootPath = Nodes[uRootNodeIndex].m_Path;
+	const PWPath &RootPath = Nodes[GuideTree.GetRootNodeIndex()].m_Path;
 	const unsigned uRootColCount = RootPath.GetEdgeCount();
 	const unsigned uEstringSize = uRootColCount + 1;
 	short *Estring1 = new short[uEstringSize];
@@ -230,4 +227,4 @@ void MakeRootMSA(const SeqVect &v, const Tree &GuideTree, ProgNode Nodes[],
 	ProgressStepsDone();
 	assert(uSeqIndex == uSeqCount);
 	}
-} 
+}
