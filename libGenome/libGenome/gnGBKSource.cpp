@@ -725,10 +725,7 @@ boolean gnGBKSource::ParseStream( istream& fin )
 						break;
 					}
 					sectionStart = i;
-					readState = 4;
-				// KNOWN BUG HERE!
-				// if JOIN is outside a group of complemented coordinates the feature type
-				// is incorrectly set to LT_COMPLEMENT.  Instead each location's type should be set to LT_COMPLEMENT 
+					[[fallthrough]];
 				case 4:		//Read a location start.  stop on (<.:^ and whitespace
 					if((ch == ' ')||(ch == '	')||(ch == '(')||(ch == '.')||(ch=='^')||(ch==':')){
 						string starter(buf+sectionStart, i - sectionStart);
@@ -781,6 +778,7 @@ boolean gnGBKSource::ParseStream( istream& fin )
 						break;
 					}
 					curBaseLocationType = gnLocation::LT_OneOf;
+					[[fallthrough]];
 				case 6:	//see if there's a second location value.  stop on >, and whitespace
 					if(ch == '>'){
 						curEndLength = 1;
