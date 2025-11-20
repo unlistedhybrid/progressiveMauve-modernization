@@ -46,7 +46,7 @@ void SetListFileName(const char *ptrListFileName, bool bAppend)
     if (len >= MAX_PATH) len = MAX_PATH - 1;
     std::strncpy(g_strListFileName.get(), ptrListFileName, len);
     g_strListFileName.get()[len] = '\0';
-    g_bListFileAppend = bAppend;
+    g_bListFileAppend.get() = bAppend;
 }
 
 void Log(const char szFormat[], ...)
@@ -223,7 +223,7 @@ void SetLogFile()
 {
     const char *strFileName = ValueOpt("loga");
     if (strFileName != nullptr)
-        g_bListFileAppend = true;
+        g_bListFileAppend.get() = true;
     else
         strFileName = ValueOpt("log");
     if (strFileName == nullptr)
