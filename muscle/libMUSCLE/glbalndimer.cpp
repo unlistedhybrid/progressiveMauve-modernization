@@ -15,15 +15,6 @@ static SCORE TraceBackDimer(const SCORE *DPM_, const SCORE *DPD_, const SCORE *D
   const char *TBM_, const char *TBD_, const char *TBI_,
   unsigned uLengthA, unsigned uLengthB, PWPath &Path);
 
-static const char *LocalScoreToStr(SCORE s)
-{
-    static TLS<char[16]> str;
-    if (MINUS_INFINITY == s)
-        return "     *";
-    snprintf(str.get(), 16, "%6.3g", s);
-    return str.get();
-}
-
 static ProfPos getInitedPPTerm()
 {
     ProfPos pp;
