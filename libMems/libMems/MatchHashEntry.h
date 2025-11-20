@@ -49,7 +49,7 @@ public:
 	MatchHashEntry* Clone() const;
 	MatchHashEntry* Copy() const;
 	virtual void Free();
-	MatchHashEntry( const MatchHashEntry& mhe ){ *this = mhe; }
+	MatchHashEntry( const MatchHashEntry& mhe ) : Match(mhe) { }
 	MatchHashEntry& operator=(const MatchHashEntry& mhe);
 
 	/** comparison operator, compares two matches to see if they are the same */
