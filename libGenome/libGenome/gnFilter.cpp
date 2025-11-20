@@ -87,28 +87,28 @@ gnFilter::gnFilter()
 	m_defaultChar = 'n';
 	m_rDefaultChar = 'n';
 	for( gnSeqC i = 0; i < GNSEQC_MAX; ++i )
-		m_pairArray[i] = NO_REVCOMP_CHAR;
+		m_pairArray[static_cast<unsigned char>(i)] = NO_REVCOMP_CHAR;
 }
 gnFilter::gnFilter( const gnSeqC defaultChar, const gnSeqC rdefaultChar )
 {
 	m_defaultChar = defaultChar; 
 	m_rDefaultChar = rdefaultChar;
 	for( gnSeqC i = 0; i < GNSEQC_MAX; ++i )
-		m_pairArray[i] = NO_REVCOMP_CHAR;
+		m_pairArray[static_cast<unsigned char>(i)] = NO_REVCOMP_CHAR;
 }
 
 gnFilter::gnFilter( const gnFilter &sf )
 {
 	m_name = sf.m_name;
 	for( gnSeqC i = 0; i < GNSEQC_MAX; ++i )
-		m_pairArray[i] = sf.m_pairArray[i];
+		m_pairArray[static_cast<unsigned char>(i)] = sf.m_pairArray[static_cast<unsigned char>(i)];
 	m_defaultChar = sf.m_defaultChar;
 	m_rDefaultChar = sf.m_rDefaultChar;
 }
 
 gnFilter::gnFilter( const gnFilterType f_type ){
 	for( gnSeqC i = 0; i < GNSEQC_MAX; ++i )
-		m_pairArray[i] = NO_REVCOMP_CHAR;
+		m_pairArray[static_cast<unsigned char>(i)] = NO_REVCOMP_CHAR;
 	switch(f_type){
 		case alphabetCharacterFilterType:
 			CreateAlphabetCharacterFilter();
