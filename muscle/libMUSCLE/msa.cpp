@@ -380,46 +380,6 @@ void MSA::CalcWeights() const
 	Quit("Calc weights not implemented");
 	}
 
-static void FmtChar(char c, unsigned uWidth)
-	{
-	Log("%c", c);
-	for (unsigned n = 0; n < uWidth - 1; ++n)
-		Log(" ");
-	}
-
-static void FmtInt(unsigned u, unsigned uWidth)
-	{
-	static TLS<char[1024]> szStr;
-	assert(uWidth < sizeof(szStr.get()));
-	if (u > 0)
-		snprintf(szStr.get(), sizeof(szStr.get()), "%u", u);
-	else
-		snprintf(szStr.get(), sizeof(szStr.get()), ".");
-	Log(szStr.get());
-	unsigned n = (unsigned) strlen(szStr.get());
-	if (n < uWidth)
-		for (unsigned i = 0; i < uWidth - n; ++i)
-			Log(" ");
-	}
-
-static void FmtInt0(unsigned u, unsigned uWidth)
-	{
-	static TLS<char[1024]> szStr;
-	assert(uWidth < sizeof(szStr.get()));
-	snprintf(szStr.get(), sizeof(szStr.get()), "%u", u);
-	Log(szStr.get());
-	unsigned n = (unsigned) strlen(szStr.get());
-	if (n < uWidth)
-		for (unsigned i = 0; i < uWidth - n; ++i)
-			Log(" ");
-	}
-
-static void FmtPad(unsigned n)
-	{
-	for (unsigned i = 0; i < n; ++i)
-		Log(" ");
-	}
-
 void MSA::FromSeq(const Seq &s)
 	{
 	unsigned uSeqLength = s.Length();
