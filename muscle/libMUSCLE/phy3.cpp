@@ -44,31 +44,6 @@ static void RootByMinAvgLeafDist(const Tree &tree, EdgeInfo **EIs,
   unsigned *ptruNode1, unsigned *ptruNode2,
   double *ptrdLength1, double *ptrdLength2);
 
-static void ListEIs(EdgeInfo **EIs, unsigned uNodeCount)
-	{
-	Log("Node1  Node2  MaxDist  TotDist  MostDist  LeafCount  Step\n");
-	Log("-----  -----  -------  -------  --------  ---------  ----\n");
-	//    12345  12345  1234567  1234567  12345678  123456789
-
-	for (unsigned uNode = 0; uNode < uNodeCount; ++uNode)
-		for (unsigned uNeighbor = 0; uNeighbor < 3; ++uNeighbor)
-			{
-			const EdgeInfo &EI = EIs[uNode][uNeighbor];
-			if (!EI.m_bSet)
-				continue;
-			Log("%5u  %5u  %7.3g  %7.3g  %8u  %9u",
-			  EI.m_uNode1,
-			  EI.m_uNode2,
-			  EI.m_dMaxDistToLeaf,
-			  EI.m_dTotalDistToLeaves,
-			  EI.m_uMostDistantLeaf,
-			  EI.m_uLeafCount);
-			if (NULL_NEIGHBOR != EI.m_uMaxStep)
-				Log("  %4u", EI.m_uMaxStep);
-			Log("\n");
-			}
-	}
-
 static void CalcInfo(const Tree &tree, unsigned uNode1, unsigned uNode2, EdgeInfo **EIs)
 	{
 	const unsigned uNeighborIndex = tree.GetNeighborSubscript(uNode1, uNode2);
@@ -124,7 +99,6 @@ static void CalcInfo(const Tree &tree, unsigned uNode1, unsigned uNode2, EdgeInf
 	  0 == uLeafCount)
 		Quit("CalcInfo: internal error 2");
 
-	const double dThisDist = tree.GetEdgeLength(uNode1, uNode2);
 	EI.m_dMaxDistToLeaf = dMaxDistToLeaf;
 	EI.m_dTotalDistToLeaves = dTotalDistToLeaves;
 	EI.m_uMaxStep = uMaxStep;
@@ -189,9 +163,6 @@ void FindRoot(const Tree &tree, unsigned *ptruNode1, unsigned *ptruNode2,
 #endif
 
 // Main loop: iterate until all distances known
-	double dAllMaxDist = -1e20;
-	unsigned uMaxFrom = NULL_NEIGHBOR;
-	unsigned uMaxTo = NULL_NEIGHBOR;
 	for (;;)
 		{
 		EdgeList NextEdges;
@@ -231,7 +202,24 @@ void FindRoot(const Tree &tree, unsigned *ptruNode1, unsigned *ptruNode2,
 		}
 
 #if	TRACE
-	ListEIs(EIs, uNodeCount);
+	Log("Final EdgeInfo list:\n");
+	for (unsigned uNode = 0; uNode < uNodeCount; ++uNode)
+		for (unsigned uNeighbor = 0; uNeighbor < 3; ++uNeighbor)
+			{
+			const EdgeInfo &EI = EIs[uNode][uNeighbor];
+			if (!EI.m_bSet)
+				continue;
+			Log("%5u  %5u  %7.3g  %7.3g  %8u  %9u",
+			  EI.m_uNode1,
+			  EI.m_uNode2,
+			  EI.m_dMaxDistToLeaf,
+			  EI.m_dTotalDistToLeaves,
+			  EI.m_uMostDistantLeaf,
+			  EI.m_uLeafCount);
+			if (NULL_NEIGHBOR != EI.m_uMaxStep)
+				Log("  %4u", EI.m_uMaxStep);
+			Log("\n");
+			}
 #endif
 
 	switch (RootMethod)
@@ -469,4 +457,4 @@ void FixRoot(Tree &tree, ROOT Method)
 	tree.UnrootByDeletingRoot();
 	tree.RootUnrootedTree(Method);
 	}
-} 
+}
