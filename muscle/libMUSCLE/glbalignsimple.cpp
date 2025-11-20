@@ -28,6 +28,7 @@ static const char *LocalScoreToStr(SCORE s)
 	return str.get();
 	}
 
+#if TRACE
 static void ListTB(const char *TBM_, const ProfPos *PA, const ProfPos *PB,
   unsigned uPrefixCountA, unsigned uPrefixCountB)
 	{
@@ -75,6 +76,7 @@ static void ListDP(const SCORE *DPM_, const ProfPos *PA, const ProfPos *PB,
 		Log("\n");
 		}
 	}
+#endif
 
 SCORE GlobalAlignSimple(const ProfPos *PA, unsigned uLengthA, const ProfPos *PB,
   unsigned uLengthB, PWPath &Path)
@@ -369,6 +371,4 @@ SCORE GlobalAlignSimple(const ProfPos *PA, unsigned uLengthA, const ProfPos *PB,
 	}
 
 #endif // SINLGLE_AFFINE
-} 
-
-
+}
