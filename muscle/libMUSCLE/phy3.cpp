@@ -163,7 +163,6 @@ void FindRoot(const Tree &tree, unsigned *ptruNode1, unsigned *ptruNode2,
 		Quit("FindRoot: tree already rooted");
 
 	const unsigned uNodeCount = tree.GetNodeCount();
-	const unsigned uLeafCount = tree.GetLeafCount();
 
 	if (uNodeCount < 2)
 		Quit("Root: don't support trees with < 2 edges");
