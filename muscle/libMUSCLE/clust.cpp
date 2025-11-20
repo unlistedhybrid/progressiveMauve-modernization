@@ -183,8 +183,6 @@ void Clust::ChooseJoin(unsigned *ptruLeftIndex, unsigned *ptruRightIndex,
 void Clust::ChooseJoinNearestNeighbor(unsigned *ptruLeftIndex,
   unsigned *ptruRightIndex, float *ptrdLeftLength, float *ptrdRightLength)
 	{
-	const unsigned uClusterCount = GetClusterCount();
-
 	unsigned uMinLeftNodeIndex;
 	unsigned uMinRightNodeIndex;
 	GetMinMetric(&uMinLeftNodeIndex, &uMinRightNodeIndex);
@@ -203,8 +201,6 @@ void Clust::ChooseJoinNearestNeighbor(unsigned *ptruLeftIndex,
 void Clust::ChooseJoinNeighborJoining(unsigned *ptruLeftIndex,
   unsigned *ptruRightIndex, float *ptrdLeftLength, float *ptrdRightLength)
 	{
-	const unsigned uClusterCount = GetClusterCount();
-
 	unsigned uMinLeftNodeIndex;
 	unsigned uMinRightNodeIndex;
 	GetMinMetric(&uMinLeftNodeIndex, &uMinRightNodeIndex);
@@ -342,7 +338,6 @@ float Clust::ComputeDistMAFFT(unsigned uNewNodeIndex, unsigned uNodeIndex)
 	const unsigned uLeftNodeIndex = GetLeftIndex(uNewNodeIndex);
 	const unsigned uRightNodeIndex = GetRightIndex(uNewNodeIndex);
 
-	const float dDistLR = GetDist(uLeftNodeIndex, uRightNodeIndex);
 	const float dDistL = GetDist(uLeftNodeIndex, uNodeIndex);
 	const float dDistR = GetDist(uRightNodeIndex, uNodeIndex);
 	const float dMinDistLR = (dDistL < dDistR ? dDistL : dDistR);
@@ -652,5 +647,4 @@ float Clust::GetMinMetric(unsigned *ptruIndex1, unsigned *ptruIndex2) const
 	{
 	return GetMinMetricBruteForce(ptruIndex1, ptruIndex2);
 	}
-} 
-
+}
