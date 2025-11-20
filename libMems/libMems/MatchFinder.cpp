@@ -298,8 +298,8 @@ bool MatchFinder::SearchRange(vector<gnSeqI>& start_points, vector<gnSeqI>& sear
 			
 			// update the mers processed
 			mers_processed += mer_vector[cur_id].size();
-			float64_t m_oldprogress = m_progress;
-			m_progress = ((float64_t)mers_processed / (float64_t)total_mers) * PROGRESS_GRANULARITY;
+			double m_oldprogress = m_progress;
+			m_progress = ((double)mers_processed / (double)total_mers) * PROGRESS_GRANULARITY;
 			if( log_stream != NULL ){
 				if((int)m_oldprogress != (int)m_progress){
 					(*log_stream) << (int)((m_progress / PROGRESS_GRANULARITY) * 100) << "%..";
