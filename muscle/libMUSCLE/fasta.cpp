@@ -14,8 +14,6 @@ void MSA::FromFASTAFile(TextFile &File)
 
 	FILE *f = File.GetStdioFile();
 	
-	unsigned uSeqCount = 0;
-	unsigned uColCount = uInsane;
 	for (;;)
 		{
 		char *Label;
@@ -56,4 +54,4 @@ void MSA::ToFASTAFile(TextFile &File) const
 			}
 		}
 	}
-} 
+}
