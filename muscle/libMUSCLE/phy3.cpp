@@ -44,6 +44,29 @@ static void RootByMinAvgLeafDist(const Tree &tree, EdgeInfo **EIs,
   unsigned *ptruNode1, unsigned *ptruNode2,
   double *ptrdLength1, double *ptrdLength2);
 
+#if TRACE
+static void ListEIs(EdgeInfo **EIs, unsigned uNodeCount)
+	{
+	for (unsigned uNode = 0; uNode < uNodeCount; ++uNode)
+		for (unsigned uNeighbor = 0; uNeighbor < 3; ++uNeighbor)
+			{
+			const EdgeInfo &EI = EIs[uNode][uNeighbor];
+			if (!EI.m_bSet)
+				continue;
+			Log("%5u  %5u  %7.3g  %7.3g  %8u  %9u",
+			  EI.m_uNode1,
+			  EI.m_uNode2,
+			  EI.m_dMaxDistToLeaf,
+			  EI.m_dTotalDistToLeaves,
+			  EI.m_uMostDistantLeaf,
+			  EI.m_uLeafCount);
+			if (NULL_NEIGHBOR != EI.m_uMaxStep)
+				Log("  %4u", EI.m_uMaxStep);
+			Log("\n");
+			}
+	}
+#endif
+
 static void CalcInfo(const Tree &tree, unsigned uNode1, unsigned uNode2, EdgeInfo **EIs)
 	{
 	const unsigned uNeighborIndex = tree.GetNeighborSubscript(uNode1, uNode2);
