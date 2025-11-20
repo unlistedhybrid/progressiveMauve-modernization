@@ -15,47 +15,6 @@ static char XlatEdgeType(char c)
 	return c;
 	}
 
-static const char *BitsToStr(char Bits)
-	{
-	static TLSstr<char[9]> Str;
-	strcpy(Str.get(), "xM xD xI");
-
-	switch (Bits & BIT_xM)
-		{
-	case BIT_MM:
-		Str.get()[0] = 'M';
-		break;
-	case BIT_DM:
-		Str.get()[0] = 'D';
-		break;
-	case BIT_IM:
-		Str.get()[0] = 'I';
-		break;
-		}
-
-	switch (Bits & BIT_xD)
-		{
-	case BIT_MD:
-		Str.get()[3] = 'M';
-		break;
-	case BIT_DD:
-		Str.get()[3] = 'D';
-		break;
-		}
-
-	switch (Bits & BIT_xI)
-		{
-	case BIT_MI:
-		Str.get()[6] = 'M';
-		break;
-	case BIT_II:
-		Str.get()[6] = 'I';
-		break;
-		}
-
-	return Str.get();
-	}
-
 static inline char XChar(char Bits, char cType)
 	{
 	switch (cType)
@@ -161,8 +120,7 @@ void BitTraceBack(char **TraceBack, unsigned uLengthA, unsigned uLengthB,
 
 		unsigned PLA = Edge.uPrefixLengthA;
 		unsigned PLB = Edge.uPrefixLengthB;
-		char Bits = TraceBack[PLA][PLB];
-		char NextEdgeType = XChar(Bits, Edge.cType);
+		char NextEdgeType = XChar(TraceBack[PLA][PLB], Edge.cType);
 #if	TRACE
 		Log("XChar(%s, %c) = %c\n", BitsToStr(Bits), Edge.cType, NextEdgeType);
 #endif
