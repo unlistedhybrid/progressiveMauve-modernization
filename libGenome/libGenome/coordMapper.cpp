@@ -13,8 +13,8 @@
 #include "gnLocation.h"
 #include "gnSequence.h"
 
-using namespace genome;
-
+using namespace std;
+namespace genome {
 using std::cout;
 using std::cin;
 using std::endl;
@@ -29,18 +29,6 @@ struct ExMem{
     int64 ex_start;
     int64 in_start;
 };
-
-static boolean LocationLessthan(const gnLocation& a, const gnLocation& b){
-    return a.GetStart() < b.GetStart();
-}
-
-static boolean LocationEndLessthan(const gnLocation& a, const gnLocation& b){
-    return a.GetEnd() < b.GetStart();
-}
-
-static boolean LocationSizeLessthan(const gnLocation& a, const gnLocation& b){
-    return (a.GetEnd() - a.GetStart()) < (b.GetEnd() - b.GetStart());
-}
 
 static boolean ExMemLessthan(const ExMem& a, const ExMem& b){
     if(a.ex_start == b.ex_start){
