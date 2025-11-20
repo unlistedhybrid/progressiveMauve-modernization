@@ -488,7 +488,7 @@ boolean gnSEQSource::ParseStream( istream& fin )
 						break;
 					}
 					sectionStart = i;
-					readState = 4;
+					[[fallthrough]];
 				case 4:		//Read a location start.  stop on (<.:^ and whitespace
 					if((ch == ' ')||(ch == '	')||(ch == '(')||(ch == '.')||(ch=='^')||(ch==':')){
 						string starter(buf+sectionStart, i - sectionStart);
@@ -541,6 +541,7 @@ boolean gnSEQSource::ParseStream( istream& fin )
 						break;
 					}
 					curBaseLocationType = gnLocation::LT_OneOf;
+					[[fallthrough]];
 				case 6:	//see if there's a second location value.  stop on >, and whitespace
 					if(ch == '>'){
 						curEndLength = 1;
@@ -707,4 +708,3 @@ boolean gnSEQSource::ParseStream( istream& fin )
 }
 
 }	// end namespace genome
-
