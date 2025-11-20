@@ -463,17 +463,6 @@ Therefore,
 	<-1,3>*<2,-1,2> = <-1,1,-1,2>
 ***/
 
-static bool CanMultiplyEstrings(const short es1[], const short es2[])
-	{
-	unsigned uSymbols1;
-	unsigned uSymbols2;
-	unsigned uIndels1;
-	unsigned uIndels2;
-	EstringCounts(es1, &uSymbols1, &uIndels1);
-	EstringCounts(es2, &uSymbols2, &uIndels2);
-	return uSymbols1 + uIndels1 == uSymbols2;
-	}
-
 static inline void AppendGaps(short esp[], int &ip, int n)
 	{
 	if (-1 == ip)
@@ -496,7 +485,14 @@ static inline void AppendSymbols(short esp[], int &ip, int n)
 
 void MulEstrings(const short es1[], const short es2[], short esp[])
 	{
-	assert(CanMultiplyEstrings(es1, es2));
+	unsigned uSymbols1;
+	unsigned uSymbols2;
+	unsigned uIndels1;
+	unsigned uIndels2;
+	EstringCounts(es1, &uSymbols1, &uIndels1);
+	EstringCounts(es2, &uSymbols2, &uIndels2);
+	if (uSymbols1 + uIndels1 != uSymbols2)
+		Quit("MulEstrings: incompatible estrings");
 
 	unsigned i1 = 0;
 	int ip = -1;
@@ -579,14 +575,8 @@ void MulEstrings(const short es1[], const short es2[], short esp[])
 				Quit("Assert failed (alternating signs)");
 				}
 			}
-	unsigned uSymbols1;
-	unsigned uSymbols2;
 	unsigned uSymbolsp;
-	unsigned uIndels1;
-	unsigned uIndels2;
 	unsigned uIndelsp;
-	EstringCounts(es1, &uSymbols1, &uIndels1);
-	EstringCounts(es2, &uSymbols2, &uIndels2);
 	EstringCounts(esp, &uSymbolsp, &uIndelsp);
 	if (uSymbols1 + uIndels1 != uSymbols2)
 		{
@@ -689,4 +679,4 @@ void TestEstrings()
 	}
 	exit(0);
 	}
-} 
+}
