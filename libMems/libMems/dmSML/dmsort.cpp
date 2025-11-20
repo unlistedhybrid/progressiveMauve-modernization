@@ -160,7 +160,7 @@ static void DoBinning( void ) {
             bin = ComputeBinNumber( rec->key );
 #endif
 #endif
-            if( (bin >= NumBins) || (bin < 0) ) {
+            if( (bin >= static_cast<int>(NumBins)) || (bin < 0) ) {
                 printf( "error: invalid bin from ComputeBinNumber: %d\n", bin );
             }
 
@@ -466,7 +466,7 @@ void RestructureReadSMLBins( void ) {
 
 		extras = b->io_size - mask_length + 1 < 6 ? b->io_size - mask_length + 1 : 6;
 		
-		for(; seqI < extras; seqI++ ){
+		for(; seqI < static_cast<offset_t>(extras); seqI++ ){
 			b->recs[ seqI ] = begin[ seqI ];
 			sml[ seqI ].pos = b->input_pos + seqI;
 		}
