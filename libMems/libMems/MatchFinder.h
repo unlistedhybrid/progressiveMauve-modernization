@@ -231,15 +231,9 @@ void MatchFinder::ExtendMatch(UngappedMatchType& mhe, std::vector<UngappedMatchT
 		return;
 	}
 	
-	uint32_t seq_cnt = mhe.SeqCount();
-	if(seq_cnt > seq_count || seq_cnt == 0){
-		std::cerr << "ERROR: ExtendMatch invalid SeqCount: " << seq_cnt << " (seq_count=" << seq_count << ")\n";
-		return;
-	}
-	
-	uint32_t* cur_seqs = new uint32_t[seq_cnt];
+	uint32_t* cur_seqs = new uint32_t[mhe.SeqCount()];
 	uint32_t used_seqs = 0;
-	for(uint32_t seqI = 0; seqI < seq_cnt; ++seqI){
+	for(uint32_t seqI = 0; seqI < mhe.SeqCount(); ++seqI){
 		if(seqI >= seq_count){
 			std::cerr << "ERROR: seqI " << seqI << " >= seq_count " << seq_count << "\n";
 			delete[] cur_seqs;
