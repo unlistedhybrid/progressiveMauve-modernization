@@ -32,20 +32,15 @@ gnFileSource::gnFileSource(const gnFileSource& gnfs){
 	m_pFilter = gnfs.m_pFilter;
 	m_newlineType = gnfs.m_newlineType;
 	m_newlineSize = gnfs.m_newlineSize;
-#pragma omp critical
-{
 	m_ifstream.open( m_openString.c_str(), ios::in | ios::binary );
 	if( !m_ifstream.is_open() )
 		m_ifstream.clear();
-}
 }
 
 // Open, Close	
 void gnFileSource::Open( string openString )
 {
 	boolean opened = true;
-#pragma omp critical
-{
 	m_ifstream.open(openString.c_str(), ios::in | ios::binary );
 	if( m_ifstream.is_open() )
 	{
@@ -62,41 +57,32 @@ void gnFileSource::Open( string openString )
 		m_ifstream.clear();
 		opened = false;
 	}
-}
 	if(!opened)
 		Throw_gnEx(FileNotOpened());
 }
 void gnFileSource::Open( )
 {
 	bool opened = true;
-#pragma omp critical
-{
 	m_ifstream.open( m_openString.c_str(), ios::in | ios::binary );
 	if( !m_ifstream.is_open() ){
 		opened = false;
 		m_ifstream.clear();
 	}
-}
 	if(!opened)
 		Throw_gnEx(FileNotOpened());
 }
 void gnFileSource::Close()
 {
-#pragma omp critical
 	m_ifstream.close();
 }
 
 boolean gnFileSource::Read( const uint64 pos, char* buf, gnSeqI& bufLen) 
 {
 	bool failure = false;
-#pragma omp critical
-{
 	m_ifstream.seekg(pos, ios::beg);
 	m_ifstream.read(buf, bufLen);
 	failure = m_ifstream.fail();
-}
 	if(failure){
-#pragma omp critical
 		m_ifstream.clear();
 		return false;
 	}
@@ -129,4 +115,3 @@ void gnFileSource::DetermineNewlineType()
 }
 
 }	// end namespace genome
-
