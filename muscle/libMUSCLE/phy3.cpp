@@ -250,7 +250,6 @@ static void RootByMidLongestSpan(const Tree &tree, EdgeInfo **EIs,
 	const unsigned uNodeCount = tree.GetNodeCount();
 
 	unsigned uLeaf1 = NULL_NEIGHBOR;
-	unsigned uMostDistantLeaf = NULL_NEIGHBOR;
 	double dMaxDist = -VERY_LARGE_DOUBLE;
 	for (unsigned uNodeIndex = 0; uNodeIndex < uNodeCount; ++uNodeIndex)
 		{
@@ -271,7 +270,6 @@ static void RootByMidLongestSpan(const Tree &tree, EdgeInfo **EIs,
 			{
 			dMaxDist = dSpanLength;
 			uLeaf1 = uNodeIndex;
-			uMostDistantLeaf = EI.m_uMostDistantLeaf;
 			}
 		}
 	
