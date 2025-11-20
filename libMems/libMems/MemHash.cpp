@@ -282,9 +282,17 @@ MatchHashEntry* MemHash::AddHashEntry(MatchHashEntry& mhe){
 	
 	//if we made it this far there were no collisions
 	//extend the mem into the surrounding region.
+	std::cerr << "DEBUG: AddHashEntry - mhe.SeqCount()=" << mhe.SeqCount() << " seq_count=" << seq_count << "\n";
+	if(mhe.SeqCount() > seq_count || mhe.SeqCount() == 0){
+		std::cerr << "ERROR: Invalid mhe.SeqCount in AddHashEntry: " << mhe.SeqCount() << "\n";
+		return NULL;
+	}
 	std::vector<MatchHashEntry> subset_matches;
-	if( !mhe.Extended() )
+	if( !mhe.Extended() ){
+		std::cerr << "DEBUG: Calling ExtendMatch\n";
 		ExtendMatch(mhe, subset_matches);
+		std::cerr << "DEBUG: ExtendMatch completed\n";
+	}
 
 	MatchHashEntry* new_mhe = allocator.Allocate();
 	new_mhe = new(new_mhe) MatchHashEntry(mhe); 
