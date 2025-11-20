@@ -79,7 +79,7 @@ gnSeqI gnABISource::GetContigSeqLength( uint32 i ) const{
 		return m_contigList[i]->GetSeqLength();
 	}else if( i == ALL_CONTIGS){
 		gnSeqI seqlen = 0;
-		for(int j=0; j < m_contigList.size(); j++)
+		for(size_t j=0; j < m_contigList.size(); j++)
 			seqlen += m_contigList[j]->GetSeqLength();
 		return seqlen;
 	}
@@ -113,4 +113,3 @@ boolean gnABISource::ParseStream( istream& fin )
 
 
 }	// end namespace genome
-
