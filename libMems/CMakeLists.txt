@@ -22,7 +22,6 @@ set(LIBMEMS_SRC
     libMems/MemorySML.cpp
     libMems/MuscleInterface.cpp
     libMems/PairwiseMatchFinder.cpp
-    libMems/PhyloTree.cpp
     libMems/ProgressiveAligner.cpp
     libMems/RepeatHash.cpp
     libMems/SlotAllocator.cpp
