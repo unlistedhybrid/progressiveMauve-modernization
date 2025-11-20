@@ -64,43 +64,30 @@ SCORE ScoreSeqPairLetters(const MSA &msa1, unsigned uSeqIndex1,
 #endif
 
 	SCORE scoreLetters = 0;
-	SCORE scoreGaps = 0;
-	bool bGapping1 = false;
-	bool bGapping2 = false;
 
 	unsigned uColStart = 0;
-	bool bLeftTermGap = false;
 	for (unsigned uColIndex = 0; uColIndex < uColCount; ++uColIndex)
 	{
 		bool bGap1 = msa1.IsGap(uSeqIndex1, uColIndex);
 		bool bGap2 = msa2.IsGap(uSeqIndex2, uColIndex);
 		if (!bGap1 || !bGap2)
 		{
-			if (bGap1 || bGap2)
-				bLeftTermGap = true;
 			uColStart = uColIndex;
 			break;
 		}
 	}
 
 	unsigned uColEnd = uColCount - 1;
-	bool bRightTermGap = false;
 	for (int iColIndex = (int) uColCount - 1; iColIndex >= 0; --iColIndex)
 	{
 		bool bGap1 = msa1.IsGap(uSeqIndex1, iColIndex);
 		bool bGap2 = msa2.IsGap(uSeqIndex2, iColIndex);
 		if (!bGap1 || !bGap2)
 		{
-			if (bGap1 || bGap2)
-				bRightTermGap = true;
 			uColEnd = (unsigned) iColIndex;
 			break;
 		}
 	}
-
-#if	TRACE_SEQPAIR
-	Log("LeftTermGap=%d RightTermGap=%d\n", bLeftTermGap, bRightTermGap);
-#endif
 
 	for (unsigned uColIndex = uColStart; uColIndex <= uColEnd; ++uColIndex)
 	{
@@ -142,38 +129,28 @@ SCORE ScoreSeqPairGaps(const MSA &msa1, unsigned uSeqIndex1,
 	bool bGapping2 = false;
 
 	unsigned uColStart = 0;
-	bool bLeftTermGap = false;
 	for (unsigned uColIndex = 0; uColIndex < uColCount; ++uColIndex)
 	{
 		bool bGap1 = msa1.IsGap(uSeqIndex1, uColIndex);
 		bool bGap2 = msa2.IsGap(uSeqIndex2, uColIndex);
 		if (!bGap1 || !bGap2)
 		{
-			if (bGap1 || bGap2)
-				bLeftTermGap = true;
 			uColStart = uColIndex;
 			break;
 		}
 	}
 
 	unsigned uColEnd = uColCount - 1;
-	bool bRightTermGap = false;
 	for (int iColIndex = (int) uColCount - 1; iColIndex >= 0; --iColIndex)
 	{
 		bool bGap1 = msa1.IsGap(uSeqIndex1, iColIndex);
 		bool bGap2 = msa2.IsGap(uSeqIndex2, iColIndex);
 		if (!bGap1 || !bGap2)
 		{
-			if (bGap1 || bGap2)
-				bRightTermGap = true;
 			uColEnd = (unsigned) iColIndex;
 			break;
 		}
 	}
-
-#if	TRACE_SEQPAIR
-	Log("LeftTermGap=%d RightTermGap=%d\n", bLeftTermGap, bRightTermGap);
-#endif
 
 	for (unsigned uColIndex = uColStart; uColIndex <= uColEnd; ++uColIndex)
 	{
@@ -238,8 +215,8 @@ SCORE ObjScoreSP(const MSA &msa, SCORE MatchScore[])
 	Log("msa=\n");
 	msa.LogMe();
 #endif
-	g_SPScoreLetters = 0;
-	g_SPScoreGaps = 0;
+	g_SPScoreLetters.get() = 0;
+	g_SPScoreGaps.get() = 0;
 
 	if (0 != MatchScore)
 	{
@@ -309,7 +286,6 @@ SCORE ObjScoreDP(const MSA &msa1, const MSA &msa2, SCORE MatchScore[])
 		Quit("ObjScoreDP, must be same length");
 
 	const unsigned uColCount1 = msa1.GetColCount();
-	const unsigned uColCount2 = msa2.GetColCount();
 
 	const ProfPos *PA = ProfileFromMSA(msa1);
 	const ProfPos *PB = ProfileFromMSA(msa2);
