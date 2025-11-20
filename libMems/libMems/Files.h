@@ -119,37 +119,33 @@ inline std::string CreateTempFileName(const std::string& prefix) {
     std::snprintf(buf, sizeof(buf), "%s", path_str.c_str());
     buf[sizeof(buf) - 1] = '\0';
 
-#if defined(HAVE_MKSTEMP)
+    // Use mkstemp if available, with safe fallback for unique name generation
     int fdTemp = mkstemp(buf);
     if (fdTemp == -1) {
-        // mkstemp failed
-        return std::string();
-    } else {
-        ret_path = buf;
-        close(fdTemp);
-    }
-#else
-    // Fallback: attempt mktemp (unsafe, but traditional)
-    char* tmpname = mktemp(buf);
-    if (tmpname) {
-        ret_path = tmpname;
-    } else {
+        // mkstemp failed, fall back to safe unique name generation
         unsigned my_pid = 0;
 #ifndef __DOS__
         my_pid = getpid();
 #endif
-        static const size_t numTries = 1000;
+        static const size_t numTries = 10000;
         for (size_t n = 0; n < numTries; n++) {
             std::ostringstream oss;
-            oss << tmppath.string() << my_pid << "." << std::setfill('0') << std::setw(3) << n;
+            oss << tmppath.string() << my_pid << "." << std::setfill('0') << std::setw(5) << n;
             boost::filesystem::path try_path(oss.str());
             if (!boost::filesystem::exists(try_path)) {
                 ret_path = oss.str();
                 break;
             }
         }
+        if (ret_path.empty()) {
+            // All attempts failed
+            return std::string();
+        }
+    } else {
+        ret_path = buf;
+        close(fdTemp);
     }
-#endif // HAVE_MKSTEMP
+
 #endif // _WIN32
     return ret_path;
 }
