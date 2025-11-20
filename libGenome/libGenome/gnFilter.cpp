@@ -159,7 +159,7 @@ void gnFilter::Filter( gnSeqC** seq, gnSeqI& len ) const
 	gnSeqI c=0;
 	for(uint32 i=0; i < len; i++)
 		if(IsValid((*seq)[i]))
-			tmp[c++] = m_pairArray[(unsigned char)(*seq)[i]];
+			tmp[c++] = m_pairArray[static_cast<unsigned char>((*seq)[i])];
 	len = c;
 	memcpy(*seq, tmp, len);
 }
@@ -173,15 +173,15 @@ void gnFilter::ReverseFilter( gnSeqC** seq, gnSeqI& len ) const
 	uint32 curE = end;
 	for( uint32 i=0; i < halfLen ; ++i )
 	{
-		tmp = m_pairArray[(unsigned char)(*seq)[i]];
-		dum = m_pairArray[(unsigned char)(*seq)[ end - i ]];
+		tmp = m_pairArray[static_cast<unsigned char>((*seq)[i])];
+		dum = m_pairArray[static_cast<unsigned char>((*seq)[ end - i ])];
 		if(dum != NO_REVCOMP_CHAR)
 			(*seq)[ curB++ ] = dum;
 		if(tmp != NO_REVCOMP_CHAR)
 			(*seq)[ curE-- ] = tmp;
 	}
 	if(len&0x1){
-		tmp = m_pairArray[(unsigned char)(*seq)[halfLen]];
+		tmp = m_pairArray[static_cast<unsigned char>((*seq)[halfLen])];
 		if(tmp != NO_REVCOMP_CHAR)
 			(*seq)[curB++] = tmp;
 	}
@@ -198,7 +198,7 @@ void gnFilter::Filter( string &seq ) const
 	gnSeqI c=0;
 	for(uint32 i=0; i < seq.length(); i++)
 		if(IsValid(seq[i]))
-			seq[c++] = m_pairArray[(unsigned char)seq[i]];
+			seq[c++] = m_pairArray[static_cast<unsigned char>(seq[i])];
     seq.resize(c);
 }
 
@@ -211,15 +211,15 @@ void gnFilter::ReverseFilter( string &seq ) const
 	uint32 curE = end;
 	for( uint32 i=0; i < halfLen ; ++i )
 	{
-		tmp = m_pairArray[(unsigned char)seq[i]];
-		dum = m_pairArray[(unsigned char)seq[ end - i ]];
+		tmp = m_pairArray[static_cast<unsigned char>(seq[i])];
+		dum = m_pairArray[static_cast<unsigned char>(seq[ end - i ])];
 		if(dum != NO_REVCOMP_CHAR)
 			seq[ curB++ ] = dum;
 		if(tmp != NO_REVCOMP_CHAR)
 			seq[ curE-- ] = tmp;
 	}
 	if(seq.length()&0x1){
-		tmp = m_pairArray[(unsigned char)seq[halfLen]];
+		tmp = m_pairArray[static_cast<unsigned char>(seq[halfLen])];
 		if(tmp != NO_REVCOMP_CHAR)
 			seq[curB++] = tmp;
 	}
