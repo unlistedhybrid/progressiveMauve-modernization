@@ -377,7 +377,6 @@ bfloat Forward(HomologyDPTable** ppOutTable,Params iPar,char *aSeq,int iLen) {
         }
     }
     {
-        int iPos0=iLen+0;
         CurStateMemoryblock3From = dp.StateMemoryblock3.read();
         iTempProb[0] = CurStateMemoryblock3From[0];
     }
@@ -433,7 +432,6 @@ bfloat Backward(HomologyBaumWelch& bw,HomologyDPTable* pInTable,HomologyDPTable*
     dp.StateMemoryblock3.write()[0] = 1.0;
     dp.StateMemoryblock3.written();
     {
-        int iPos0=iLen+0;
         CurStateMemoryblock3Secondary = dp2.StateMemoryblock3.read();
         iTempProb[2] = CurStateMemoryblock3Secondary[0];
         bw.scaleCounts(iTempProb[2]);
@@ -518,7 +516,6 @@ bfloat Backward(HomologyBaumWelch& bw,HomologyDPTable* pInTable,HomologyDPTable*
     }
     bw.scaleCounts(1.0 / iTempProb[2]);
     {
-        int iPos0=0;
         CurStateMemoryblock1From = dp.StateMemoryblock1.read();
         iTempProb[0] = CurStateMemoryblock1From[0];
     }
@@ -612,7 +609,6 @@ bfloat Viterbi_recurse(HomologyDPTable** ppOutTable,Params iPar,char *aSeq,int i
         }
     }
     {
-        int iPos0=0;
         CurStateMemoryblock1From = dp.StateMemoryblock1.read();
         iTempProb[0] = CurStateMemoryblock1From[0];
     }
