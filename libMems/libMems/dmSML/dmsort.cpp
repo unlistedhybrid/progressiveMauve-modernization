@@ -310,7 +310,7 @@ void RestructureReadSMLBins( void ) {
         if( !b ) {
             break;
         }
-		if( b->input_pos != Seqbuf.seq_pos ){
+		if( static_cast<uint64>(b->input_pos) != Seqbuf.seq_pos ){
 			b = b->next;
 			continue;
 		}
