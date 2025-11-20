@@ -73,6 +73,11 @@ public:
 	 */
 	gnLocation( const gnLocation& s);
 	/**
+	 *	Copy assignment operator.
+	 * @param s the location to copy.
+	 */
+	gnLocation& operator=( const gnLocation& s) = default;
+	/**
 	 *	Constructor, creates a gnLocation.
 	 * @param start The start position within the sequence.
 	 * @param end The end position within the sequence.
