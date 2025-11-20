@@ -831,5 +831,3 @@ void gnCompare::CreateRNAComparator()
 
 
 }	// end namespace genome
-
-}
