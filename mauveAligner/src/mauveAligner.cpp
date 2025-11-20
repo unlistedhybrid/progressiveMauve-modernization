@@ -11,14 +11,7 @@
 #endif
 
 #include "mauveAligner.h"
-
-// **** FIXED: Conditional Getopt ****
-#ifdef _WIN32
-#include "win_getopt.h"
-#else
-#include <getopt.h>
-#endif
-
+#include "getopt.h"
 #include <sstream>
 #include <stdexcept>
 #include "libGenome/gnSequence.h"
@@ -37,8 +30,7 @@
 #include "libMems/MuscleInterface.h"
 #include "libMems/DistanceMatrix.h"
 
-// Modern boost filesystem includes
-#include <boost/filesystem.hpp>
+#include "boost/filesystem/operations.hpp"
 
 using namespace std;
 using namespace genome;
@@ -52,15 +44,65 @@ private:
 	MatchList& mlist;
 };
 
-// Fixed: Guard against redefinition (Warning C4005)
-#ifndef NELEMS
 #define NELEMS(a) ( sizeof( a ) / sizeof( *a ) )
+
+#ifndef _WIN32
+#include <signal.h>
 #endif
 
+/**
+ * Aborts the running mauveAligner program
+ */
+void terminateProgram( int sig )
+{
+	std::cerr << "Caught signal " << sig << std::endl;
+	std::cerr << "Cleaning up and exiting!\n";
+	deleteRegisteredFiles();
+	std::cerr << "Temporary files deleted.\n";
+	exit(sig);	
+}
+
+#ifdef _WIN32
+BOOL WINAPI handler(DWORD dwCtrlType)
+{
+	switch(dwCtrlType)
+	{
+	case CTRL_C_EVENT:
+	case CTRL_BREAK_EVENT:
+	case CTRL_CLOSE_EVENT:
+	case CTRL_LOGOFF_EVENT:
+	case CTRL_SHUTDOWN_EVENT:
+		terminateProgram(dwCtrlType);
+	default:
+		break;
+	}
+	return true;
+}
+#endif
+
+int main( int argc, char* argv[] )
+{
+#ifdef _WIN32
+	SetPriorityClass(GetCurrentProcess(), BELOW_NORMAL_PRIORITY_CLASS);
+	BOOL status = SetConsoleCtrlHandler(handler, TRUE);
+#else
+	signal( SIGINT, terminateProgram );
+	signal( SIGTERM, terminateProgram );
+	signal( SIGSEGV, terminateProgram );
+#endif
+	atexit( &deleteRegisteredFiles );
+	return doAlignment(argc, argv);
+}
 
 /**
  * This application uses libMems to produce full scale multiple
- * genomic alignments.
+ * genomic alignments.  First the command line is parsed to get the names of data files
+ * and user specified options.  Next each sequence and its corresponding sorted mer list
+ * are loaded.  If the sorted mer list fails to load a new one is created.  
+ * If it is necessary to find matches in the sequences instead of loading them, each 
+ * sequence and SML are added to a MemHash which searches for exact matches.  
+ * Then LCBs are found if the user requested it.  Finally, either the MatchList or the
+ * LCB list is written to disk.
  */
 int doAlignment( int argc, char* argv[] ){
 try{
@@ -84,31 +126,29 @@ try{
 	vector<string> sml_files;
 	vector<gnSequence*> seq_table;
 	vector<DNAFileSML*> sml_table;
-	
-	// Fixed: uint -> unsigned int, boolean -> bool
-	unsigned int seed_size = 0;	// Use default settings
+	uint seed_size = 0;	// Use default settings
 	int seed_rank = 0;
-	bool recursive = true;
-	bool lcb_extension = true;
-	bool gapped_alignment = true;
-	bool create_LCBs = true;
-	bool calculate_coverage = false;
+	boolean recursive = true;
+	boolean lcb_extension = true;
+	boolean gapped_alignment = true;
+	boolean create_LCBs = true;
+	boolean calculate_coverage = false;
 	int64 LCB_size = -1;
 	string output_file = "";
-	bool read_matches = false;
-	bool read_lcbs = false;
-	bool find_repeats = false;
-	bool print_stats = false;
-	bool eliminate_overlaps = false;
-	bool nway_filter = false;
-	bool collinear_genomes = false;
+	boolean read_matches = false;
+	boolean read_lcbs = false;
+	boolean find_repeats = false;
+	boolean print_stats = false;
+	boolean eliminate_overlaps = false;
+	boolean nway_filter = false;
+	boolean collinear_genomes = false;
 	string match_input_file = "";
 	string lcb_stats_file = "";
 	string island_file = "";
 	string lcb_file = "";
 	string tree_filename = "";
 	string coverage_list_file = "";
-	bool output_alignment = false;
+	boolean output_alignment = false;
 	string alignment_output_dir = "";
 	string alignment_output_format = "";
 	string alignment_output_file = "";
@@ -116,14 +156,14 @@ try{
 	string offset_log = "";
 	string merge_log = "";
 	// island related
-	unsigned int island_size = 0;
-	unsigned int island_break_min = 0;
+	uint island_size = 0;
+	uint island_break_min = 0;
 	// backbone related
-	unsigned int backbone_size = 0;
-	unsigned int max_backbone_gap = 0;
+	uint backbone_size = 0;
+	uint max_backbone_gap = 0;
 	int64 min_r_gap_length = -1;
 	string backbone_file = "";
-	bool output_backbone = false;
+	boolean output_backbone = false;
 	// for parallelization of LCB alignment
 	vector< int > realign_lcbs;
 	string muscle_args = "";
@@ -132,11 +172,11 @@ try{
 	string permutation_filename;
 	int64 permutation_weight = -1;
 
-	bool lcb_match_input_format = false;
+	boolean lcb_match_input_format = false;
 	int opt_max_extension_iters = -1;
 
-	unsigned int seqI;
-	bool print_version = false;
+	uint seqI;
+	boolean print_version = false;
 	int max_gapped_alignment_length = -1;
 	
 	ostream* detail_list_out = NULL;	/**< output stream for detail list */
@@ -241,7 +281,7 @@ try{
 	};
 
 	int indexptr;
-	while( (opt = getopt_long( ac, av, short_args, long_opts, &indexptr )) != -1 ){
+	while( (opt = getopt_long( ac, av, short_args, long_opts, &indexptr )) != EOF ){
 		switch( opt ){
 			case 0:
 				switch(config_opt){
@@ -395,7 +435,7 @@ try{
 		}
 	}
 	// now read in the seq and sml file names from av
-	bool seq_name_arg = true;
+	boolean seq_name_arg = true;
 	for( int optI = optind; optI < argc; optI++ ){
 		if( seq_name_arg )
 			seq_files.push_back( av[ optI ] );
@@ -635,7 +675,7 @@ try{
 	
 	// at this point any SortedMerLists used to identify the initial set of MUMs
 	// are no longer necessary.  Free them
-	for( unsigned int smlI = 0; smlI < match_list.sml_table.size(); smlI++ ){
+	for( uint smlI = 0; smlI < match_list.sml_table.size(); smlI++ ){
 		match_list.sml_table[ smlI ]->Clear();
 		delete match_list.sml_table[ smlI ];
 	}
@@ -755,7 +795,7 @@ try{
 			align_out.close();
 		}
 	}
-	unsigned int lcbI;
+	uint lcbI;
 	
 	// output alignments in another format if the user asked for it
 	if( alignment_output_dir != "" ){
@@ -905,7 +945,7 @@ void print_usage( const char* pname ){
 	
 	const vector< string >& formats = gnAlignedSequences::getSupportedFormats();
 	cerr << "Supported alignment output formats are: ";
-	for( size_t formatI = 0; formatI < formats.size(); formatI++ ){
+	for( int formatI = 0; formatI < formats.size(); formatI++ ){
 		if( formatI > 0 )
 			cerr << ", ";
 		cerr << formats[ formatI ];
