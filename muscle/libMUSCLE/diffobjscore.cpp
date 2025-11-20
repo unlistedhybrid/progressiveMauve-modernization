@@ -12,10 +12,10 @@ namespace muscle {
 static SCORE ScoreColLetters(const MSA &msa, unsigned uColIndex)
 	{
 	const SCOREMATRIX &Mx = *g_ptrScoreMatrix.get();
-	const unsigned uSeqCount = msa.GetSeqCount();
 
 #if	BRUTE_LETTERS
 	SCORE BruteScore = 0;
+	const unsigned uSeqCount = msa.GetSeqCount();
 	for (unsigned uSeqIndex1 = 0; uSeqIndex1 < uSeqCount; ++uSeqIndex1)
 		{
 		unsigned uLetter1 = msa.GetLetterEx(uSeqIndex1, uColIndex);
@@ -34,6 +34,7 @@ static SCORE ScoreColLetters(const MSA &msa, unsigned uColIndex)
 #endif
 	
 	double N = 0;
+	const unsigned uSeqCount = msa.GetSeqCount();
 	for (unsigned uSeqIndex1 = 0; uSeqIndex1 < uSeqCount; ++uSeqIndex1)
 		{
 		WEIGHT w = msa.GetSeqWeight(uSeqIndex1);
@@ -162,4 +163,4 @@ SCORE DiffObjScore(
 
 	return Diff;
 	}
-} 
+}
