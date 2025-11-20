@@ -12,20 +12,6 @@ const unsigned K = 7;
 const unsigned KTUPS = pow4(K);
 static TLS<unsigned[KTUPS]> TuplePos;
 
-static char *TupleToStr(int t)
-	{
-	static TLS<char[K]> s;
-
-	for (unsigned i = 0; i < K; ++i)
-		{
-		unsigned Letter = (t/(pow4(i)))%4;
-		assert(Letter >= 0 && Letter < 4);
-		s.get()[K-i-1] = LetterToChar(Letter);
-		}
-
-	return s.get();
-	}
-
 static unsigned GetTuple(const ProfPos *PP, unsigned uPos)
 	{
 	unsigned t = 0;
