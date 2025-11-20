@@ -106,7 +106,7 @@ void TextFile::Rewind()
 
 void TextFile::PutChar(char c)
 	{
-	int i = fputc(c, m_ptrFile);
+	[[maybe_unused]] int i = fputc(c, m_ptrFile);
 	assert(i == c);
 	if ('\n' == c)
 		{
