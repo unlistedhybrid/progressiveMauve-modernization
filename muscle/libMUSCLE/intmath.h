@@ -58,11 +58,6 @@ SCORE MulScoreWeight(SCORE Score, WEIGHT Weight);
 bool ScoreEq(SCORE s1, SCORE s2);
 bool BTEq(double b1, double b2);
 
-static double ScoreToDouble(SCORE Score)
-	{
-	return (double) Score / (double) INTSCALE;
-	}
-
 #if	0
 // In-line assembler for Result = (x*y)/z
 // Note that imul and idiv will do 64-bit arithmetic
