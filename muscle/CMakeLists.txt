@@ -129,7 +129,6 @@ set(MUSCLE_SRC
     libMUSCLE/spfast.cpp
     libMUSCLE/stabilize.cpp
     libMUSCLE/subfam.cpp
-    libMUSCLE/subfams.cpp
     libMUSCLE/sw.cpp
     libMUSCLE/termgaps.cpp
     libMUSCLE/textfile.cpp
