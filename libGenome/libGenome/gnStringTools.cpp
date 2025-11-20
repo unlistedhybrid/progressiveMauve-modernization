@@ -42,7 +42,6 @@ void BaseCount(const string& bases, gnSeqI& a_count, gnSeqI& c_count, gnSeqI& g_
 // removes white space, keeps only one return for multiple returns
 unsigned int removeSpace(string &str)
 {
-	bool onSpace = true;
 	unsigned int nbrSpace = 0;
 	bool containsReturn = false;
 	unsigned int i;
@@ -53,11 +52,9 @@ unsigned int removeSpace(string &str)
 			nbrSpace++;
 			if( (str[i-1] == '\n') || (str[i-1] == '\r') )
 				containsReturn = true;
-			onSpace = true;
 		}
 		else
 		{
-			onSpace = false;
 			if( nbrSpace > 0 )
 			{
 				str.erase( i, nbrSpace-1);
@@ -290,4 +287,3 @@ string getFileNoExtString( string oFileName )
 }
 
 }	// end namespace genome
-
