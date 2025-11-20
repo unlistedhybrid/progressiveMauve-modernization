@@ -13,9 +13,11 @@
 #include "config.h"
 #endif
 
+#ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable : 4996)
 #pragma warning(pop)
+#endif
 
 #include "libGenome/gnSequence.h"
 #include "libMems/SortedMerList.h"
