@@ -218,7 +218,7 @@ void GenericInterval<GappedBaseImpl>::StealMatches( std::vector<AbstractMatch*>&
 }
 
 template<class GappedBaseImpl>
-GenericInterval<GappedBaseImpl>::GenericInterval( const GenericInterval<GappedBaseImpl>& iv )
+GenericInterval<GappedBaseImpl>::GenericInterval( const GenericInterval<GappedBaseImpl>& iv ) : GappedBaseImpl(iv)
 {
 	*this = iv;
 }
