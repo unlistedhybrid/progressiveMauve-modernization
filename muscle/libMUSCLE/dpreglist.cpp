@@ -81,8 +81,6 @@ void DiagListToDPRegionList(const DiagList &DL, DPRegionList &RL,
 
 		if (uEndVertexA > uStartVertexA + 1)
 			{
-			const unsigned uDiagLengthMinusCaps = uEndVertexA - uStartVertexA - 1;
-
 			r.m_Type = DPREGIONTYPE_Diag;
 			r.m_Diag.m_uStartPosA = uStartVertexA + 1;
 			r.m_Diag.m_uStartPosB = uStartVertexB + 1;
@@ -108,4 +106,4 @@ void DiagListToDPRegionList(const DiagList &DL, DPRegionList &RL,
 	r.m_Rect.m_uLengthB = uLengthB - uStartPosB;
 	RL.Add(r);
 	}
-} 
+}
