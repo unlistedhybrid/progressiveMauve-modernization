@@ -131,8 +131,8 @@ void computeMatchScores( const std::string& seq1, const std::string& seq2,
 		char c2 = seq2[uColIndex];
 		if( c1 == '-' || c2 == '-' )
 			continue;
-		unsigned uLetter1 = table[c1];
-		unsigned uLetter2 = table[c2];
+		unsigned uLetter1 = table[static_cast<unsigned char>(c1)];
+		unsigned uLetter2 = table[static_cast<unsigned char>(c2)];
 
 		score_t scoreMatch = scoring.matrix[uLetter1][uLetter2];
 		scores[uColIndex] = scoreMatch;
@@ -153,39 +153,33 @@ void computeGapScores( const std::string& seq1, const std::string& seq2, const P
 
 	unsigned uColCount = seq1.size();
 	unsigned uColStart = 0;
-	bool bLeftTermGap = false;
 	for (unsigned uColIndex = 0; uColIndex < seq1.size(); ++uColIndex)
 	{
 		bool bGap1 = seq1[uColIndex] == '-';
 		bool bGap2 = seq2[uColIndex] == '-';
 		if (!bGap1 || !bGap2)
-			{
-			if (bGap1 || bGap2)
-				bLeftTermGap = true;
+		{
 			uColStart = uColIndex;
 			break;
-			}
 		}
+	}
 
 	unsigned uColEnd = uColCount - 1;
-	bool bRightTermGap = false;
 	for (int iColIndex = (int) uColCount - 1; iColIndex >= 0; --iColIndex)
-		{
+	{
 		bool bGap1 = seq1[iColIndex] == '-';
 		bool bGap2 = seq2[iColIndex] == '-';
 		if (!bGap1 || !bGap2)
-			{
-			if (bGap1 || bGap2)
-				bRightTermGap = true;
+		{
 			uColEnd = (unsigned) iColIndex;
 			break;
-			}
 		}
+	}
 
 	unsigned gap_left_col = 0;
 	score_t cur_gap_score = 0;
 	for (unsigned uColIndex = uColStart; uColIndex <= uColEnd; ++uColIndex)
-		{
+	{
 		bool bGap1 = seq1[uColIndex] == '-';
 		bool bGap2 = seq2[uColIndex] == '-';
 
@@ -193,44 +187,44 @@ void computeGapScores( const std::string& seq1, const std::string& seq2, const P
 			continue;
 
 		if (bGap1)
-			{
+		{
 			if (!bGapping1)
-				{
+			{
 				gap_left_col = uColIndex;
 				if (uColIndex == uColStart)
-					{
-					cur_gap_score += term_gap_score;
-				}else{
-					cur_gap_score += gap_open_score;
-					}
-				bGapping1 = true;
-				}
-			else
 				{
-				cur_gap_score += gap_extend_score;
+					cur_gap_score += term_gap_score;
+				} else {
+					cur_gap_score += gap_open_score;
 				}
-			continue;
+				bGapping1 = true;
 			}
+			else
+			{
+				cur_gap_score += gap_extend_score;
+			}
+			continue;
+		}
 
 		else if (bGap2)
-			{
+		{
 			if (!bGapping2)
-				{
+			{
 				gap_left_col = uColIndex;
 				if (uColIndex == uColStart)
-					{
-					cur_gap_score += term_gap_score;
-				}else{
-					cur_gap_score += gap_open_score;
-					}
-				bGapping2 = true;
-				}
-			else
 				{
-				cur_gap_score += gap_extend_score;
+					cur_gap_score += term_gap_score;
+				} else {
+					cur_gap_score += gap_open_score;
 				}
-			continue;
+				bGapping2 = true;
 			}
+			else
+			{
+				cur_gap_score += gap_extend_score;
+			}
+			continue;
+		}
 
 		if( (bGapping1 || bGapping2) )
 		{
@@ -263,10 +257,10 @@ void computeGapScores( const std::string& seq1, const std::string& seq2, const P
 		}
 		bGapping1 = false;
 		bGapping2 = false;
-		}
+	}
 
 	if (bGapping1 || bGapping2)
-		{
+	{
 		cur_gap_score -= gap_open_score;
 		cur_gap_score += term_gap_score;
 
