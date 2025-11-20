@@ -227,7 +227,7 @@ void SortedMerList::FindAll(const string& query_seq, vector<gnSeqI> result) {
 		matchmer = (*this)[cur_matchI];
 	}
 	//fill the result array
-	for(matchI = first_matchI; matchI < cur_matchI; matchI++)
+	for(gnSeqI matchI = static_cast<gnSeqI>(first_matchI); matchI < static_cast<gnSeqI>(cur_matchI); matchI++)
 		result.push_back(matchI);
 }
 
@@ -547,7 +547,7 @@ void SortedMerList::FillSML(gnSeqC* seq_buf, gnSeqI seq_len, boolean circular, v
 	/* now fill in the suffix array with the forward sequence*/
 	for(gnSeqI i=0; i < mer_size; i++){
 		cur_suffix.mer <<= alpha_bits;
-		cur_suffix.mer |= header.translation_table[seq_buf[i]];
+		cur_suffix.mer |= header.translation_table[static_cast<unsigned char>(seq_buf[i])];
 	}
 	uint8 dead_bits = 64 - (mer_size * alpha_bits);
 	cur_suffix.mer <<= dead_bits;
@@ -559,7 +559,7 @@ void SortedMerList::FillSML(gnSeqC* seq_buf, gnSeqI seq_len, boolean circular, v
 													//first one
 		cur_suffix.position++;
 		cur_suffix.mer <<= alpha_bits;
-		uint64 new_mer = header.translation_table[seq_buf[seqI+(mer_size-1)]];
+		uint64 new_mer = header.translation_table[static_cast<unsigned char>(seq_buf[seqI+(mer_size-1)])];
 		new_mer <<= dead_bits;
 		cur_suffix.mer |= new_mer;
 		sml_array.push_back(cur_suffix);
@@ -750,10 +750,10 @@ uint64 SortedMerList::GetSeedMer( gnSeqI offset ) const
 	uint64 char_mask = 1ULL;
 	char_mask <<= header.seed_length - 1;
 	uint64 cur_mer = mer_a;
-	const int mer_transition = 64 / OPT_HEADER_ALPHABET_BITS;
-	int patternI = 0;
+	const uint32 mer_transition = 64 / OPT_HEADER_ALPHABET_BITS;
+	uint32 patternI = 0;
 	int rshift_amt = 64 - OPT_HEADER_ALPHABET_BITS;
-	for( ; patternI < static_cast<int>(header.seed_length); patternI++ ){
+	for( ; patternI < header.seed_length; patternI++ ){
 		if( patternI == mer_transition ){
 			cur_mer = mer_b;
 			cur_alpha_mask = alpha_mask;
@@ -804,7 +804,7 @@ void SortedMerList::Create(const gnSequence& seq, const uint64 seed){
 	int seed_length = getSeedLength( seed );
 	int seed_weight = getSeedWeight( seed );
 	
-	if(seed_length > CalculateMaxMerSize())
+	if(static_cast<uint32>(seed_length) > CalculateMaxMerSize())
 		Throw_gnExMsg( SMLCreateError(), "Mer size is too large" );
 
 	if(seed_length == 0)
