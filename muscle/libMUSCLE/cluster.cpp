@@ -266,7 +266,6 @@ void ClusterTree::Create(const DistFunc &Dist)
 
 	DistFunc ClusterDist;
 	ClusterDist.SetCount(m_uNodeCount);
-	double dMaxDist = 0.0;
 	for (i = 0; i < m_uLeafCount; ++i)
 		for (unsigned j = 0; j < m_uLeafCount; ++j)
 			{
@@ -283,7 +282,6 @@ void ClusterTree::Create(const DistFunc &Dist)
 	// Find closest pair of clusters
 		unsigned uIndexClosest1;
 		unsigned uIndexClosest2;
-		bool bFound = false;
 		double dDistClosest = 9e99;
 		for (ClusterNode *ptrNode1 = m_ptrDisjoints; ptrNode1;
 		  ptrNode1 = ptrNode1->GetNextDisjoint())
@@ -296,14 +294,12 @@ void ClusterTree::Create(const DistFunc &Dist)
 				double dDist = ClusterDist.GetDist(i1, i2);
 				if (dDist < dDistClosest)
 					{
-					bFound = true;
 					dDistClosest = dDist;
 					uIndexClosest1 = i1;
 					uIndexClosest2 = i2;
 					}
 				}
 			}
-		assert(bFound);
 
 		ClusterNode &Join = m_Nodes[uJoinIndex];
 		ClusterNode &Child1 = m_Nodes[uIndexClosest1];
@@ -339,4 +335,4 @@ void ClusterTree::Create(const DistFunc &Dist)
 	GetRoot()->GetClusterWeight();
 //	LogMe();
 	}
-} 
+}
