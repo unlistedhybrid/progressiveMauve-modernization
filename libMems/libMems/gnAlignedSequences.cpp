@@ -1305,11 +1305,6 @@ bool gnAlignedSequences::buildConsensus()
 		itr++;*/
 		for (size_t i=0; i<crossAlignmentBases.size(); i++)
 		{
-			// to hold knowledge of consensus if MEGA '.' format employed
-			// ('.'==same as base in 1st sequence)
-			if (i == 0)
-				;
-			
 			// consensus already established if in MEGA '.' format - the 1st seq	
 			if (i>0 && crossAlignmentBases[i]=='.')
 				break;
