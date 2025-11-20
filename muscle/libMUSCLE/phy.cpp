@@ -1130,4 +1130,4 @@ void Tree::Create(unsigned uLeafCount, unsigned uRoot, const unsigned Left[],
 
 	Validate();
 	}
-} 
+}
