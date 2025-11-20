@@ -72,11 +72,11 @@ public:
 	virtual void MoveStart(int64 move_amount);
 	virtual void MoveEnd(int64 move_amount);
 
-	virtual bool operator==( const HybridAbstractMatch& ham ) const;
+	bool operator==( const HybridAbstractMatch& ham ) const;
 
 	virtual uint UsedSeq( uint seqI ) const { 
 		if(seqI < FIXED_SEQ_COUNT) return fixed_seq_ids[seqI];
-		return seq_ids[seqI];
+		return seq_ids[seqI - FIXED_SEQ_COUNT];
 	}
 
 protected:
