@@ -132,8 +132,8 @@ void findHssHomologyHMM( std::vector< std::string >& aln_table, hss_list_t& hss_
 	size_t refI = 0;
 	for( size_t colI = 0; colI < column_states.size(); colI++ )
 	{
-		char a = charmap[aln_table[seqI][colI]];
-		char b = charmap[aln_table[seqJ][colI]];
+		char a = charmap[static_cast<unsigned char>(aln_table[seqI][colI])];
+		char b = charmap[static_cast<unsigned char>(aln_table[seqJ][colI])];
 		column_states[colI] = colmap[a][b];
 		if(column_states[colI] != 0 )
 			col_reference[refI++] = colI;
