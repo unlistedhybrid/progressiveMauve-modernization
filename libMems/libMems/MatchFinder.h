@@ -255,17 +255,17 @@ void MatchFinder::ExtendMatch(UngappedMatchType& mhe, std::vector<UngappedMatchT
 		//then do fewer comparisons.
 		int64_t maxlen = GNSEQI_END;
 		if(directionI == 0)
-			maxlen = max_backward;
+			maxlen = static_cast<int64_t>(max_backward);
 		else if(directionI == 1)
-			maxlen = max_forward;
+			maxlen = static_cast<int64_t>(max_forward);
 		else
-			maxlen = GetSar(0)->SeedLength();
+			maxlen = static_cast<int64_t>(GetSar(0)->SeedLength());
 		for(uint32_t maxI = 0; maxI < used_seqs; ++maxI)
 			if(GetSar(cur_seqs[maxI])->IsCircular()){
 				if(static_cast<int64_t>(GetSar(cur_seqs[maxI])->Length()) < maxlen)
-					maxlen = GetSar(cur_seqs[maxI])->Length();
+					maxlen = static_cast<int64_t>(GetSar(cur_seqs[maxI])->Length());
 			}else if(mhe[cur_seqs[maxI]] < 0){
-				int64_t rc_len = GetSar(cur_seqs[maxI])->Length() - mhe.Length() + mhe[cur_seqs[maxI]] + 1;
+				int64_t rc_len = static_cast<int64_t>(GetSar(cur_seqs[maxI])->Length()) - static_cast<int64_t>(mhe.Length()) + mhe[cur_seqs[maxI]] + 1;
 				if( rc_len < maxlen)
 					maxlen = rc_len;
 			}else if(mhe[cur_seqs[maxI]] - 1 < maxlen)
@@ -276,7 +276,7 @@ void MatchFinder::ExtendMatch(UngappedMatchType& mhe, std::vector<UngappedMatchT
 		extend_limit = 0;
 		extend_attempts = 0;
 
-		while(maxlen - jump_size >= 0){
+		while(maxlen >= static_cast<int64_t>(jump_size)){
 			mhe.SetLength(mhe.Length() + jump_size);
 			maxlen -= jump_size;
 			for(j=0; j < used_seqs; ++j){
@@ -288,7 +288,7 @@ void MatchFinder::ExtendMatch(UngappedMatchType& mhe, std::vector<UngappedMatchT
 				if(mhe[cur_seqs[j]] > 0){
 					mhe.SetStart(cur_seqs[j], mhe[cur_seqs[j]] - jump_size);
 					if(mhe[cur_seqs[j]] <= 0)
-						mhe.SetStart(cur_seqs[j], mhe[cur_seqs[j]] + GetSar(cur_seqs[j])->Length());
+						mhe.SetStart(cur_seqs[j], mhe[cur_seqs[j]] + static_cast<int64_t>(GetSar(cur_seqs[j])->Length()));
 				}
 			}
 			//check that all mers at the new position match
@@ -305,7 +305,7 @@ void MatchFinder::ExtendMatch(UngappedMatchType& mhe, std::vector<UngappedMatchT
 			int64_t mer_to_get = mhe[cur_seqs[0]];
 			if(mer_to_get < 0){
 				mer_to_get *= -1;
-				mer_to_get += mhe.Length() - GetSar(0)->SeedLength();
+				mer_to_get += static_cast<int64_t>(mhe.Length()) - static_cast<int64_t>(GetSar(0)->SeedLength());
 			}
 			cur_mer = GetSar(cur_seqs[0])->GetSeedMer(mer_to_get - 1);
 			bool parity;
@@ -325,7 +325,7 @@ void MatchFinder::ExtendMatch(UngappedMatchType& mhe, std::vector<UngappedMatchT
 				if(mer_to_get < 0){
 					//Convert the cur_seqs[i] entry since negative implies reverse complement
 					mer_to_get *= -1;
-					mer_to_get += mhe.Length() - GetSar(0)->SeedLength();
+					mer_to_get += static_cast<int64_t>(mhe.Length()) - static_cast<int64_t>(GetSar(0)->SeedLength());
 				}
 				uint64_t comp_mer = GetSar(cur_seqs[i])->GetSeedMer(mer_to_get - 1);
 				bool comp_parity;				
@@ -344,7 +344,7 @@ void MatchFinder::ExtendMatch(UngappedMatchType& mhe, std::vector<UngappedMatchT
 			extend_attempts += jump_size;
 			if( i == used_seqs )
 				extend_limit = extend_attempts;
-			if( directionI > 1 && extend_attempts == GetSar(0)->SeedLength() )
+			if( directionI > 1 && extend_attempts == static_cast<uint32_t>(GetSar(0)->SeedLength()) )
 				break;
 		}
 		//this stuff cleans up if there was a mismatch
@@ -366,10 +366,10 @@ void MatchFinder::ExtendMatch(UngappedMatchType& mhe, std::vector<UngappedMatchT
 			if( extend_limit > 0 )
 				extend_again = true;
 			// minus jump_size because the cleanup above already moved the length back a little
-			int unmatched_diff = extend_attempts - extend_limit;
+			int unmatched_diff = static_cast<int>(extend_attempts) - static_cast<int>(extend_limit);
 			if( i < used_seqs )
 				unmatched_diff -= jump_size;
-			if( (unmatched_diff > mhe.Length()) && unmatched_diff >= 0 )
+			if( (unmatched_diff > static_cast<int>(mhe.Length())) && unmatched_diff >= 0 )
 				std::cerr << "oh sheethockey mushrooms\n";
 			mhe.SetLength(mhe.Length() - unmatched_diff);
 			for(j=0; j < used_seqs; ++j){
@@ -380,8 +380,8 @@ void MatchFinder::ExtendMatch(UngappedMatchType& mhe, std::vector<UngappedMatchT
 				}
 				if(mhe[cur_seqs[j]] > 0){
 					mhe.SetStart(cur_seqs[j], mhe[cur_seqs[j]] + unmatched_diff);
-					if(mhe[cur_seqs[j]] > GetSar(cur_seqs[j])->Length() )
-						mhe.SetStart(cur_seqs[j], mhe[cur_seqs[j]] - GetSar(cur_seqs[j])->Length() );
+					if(mhe[cur_seqs[j]] > static_cast<int64_t>(GetSar(cur_seqs[j])->Length()) )
+						mhe.SetStart(cur_seqs[j], mhe[cur_seqs[j]] - static_cast<int64_t>(GetSar(cur_seqs[j])->Length()) );
 				}
 			}
 		}
