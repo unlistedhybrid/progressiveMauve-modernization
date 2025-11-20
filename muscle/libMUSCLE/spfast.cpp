@@ -13,6 +13,7 @@ enum
 	GG = 3,
 };
 
+[[maybe_unused]]
 static const char *GapTypeToStr(int GapType)
 {
 	switch (GapType)
@@ -28,6 +29,7 @@ static const char *GapTypeToStr(int GapType)
 
 static TLS<SCORE[4][4]> GapScoreMatrix;
 
+[[maybe_unused]]
 static void InitGapScoreMatrix()
 {
 	const SCORE t = (SCORE) 0.2;
@@ -58,6 +60,7 @@ static void InitGapScoreMatrix()
 				Quit("GapScoreMatrix.get() not symmetrical");
 }
 
+[[maybe_unused]]
 static SCORE SPColBrute(const MSA &msa, unsigned uColIndex)
 {
 	SCORE Sum = 0;
@@ -90,6 +93,7 @@ static SCORE SPColBrute(const MSA &msa, unsigned uColIndex)
 	return Sum;
 }
 
+[[maybe_unused]]
 static SCORE SPGapFreqs(const FCOUNT Freqs[])
 {
 #if TRACE
@@ -140,6 +144,7 @@ static SCORE SPGapFreqs(const FCOUNT Freqs[])
 	return TotalOffDiag * 2 + TotalDiag;
 }
 
+[[maybe_unused]]
 static SCORE SPFreqs(const FCOUNT Freqs[])
 {
 #if TRACE
