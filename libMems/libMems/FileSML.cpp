@@ -54,7 +54,7 @@ void FileSML::LoadFile(const string& fname){
 	// in case it's bogus
 	SMLHeader tmp_header;
 	sarfile.read((char*)&tmp_header, sizeof(struct SMLHeader));
-	if(sarfile.gcount() < (int)sizeof(struct SMLHeader)){
+	if(sarfile.gcount() < static_cast<std::streamsize>(sizeof(struct SMLHeader))){
 		sarfile.clear();
 		Throw_gnExMsg( FileUnreadable(), "Unable to read file.");
 	}
@@ -81,7 +81,7 @@ void FileSML::LoadFile(const string& fname){
 	sequence = new uint32[binary_seq_len];
 
 	sarfile.read((char*)sequence, binary_seq_len*sizeof(uint32));
-	if(sarfile.gcount() < (int64)(binary_seq_len*sizeof(uint32))){
+	if(sarfile.gcount() < static_cast<std::streamsize>(binary_seq_len*sizeof(uint32))){
 		sarfile.clear();
 		Throw_gnExMsg( FileUnreadable(), "Error reading sequence data.");
 	}
