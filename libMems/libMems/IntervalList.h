@@ -431,7 +431,7 @@ void GenericIntervalList<MatchType>::WriteStandardAlignment( std::ostream& out_f
 			out_file << std::endl;
 			gnSeqI cur_pos = 0;
 			for( ; cur_pos < static_cast<gnSeqI>(alignment[ seqI ].length()); cur_pos += 80 ){
-				gnSeqI cur_len = cur_pos + 80 < static_cast<gnSeqI>(alignment[ seqI ].length()) ? 80 : static_cast<gnSeqI>(alignment[ seqI ].length() - cur_pos);
+				gnSeqI cur_len = static_cast<gnSeqI>(cur_pos) + 80 < static_cast<gnSeqI>(alignment[ seqI ].length()) ? 80 : static_cast<gnSeqI>(alignment[ seqI ].length() - cur_pos);
 				out_file.write( alignment[ seqI ].data() + cur_pos, cur_len );
 				out_file << std::endl;
 			}
@@ -523,7 +523,7 @@ void GenericIntervalList<MatchType>::ReadStandardAlignment( std::istream& in_str
 				cr.SetStart( seqI - 1, 0 );
 			else
 				cr.SetStart( seqI - 1, -start );
-			if( chars != stop - start + 1 && !(chars == 0 && stop - start == 1) ){
+			if( chars != static_cast<gnSeqI>(stop - start + 1) && !(chars == 0 && stop - start == 1) ){
 				std::cerr << "Error in XMFA file format\n";
 				std::cerr << "Before line " << line_count << std::endl;
 				std::cerr << "Expecting " << stop - start + 1 << " characters based on defline\n";
@@ -535,7 +535,7 @@ void GenericIntervalList<MatchType>::ReadStandardAlignment( std::istream& in_str
 				cr.SetStart( seqI - 1, 0 );
 			else
 				cr.SetStart( seqI - 1, -stop );
-			if( chars != start - stop + 1 && !(chars == 0 && stop - start == 1) ){
+			if( chars != static_cast<gnSeqI>(start - stop + 1) && !(chars == 0 && stop - start == 1) ){
 				std::cerr << "Error in XMFA file format\n";
 				std::cerr << "Before line " << line_count << std::endl;
 				std::cerr << "Expecting " << start - stop + 1 << " characters based on defline\n";
@@ -691,7 +691,7 @@ void GenericIntervalList<MatchType>::ReadStandardAlignmentCompact( std::istream&
 				cr.SetStart( seqI - 1, 0 );
 			else
 				cr.SetStart( seqI - 1, -start );
-			if( chars != stop - start + 1 && !(chars == 0 && stop - start == 1) ){
+			if( chars != static_cast<gnSeqI>(stop - start + 1) && !(chars == 0 && stop - start == 1) ){
 				std::cerr << "Error in XMFA file format\n";
 				std::cerr << "Before line " << line_count << std::endl;
 				std::cerr << "Expecting " << stop - start + 1 << " characters based on defline\n";
@@ -703,7 +703,7 @@ void GenericIntervalList<MatchType>::ReadStandardAlignmentCompact( std::istream&
 				cr.SetStart( seqI - 1, 0 );
 			else
 				cr.SetStart( seqI - 1, -stop );
-			if( chars != start - stop + 1 && !(chars == 0 && stop - start == 1) ){
+			if( chars != static_cast<gnSeqI>(start - stop + 1) && !(chars == 0 && stop - start == 1) ){
 				std::cerr << "Error in XMFA file format\n";
 				std::cerr << "Before line " << line_count << std::endl;
 				std::cerr << "Expecting " << start - stop + 1 << " characters based on defline\n";
