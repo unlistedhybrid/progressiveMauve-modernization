@@ -73,7 +73,7 @@ void EliminateOverlaps( MatchList& ml ){
 		vector< Match* > new_matches;
 
 		// scan forward to first defined match
-		for(; matchI != ml.size(); matchI++ )
+		for(; matchI != (int64)ml.size(); matchI++ )
 			if( ml[ matchI ]->Start( seqI ) != NO_MATCH )
 				break;
 
@@ -178,30 +178,42 @@ void EliminateOverlaps( MatchList& ml ){
 
 const gnSeqI default_min_r_gap_size = 200;
 Aligner::Aligner( uint seq_count ) :
-debug(false),
+nway_mh(),
 seq_count(seq_count),
+LCB_minimum_density(0.0),
+LCB_minimum_range(0.0),
+cur_min_coverage(-1),
 min_recursive_gap_length(default_min_r_gap_size),
 collinear_genomes(false),
 gal(&(MuscleInterface::getMuscleInterface())),
+permutation_filename(""),
 permutation_weight(-1),
-cur_min_coverage(-1),
-max_extension_iters(4)
+max_extension_iters(4),
+debug(false),
+recursive(false),
+extend_lcbs(false),
+gapped_alignment(false),
+currently_recursing(false)
 {}
 
 Aligner::Aligner( const Aligner& al ) :
-//gap_mh( al.gap_mh ),
+gap_mh( al.gap_mh ),
 nway_mh( al.nway_mh ),
 seq_count( al.seq_count ),
-debug( al.debug),
 LCB_minimum_density( al.LCB_minimum_density),
 LCB_minimum_range( al.LCB_minimum_range ),
 cur_min_coverage( al.cur_min_coverage),
 min_recursive_gap_length( al.min_recursive_gap_length ),
 collinear_genomes( al.collinear_genomes ),
 gal( al.gal ),
-permutation_weight( al.permutation_weight ),
 permutation_filename( al.permutation_filename ),
-max_extension_iters( al.max_extension_iters )
+permutation_weight( al.permutation_weight ),
+max_extension_iters( al.max_extension_iters ),
+debug( al.debug),
+recursive( al.recursive ),
+extend_lcbs( al.extend_lcbs ),
+gapped_alignment( al.gapped_alignment ),
+currently_recursing( al.currently_recursing )
 {}
 
 Aligner& Aligner::operator=( const Aligner& al )
@@ -209,7 +221,6 @@ Aligner& Aligner::operator=( const Aligner& al )
 	gap_mh = al.gap_mh;
 	nway_mh = al.nway_mh;
 	seq_count = al.seq_count;
-	debug = al.debug;
 	
 	LCB_minimum_density = al.LCB_minimum_density;
 	LCB_minimum_range = al.LCB_minimum_range;
@@ -220,10 +231,15 @@ Aligner& Aligner::operator=( const Aligner& al )
 
 	gal = al.gal;
 
-	permutation_weight = al.permutation_weight;
 	permutation_filename = al.permutation_filename;
+	permutation_weight = al.permutation_weight;
 
 	max_extension_iters = al.max_extension_iters;
+	debug = al.debug;
+	recursive = al.recursive;
+	extend_lcbs = al.extend_lcbs;
+	gapped_alignment = al.gapped_alignment;
+	currently_recursing = al.currently_recursing;
 
 	return *this;
 }
@@ -294,9 +310,9 @@ void scanFit( list< LabeledMem >& pair_list, list< LabeledMem >::iterator& list_
 			continue;
 		}
 //		if( absolut( last_iter->mem->Start( sort_seq ) ) < initial_start ||
-//			absolut( last_iter->mem->Start( sort_seq ) ) > new_match->Start( sort_seq ) )
+//			absolut( last_iter->mem->Start( sort_seq ) ) > (uint64)new_match->Start( sort_seq ) )
 		if( absolut( last_iter->mem->Start( sort_seq ) ) < initial_start ||
-			absolut( last_iter->mem->Start( sort_seq ) ) > new_match->Start( sort_seq ) )
+			absolut( last_iter->mem->Start( sort_seq ) ) > (uint64)new_match->Start( sort_seq ) )
 			break;
 		++match_count;
 	}
@@ -599,7 +615,7 @@ void Aligner::SetPermutationOutput( std::string& permutation_filename, int64 per
 void GetLCBCoverage( MatchList& lcb, uint64& coverage ){
 	vector< Match* >::iterator match_iter = lcb.begin();
 	coverage = 0;
-	bool debug = true;
+	
 	for( ; match_iter != lcb.end(); ++match_iter ){
 		coverage += (*match_iter)->Length() * (*match_iter)->Multiplicity();
 
@@ -795,7 +811,6 @@ void SearchLCBGaps( MatchList& new_matches, const std::vector< std::vector< int6
 
 	const uint seq_count = new_matches.seq_table.size();
 	uint seqI = 0;
-	int lcbI = 0;
 	MatchList gap_list;
 	gap_list.seq_table = vector< gnSequence* >( seq_count );	/**< intervening regions of sequences */
 	gap_list.sml_table = vector< SortedMerList* >( seq_count );
@@ -926,7 +941,7 @@ void SearchLCBGaps( MatchList& new_matches, const std::vector< std::vector< int6
 	for( seqI = 0; seqI < seq_count; seqI++ )
 		delete gap_list.seq_table[ seqI ];
 
-	for( int delI = 0; delI < delete_files.size(); delI++ )	
+	for( size_t delI = 0; delI < delete_files.size(); delI++ )	
 		boost::filesystem::remove( delete_files[delI] );
 
 	new_matches.insert( new_matches.end(), gap_list.begin(), gap_list.end() );
@@ -1302,7 +1317,7 @@ void AlignLCBInParallel( bool collinear_genomes, mems::GappedAligner* gal, Match
 	vector<int> success(gapped_alns.size(), 0);
 	gnSeqI progress_base = apt.cur_leftend;
 //#pragma omp parallel for
-	for( int mI = 0; mI < mlist.size()-1; mI++ )
+	for( size_t mI = 0; mI < mlist.size()-1; mI++ )
 	{
 		// align the region between mI and mI+1
 		GappedAlignment ga(mlist.seq_table.size(),0);
@@ -1315,7 +1330,7 @@ void AlignLCBInParallel( bool collinear_genomes, mems::GappedAligner* gal, Match
 		{
 			// update and print progress
 			int done = 0;
-			for( int i = 0; i < gapped_alns.size(); i++ )
+			for( size_t i = 0; i < gapped_alns.size(); i++ )
 				if(gapped_alns[i] != NULL)
 					done++;
 //#pragma omp critical
@@ -2121,7 +2136,7 @@ void Aligner::RecursiveAnchorSearch( MatchList& mlist, gnSeqI minimum_weight, ve
 				IntervalList perm_iv_list;
 				perm_iv_list.seq_filename = mlist.seq_filename;
 				perm_iv_list.seq_table = mlist.seq_table;
-				for( int permI = 0; permI < LCB_list.size(); permI++ ){
+				for( size_t permI = 0; permI < LCB_list.size(); permI++ ){
 					vector< AbstractMatch* > perm_vector;
 					perm_vector.push_back( LCB_list[permI].front() );
 					if( LCB_list[permI].size() > 1 )
