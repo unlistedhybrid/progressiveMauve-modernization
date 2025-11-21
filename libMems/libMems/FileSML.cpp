@@ -6,7 +6,6 @@
  * **************
  ******************************************************************************/
 
-
 #include "libMems/FileSML.h"
 // for CreateTempFileName():
 #include "libMems/Aligner.h"
@@ -295,7 +294,7 @@ void FileSML::dmCreate(const gnSequence& seq, const uint64 seed){
 			throw "";
 		}
 		
-		for( int coordI = 0; coordI < seq_coords.size(); coordI+=2 ){
+		for( size_t coordI = 0; coordI < seq_coords.size(); coordI+=2 ){
 			coord_out << seq_coords[ coordI ] << '\t' << seq_coords[ coordI + 1 ] << endl;
 		}
 		coord_out.close();
