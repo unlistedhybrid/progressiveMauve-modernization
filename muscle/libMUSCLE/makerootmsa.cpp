@@ -1,3 +1,4 @@
+// makerootmsa.cpp
 #include "libMUSCLE/muscle.h"
 #include "libMUSCLE/tree.h"
 #include "libMUSCLE/seqvect.h"
@@ -10,6 +11,8 @@ namespace muscle {
 
 #define TRACE		0
 #define VALIDATE	0
+
+#if	VALIDATE
 
 static void PathSeq(const Seq &s, const PWPath &Path, bool bRight, Seq &sOut)
 	{
@@ -49,8 +52,6 @@ static void PathSeq(const Seq &s, const PWPath &Path, bool bRight, Seq &sOut)
 			}
 		}
 	}
-
-#if	VALIDATE
 
 static void MakeRootSeq(const Seq &s, const Tree &GuideTree, unsigned uLeafNodeIndex,
   const ProgNode Nodes[], Seq &sRoot)
@@ -227,4 +228,3 @@ void MakeRootMSA(const SeqVect &v, const Tree &GuideTree, ProgNode Nodes[],
 	assert(uSeqIndex == uSeqCount);
 	}
 }
-
