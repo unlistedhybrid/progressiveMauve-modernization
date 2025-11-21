@@ -112,9 +112,7 @@ set(PM_SRC
     mauveAligner/src/progressiveMauve.cpp
     mauveAligner/src/UniqueMatchFinder.cpp
     mauveAligner/src/AlignmentTree.cpp
-    mauveAligner/src/getopt.c
-    mauveAligner/src/getopt1.c
-    ${EXTRA_SRCS}  # win_getopt.cpp on Windows
+    ${EXTRA_SRCS}
 )
 
 # ------------------ EXECUTABLE: progressiveMauve ------------------
