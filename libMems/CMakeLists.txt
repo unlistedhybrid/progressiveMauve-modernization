@@ -26,7 +26,6 @@ set(LIBMEMS_SRC
     libMems/PairwiseMatchFinder.cpp
     libMems/ProgressiveAligner.cpp
     libMems/RepeatHash.cpp
-    # libMems/SlotAllocator.cpp  <-- REMOVED (does not exist)
     libMems/SortedMerList.cpp
     libMems/SuperInterval.cpp
     libMems/gnAlignedSequences.cpp
