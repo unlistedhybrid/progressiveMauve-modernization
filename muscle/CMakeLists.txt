@@ -71,7 +71,6 @@ set(MUSCLE_SRC
     libMUSCLE/msa.cpp
     libMUSCLE/msa2.cpp
     libMUSCLE/msadistkimura.cpp
-    libMUSCLE/msf.cpp
     libMUSCLE/muscle.cpp
     libMUSCLE/muscleout.cpp
     libMUSCLE/nucmx.cpp
