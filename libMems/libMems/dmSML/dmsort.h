@@ -70,21 +70,21 @@ enum dm_errors {
 };
 
 
-static buffer_t * AllocateFree( void );
-static int ComputeBinNumber( const unsigned char key[10] );
-static void DoBinning( void );
+buffer_t * AllocateFree( void );
+int ComputeBinNumber( const unsigned char key[10] );
+void DoBinning( void );
 void FinishBinning();
 offset_t CalculateDataReadSize( buffer_t* b );
-static void DoReading( void );
-static void HandleBinWriteCompletions( void );
-static void HandleSeqbufWriteCompletions( void );
+void DoReading( void );
+void HandleBinWriteCompletions( void );
+void HandleSeqbufWriteCompletions( void );
 
 #define ALPHA_BITS 2
 
-static void Translate32(uint32* dest, const char* src, const unsigned len);
+void Translate32(uint32* dest, const char* src, const unsigned len);
 
 void RestructureReadSMLBins( void );
-static void HandleReadingCompletions( void );
+void HandleReadingCompletions( void );
 int InitdmSML( long working_mb, long buffer_size, const char* input_filename, const char* output_filename, const char* const* scratch_paths, uint64 seed );
 void DisplayStatusHeader( void );
 void DisplayStatus( void );
