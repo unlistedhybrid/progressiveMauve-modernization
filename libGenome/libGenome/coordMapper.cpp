@@ -220,13 +220,11 @@ int main(int argc, char* argv[]){
 
         uint32 intronmapI = search_mapI;
 
-        for(; intronmapI >= 0; intronmapI--){
+        for(; intronmapI > 0; intronmapI--){
             if(!intron_map_list[intronmapI].Intersects(in_map_loc)){
                 intronmapI++;
                 break;
             }
-            if(intronmapI == 0)
-                break;
         }
 
         uint32 intron_mapEnd = search_mapI;
