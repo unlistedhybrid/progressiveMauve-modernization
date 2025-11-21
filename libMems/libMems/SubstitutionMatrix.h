@@ -103,4 +103,3 @@ void readSubstitutionMatrix( std::istream& is, score_t matrix[4][4] )
 }
 
 #endif // __SubstitutionMatrix_h__
-
