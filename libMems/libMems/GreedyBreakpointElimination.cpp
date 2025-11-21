@@ -222,7 +222,7 @@ uint RemoveLCBandCoalesce( size_t lcbI, uint seq_count, LcbVector& adjacencies, 
 				adjacencies[ left_adj ].left_adjacency[ seqJ ] != right_adj )
 				break;
 			// check that they are both in the same orientation
-			if( adjacencies[ right_adj ].left_end[ seqJ ] > 0 != j_orientation )
+			if( (adjacencies[ right_adj ].left_end[ seqJ ] > 0) != j_orientation )
 				break;
 		}
 
@@ -338,20 +338,23 @@ EvenFasterSumOfPairsBreakpointScorer::EvenFasterSumOfPairsBreakpointScorer(
 	size_t seqJ_end
 	) :
   bp_penalty( breakpoint_penalty ),
-  min_breakpoint_penalty( minimum_breakpoint_penalty ),
   bp_weights( bp_weight_matrix ), 
   conservation_weights( conservation_weight_matrix ),
   tracking_matches( tracking_match ),
   pairwise_adjacencies( pairwise_adjacency_matrix ),
   n1_des(n1_descendants),
   n2_des(n2_descendants),
-  tm_score_array(tm_score_array),
-  tm_lcb_id_array(tm_lcb_id_array),
+  pairwise_lcb_count(),
+  pairwise_lcb_score(),
+  deleted_tracking_matches(),
   seqI_count(pairwise_adjacencies.shape()[0]),
   seqJ_count(pairwise_adjacencies.shape()[1]),
+  min_breakpoint_penalty( minimum_breakpoint_penalty ),
+  tm_score_array(tm_score_array),
+  tm_lcb_id_array(tm_lcb_id_array),
   seqI_first(seqI_begin),
-  seqI_last(seqI_end),
   seqJ_first(seqJ_begin),
+  seqI_last(seqI_end),
   seqJ_last(seqJ_end),
   first_time(true)
 {
