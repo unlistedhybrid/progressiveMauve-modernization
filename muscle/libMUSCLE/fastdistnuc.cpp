@@ -221,8 +221,6 @@ void DistKmer4_6(const SeqVect &v, DistFunc &DF)
 	SetProgressDesc("K-mer dist pass 2");
 	for (unsigned uSeq1 = 0; uSeq1 < uSeqCount; ++uSeq1)
 		{
-		Seq &s1 = *(v[uSeq1]);
-
 		double dCommonTupleCount11 = uCommonTupleCount[uSeq1][uSeq1];
 		if (0 == dCommonTupleCount11)
 			dCommonTupleCount11 = 1;
@@ -265,3 +263,4 @@ void DistKmer4_6(const SeqVect &v, DistFunc &DF)
 	delete[] Letters;
 	}
 }
+
