@@ -139,7 +139,6 @@ void RefineW(const MSA &msaIn, MSA &msaOut)
         for (size_t seqI = 0; seqI < vr.size(); ++seqI)
             vr[seqI]->SetId(seqid_map[seqI]);
 
-        const unsigned uSeqCountOut = msaOut.GetSeqCount();
         const unsigned uColCount1 = msaOut.GetColCount();
         const unsigned uColCount2 = vr.size() > 1 ? msaTmp.GetColCount() : (vr.empty() ? 0 : vr[0]->size());
         for (unsigned seqI = 0; seqI < vr.size(); ++seqI)
@@ -175,7 +174,6 @@ void RefineW(const MSA &msaIn, MSA &msaOut)
         if (uWindowIndex == g_uSaveWindow.get())
         {
             MSA msaInTmp;
-            unsigned uOutCols = msaOut.GetColCount();
             unsigned un = uColTo - uColFrom + 1;
             MSAFromColRange(msaIn, uColFrom, un, msaInTmp);
 
@@ -266,3 +264,4 @@ void DoRefineW()
 }
 
 }
+
