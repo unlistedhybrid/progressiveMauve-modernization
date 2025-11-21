@@ -2,7 +2,6 @@
 #include "config.h"
 #endif
 
-
 #include "libMems/GreedyBreakpointElimination.h"
 #include "libMems/ProgressiveAligner.h"
 #include "libMems/Aligner.h"
@@ -46,8 +45,6 @@ void printProgress( uint prev_prog, uint cur_prog, ostream& os )
 		os.flush();
 	}
 }
-
-
 
 
 void getPairwiseLCBs( 
@@ -991,7 +988,5 @@ void GreedyRemovalScorer::remove( uint lcbI, vector< pair< double, size_t > >& n
 	}
 }
 
-
-
-
 }	// namespace mems
+
