@@ -1172,7 +1172,6 @@ bool gnAlignedSequences::constructNexusAlignedSequenceList(ifstream& alignmentFi
 			for (i=0; line[i] != ' '; i++)
 				sequenceName += line[i];
 				
-			const gnFilter* newFilter = gnFilter::fullDNASeqFilter();
 			string sequenceBases;
 			for(size_t i=sequenceName.size(); i < line.length(); i++){
 				if ( line[i] != '\r' && line[i] != '\n' && line[i] != ' ' )
@@ -1479,3 +1478,4 @@ bool gnAlignedSequences::coordinates(string line)
 }
 
 }
+
