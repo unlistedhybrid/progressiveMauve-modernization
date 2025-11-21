@@ -134,7 +134,7 @@ void findHssHomologyHMM( std::vector< std::string >& aln_table, hss_list_t& hss_
 	{
 		char a = charmap[static_cast<unsigned char>(aln_table[seqI][colI])];
 		char b = charmap[static_cast<unsigned char>(aln_table[seqJ][colI])];
-		column_states[colI] = colmap[a][b];
+		column_states[colI] = colmap[static_cast<unsigned char>(a)][static_cast<unsigned char>(b)];
 		if(column_states[colI] != 0 )
 			col_reference[refI++] = colI;
 	}
@@ -228,7 +228,6 @@ void HssColsToIslandCols( const MatchVector& iv_list, std::vector< genome::gnSeq
 	uint seq_count = seq_table.size();
 	island_col_array.resize( boost::extents[seq_count][seq_count][iv_list.size()] );
 	for( uint iv_listI = 0; iv_listI < iv_list.size(); iv_listI++ ){
-		const MatchType& iv = iv_list[ iv_listI ];
 		for( uint seqI = 0; seqI < seq_count; seqI++ ){
 			uint seqJ;
 			for( seqJ = seqI + 1; seqJ < seq_count; seqJ++ ){
@@ -388,7 +387,7 @@ void findBigGaps( const MatchVector& iv_list, std::vector< genome::gnSequence* >
 				{
 					if( aln_table[seqI][cI] == '-' || aln_table[seqJ][cI] == '-' )
 					{
-						if( aln_table[seqI][cI] == '-' ^ aln_table[seqJ][cI] == '-' )
+						if( (aln_table[seqI][cI] == '-') ^ (aln_table[seqJ][cI] == '-') )
 						{
 							if( gap_count == 0 )
 								gap_lend = cI;
