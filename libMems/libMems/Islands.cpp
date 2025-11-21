@@ -134,7 +134,7 @@ void simpleFindBackbone( IntervalList& iv_list, uint backbone_size, uint max_gap
 						// if the backbone meets size requirements in each
 						// sequence.
 						for( seqJ = 0; seqJ < seq_count; seqJ++ ){
-							if( ends[ seqJ ] - starts[ seqJ ] < backbone_size ){
+							if( ends[ seqJ ] - starts[ seqJ ] < static_cast<int64>(backbone_size) ){
 								break;
 							}
 						}
@@ -179,7 +179,7 @@ void simpleFindBackbone( IntervalList& iv_list, uint backbone_size, uint max_gap
 
 		// check for backbone one last time
 		for( seqJ = 0; seqJ < seq_count; seqJ++ ){
-			if( ends[ seqJ ] - starts[ seqJ ] < backbone_size ){
+			if( ends[ seqJ ] - starts[ seqJ ] < static_cast<int64>(backbone_size) ){
 				break;
 			}
 		}
@@ -261,21 +261,21 @@ void addUnalignedIntervals( IntervalList& iv_list, set< uint > seq_set, vector<g
 	for( seqI = 0; seqI < seq_count; seqI++ ){
 		rightmost.push_back( -1 );
 	}
-	for( lcbI = 0; lcbI <= adjacencies.size(); lcbI++ ){
+	for( lcbI = 0; lcbI <= static_cast<int>(adjacencies.size()); lcbI++ ){
 		set< uint >::iterator seq_set_iterator = seq_set.begin();
 		for( ; seq_set_iterator != seq_set.end(); seq_set_iterator++ ){
 			seqI = *seq_set_iterator;
 			// scan left
 			int leftI;
-			if( lcbI < adjacencies.size() ){
+			if( lcbI < static_cast<int>(adjacencies.size()) ){
 // left is always to the left!!
 				leftI = adjacencies[ lcbI ].left_adjacency[ seqI ];
 			}else
 				leftI = rightmost[ seqI ];
 
-			int rightI = lcbI < adjacencies.size() ? lcbI : -1;
+			int rightI = lcbI < static_cast<int>(adjacencies.size()) ? lcbI : -1;
 // right is always to the right!!
-			if( lcbI < adjacencies.size() )
+			if( lcbI < static_cast<int>(adjacencies.size()) )
 				if( adjacencies[ lcbI ].right_adjacency[ seqI ] == -1 )
 					rightmost[ seqI ] = lcbI;
 			
@@ -304,7 +304,7 @@ void findIslandsBetweenLCBs( IntervalList& iv_list, uint island_size, ostream& i
 	addUnalignedIntervals( iv_list_tmp );
 	uint seq_count = iv_list.seq_table.size();
 	
-	for( int ivI = iv_list.size(); ivI < iv_list_tmp.size(); ivI++ ){
+	for( int ivI = iv_list.size(); ivI < static_cast<int>(iv_list_tmp.size()); ivI++ ){
 		for( uint seqI = 0; seqI < seq_count; seqI++ ){
 			if( iv_list_tmp[ ivI ].Length( seqI ) < island_size )
 				continue;
