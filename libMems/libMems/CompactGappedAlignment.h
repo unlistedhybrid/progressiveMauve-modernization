@@ -343,8 +343,6 @@ gnSeqI CompactGappedAlignment<BaseType>::SeqPosToColumn( gnSeqI pos, const bitse
 template< class BaseType >
 void CompactGappedAlignment<BaseType>::translate( CompactGappedAlignment& cga, uint cga_seq, uint my_seq, bool add_bits ) // const
 {
-	AbstractMatch::orientation my_orient = this->Orientation(my_seq);
-
 	if( cga.Length(cga_seq)  > this->Length(my_seq) )
 	{
 		std::cerr << "Oh scheisskopf.  What are you trying to do to me??\n";
@@ -355,15 +353,10 @@ void CompactGappedAlignment<BaseType>::translate( CompactGappedAlignment& cga, u
 
 	gnSeqI prev_lend = cga.LeftEnd(cga_seq);
 	gnSeqI prev_len = cga.Length(cga_seq);
-	gnSeqI my_lend = this->LeftEnd(my_seq);
-	gnSeqI my_len = this->Length(my_seq);
-	gnSeqI my_count = 0;
-	uint seqI = 0;
 
 	// what assumptions should be made about cga?
 	// does it already have the correct left-end relative to this?
 	// no, it needs to have a left-end relative to the first aligned char in this
-	size_t cur_bit = 0;
 
 	// determine left_bit
 	size_t left_bit = this->SeqPosToColumn(cga.LeftEnd(cga_seq), align_matrix[my_seq], bcount[my_seq]);
@@ -613,8 +606,6 @@ void CompactGappedAlignment<BaseType>::CropRight(gnSeqI crop_amount, uint seqI)
 		return;
 
 	gnSeqI pre_len = this->Length(seqI);
-	gnSeqI pre_lend = this->LeftEnd(seqI);
-	gnSeqI pre_lend0 = this->LeftEnd(0);
 	if( this->Orientation(seqI) == AbstractMatch::forward )
 	{
 		// count "crop_amount" characters into seqI and crop there
@@ -799,7 +790,6 @@ void CompactGappedAlignment<BaseType>::CondenseGapColumns()
 	this->create_bitcount();
 }
 
-
 }
 
 namespace std {
@@ -811,4 +801,3 @@ void swap( mems::CompactGappedAlignment<>& a, mems::CompactGappedAlignment<>& b 
 }
 
 #endif // __CompactGappedAlignment_h__
-
