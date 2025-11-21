@@ -27,7 +27,7 @@ set(MEMS_MAIN_SRC
     libMems/twister.cpp
 )
 
-# dmSML subfolder sources [cite: 16, 17]
+# dmSML subfolder sources [cite: 16-18]
 set(MEMS_DMSML_SRC
     libMems/dmSML/alibc.cpp
     libMems/dmSML/aPOSIXaio.cpp
@@ -37,11 +37,11 @@ set(MEMS_DMSML_SRC
     libMems/dmSML/dmsort.cpp
     libMems/dmSML/sml.cpp
     libMems/dmSML/sorting.cpp
-    libMems/dmSML/timing.cpp
+    libMems/dmSML/timing.cpp 
     libMems/dmSML/util.cpp
 )
 
-# HomologyHMM subfolder sources [cite: 18, 19]
+# HomologyHMM subfolder sources [cite: 19]
 set(MEMS_HMM_SRC
     libMems/HomologyHMM/algebras.cpp
     libMems/HomologyHMM/homology.cpp
@@ -49,13 +49,18 @@ set(MEMS_HMM_SRC
 
 add_library(libMems STATIC ${MEMS_MAIN_SRC} ${MEMS_DMSML_SRC} ${MEMS_HMM_SRC})
 
-# Include paths for libMems and its submodules
 target_include_directories(libMems PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/libMems
 )
 
-# libMems depends on Genome and MUSCLE
+# SAFETY FIX: Add dmSML as a PRIVATE include.
+# This ensures that if libMems code does #include "timing.h", 
+# it finds its own version (dmSML/timing.h) before looking at libMUSCLE.
+target_include_directories(libMems PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/libMems/dmSML
+)
+
 target_link_libraries(libMems PUBLIC
     libGenome
     libMUSCLE
