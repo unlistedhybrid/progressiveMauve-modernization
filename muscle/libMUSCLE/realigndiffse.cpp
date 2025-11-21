@@ -71,10 +71,10 @@ void RealignDiffsE(const MSA &msaIn, const SeqVect &v,
 		if (!NewTree.IsLeaf(uNewNodeIndex))
 			{
 			unsigned uNewLeft = NewTree.GetLeft(uNewNodeIndex);
-			unsigned uNewRight = NewTree.GetRight(uNewNodeIndex);
+			[[maybe_unused]] unsigned uNewRight = NewTree.GetRight(uNewNodeIndex);
 			unsigned uOld = uNewNodeIndexToOldNodeIndex[uNewNodeIndex];
 			unsigned uOldLeft = OldTree.GetLeft(uOld);
-			unsigned uOldRight = OldTree.GetRight(uOld);
+			[[maybe_unused]] unsigned uOldRight = OldTree.GetRight(uOld);
 			assert(uOldLeft < uNodeCount && uOldRight < uNodeCount);
 			if (uOldLeft != uNewNodeIndexToOldNodeIndex[uNewLeft])
 				{
@@ -143,3 +143,4 @@ void RealignDiffsE(const MSA &msaIn, const SeqVect &v,
 	delete[] NewProgNodes;
 	}
 } 
+
