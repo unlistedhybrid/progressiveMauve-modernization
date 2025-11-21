@@ -52,8 +52,6 @@ namespace mems {
 bool progress_msgs = false;
 
 bool debug_me = false;
-static int dbg_count = 0; 	 
-
 
 double min_window_size = 200;
 double max_window_size = 20000;  // don't feed MUSCLE anything bigger than this
@@ -108,7 +106,6 @@ void print2d_matrix( BoostMatType& mat, std::ostream& os )
 
 double getDefaultBreakpointPenalty( std::vector< gnSequence* >& sequences )
 {
-	uint default_mer_size = MatchList::GetDefaultMerSize( sequences );
 	double avg_seq_len = 0;
 	for( size_t seqI = 0; seqI < sequences.size(); ++seqI )
 		avg_seq_len += (double)sequences[seqI]->length();
@@ -141,12 +138,12 @@ debug(false),
 refine(true),
 scoring_scheme(ExtantSumOfPairsScoring),
 use_weight_scaling(true),
-conservation_dist_scale(1),
+using_cache_db(true),
 bp_dist_scale(.9),
+conservation_dist_scale(1),
 max_gapped_alignment_length(20000),
 bp_dist_estimate_score(-1),
-use_seed_families(false),
-using_cache_db(true)
+use_seed_families(false)
 {
 	gapped_alignment = true;
 	max_window_size = max_gapped_alignment_length;
