@@ -11,16 +11,6 @@ extern SCOREMATRIX VTML_SP;
 // #define SUBST(i, j)	Subst(seqA, seqB, i, j)
 #define SUBST(i, j)		MxRowA[i][seqB.GetLetter(j)]
 
-static SCORE Subst(const Seq &seqA, const Seq &seqB, unsigned i, unsigned j)
-	{
-	assert(i < seqA.Length());
-	assert(j < seqB.Length());
-
-	unsigned uLetterA = seqA.GetLetter(i);
-	unsigned uLetterB = seqB.GetLetter(j);
-	return VTML_SP[uLetterA][uLetterB] + g_scoreCenter.get();
-	}
-
 struct DP_MEMORY
 	{
 	unsigned uLength;
