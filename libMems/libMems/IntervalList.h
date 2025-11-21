@@ -103,6 +103,7 @@ typedef GenericIntervalList<> IntervalList;
 
 template< class MatchType >
 GenericIntervalList<MatchType>::GenericIntervalList( const GenericIntervalList<MatchType>& ml )
+	: std::vector< MatchType >(ml)
 {
 	*this = ml;
 }
@@ -430,7 +431,7 @@ void GenericIntervalList<MatchType>::WriteStandardAlignment( std::ostream& out_f
 			out_file << std::endl;
 			gnSeqI cur_pos = 0;
 			for( ; cur_pos < alignment[ seqI ].length(); cur_pos += 80 ){
-				gnSeqI cur_len = cur_pos + 80 < alignment[ seqI ].length() ? 80 : alignment[ seqI ].length() - cur_pos;
+				gnSeqI cur_len = cur_pos + 80 < alignment[ seqI ].length() ? 80 : static_cast<gnSeqI>(alignment[ seqI ].length() - cur_pos);
 				out_file.write( alignment[ seqI ].data() + cur_pos, cur_len );
 				out_file << std::endl;
 			}
