@@ -26,7 +26,6 @@ using namespace std;
 using namespace genome;
 namespace mems {
 
-
 template< typename MatchVector >
 void getBpList( MatchVector& mvect, uint seq, vector< gnSeqI >& bp_list )
 {
@@ -137,7 +136,6 @@ void collapseCollinear( IntervalList& iv_list )
 	// now look for neighbor pair entries which can be merged
 	for( int d = -1; d < 2; d+= 2 )	// iterate over both directions
 	{
-		size_t unknown_count = 0;
 		for( size_t nI = 0; nI < neighbor_list.size(); ++nI )
 		{
 			size_t nayb = NEIGHBOR_UNKNOWN;
@@ -307,7 +305,7 @@ double computeGC( std::vector< gnSequence* >& seq_table )
 		std::string seq;
 		seq_table[seqI]->ToString( seq );
 		for( size_t cI = 0; cI < seq.size(); cI++  )
-			counts[ tab[ seq[cI] ] ]++;
+			counts[ static_cast<size_t>(tab[ static_cast<uint8_t>(seq[cI]) ]) ]++;
 	}
 	return double(counts[1]+counts[2]) / double(counts[1]+counts[2] + counts[0]+counts[3]);
 }
@@ -482,15 +480,15 @@ void mergePairwiseHomologyPredictions( 	vector< CompactGappedAlignment<>* >& iv_
 		{
 			for( size_t seqJ = seqI+1; seqJ < seq_count; ++seqJ )
 			{
-				vector< pair< size_t, size_t > >& cur_hss_cols = hss_cols[seqI][seqJ][ivI];
-				vector< ULA* > cur_ulas( cur_hss_cols.size() );
+				vector< pair< size_t, size_t > > cur_hss_cols_copy = hss_cols[seqI][seqJ][ivI];
+				vector< ULA* > cur_ulas( cur_hss_cols_copy.size() );
 				ULA tmp_ula(seq_count);
-				for( size_t hssI = 0; hssI < cur_hss_cols.size(); ++hssI )
+				for( size_t hssI = 0; hssI < cur_hss_cols_copy.size(); ++hssI )
 				{
 					cur_ulas[hssI] = tmp_ula.Copy();
-					cur_ulas[hssI]->SetStart(seqI, cur_hss_cols[hssI].first+1);
-					cur_ulas[hssI]->SetStart(seqJ, cur_hss_cols[hssI].first+1);
-					cur_ulas[hssI]->SetLength( cur_hss_cols[hssI].second - cur_hss_cols[hssI].first + 1 );
+					cur_ulas[hssI]->SetStart(seqI, cur_hss_cols_copy[hssI].first+1);
+					cur_ulas[hssI]->SetStart(seqJ, cur_hss_cols_copy[hssI].first+1);
+					cur_ulas[hssI]->SetLength( cur_hss_cols_copy[hssI].second - cur_hss_cols_copy[hssI].first + 1 );
 				}
 
 				vector< gnSeqI > iv_bp_list;
@@ -742,7 +740,7 @@ void unalignIslands( IntervalList& iv_list, vector< CompactGappedAlignment<>* >&
 				vector< size_t > id_map;
 				typedef boost::adjacency_list< boost::vecS, boost::vecS, boost::directedS, boost::property<boost::vertex_color_t, boost::default_color_type> > Graph;
 				typedef boost::graph_traits<Graph>::vertex_descriptor Vertex;
-				typedef std::pair< int, int > Pair;
+				typedef std::pair< size_t, size_t > Pair;
 				vector< Pair > edges;
 				for( size_t seqI = 0; seqI < seq_count; ++seqI )
 				{
@@ -752,7 +750,7 @@ void unalignIslands( IntervalList& iv_list, vector< CompactGappedAlignment<>* >&
 					int prev = -1;
 					int first = -1;
 					bool reverse = false;
-					for( int mI = 0; mI < cur_d_matches.size(); ++mI )
+					for( size_t mI = 0; mI < cur_d_matches.size(); ++mI )
 					{
 						if( cur_d_matches[mI]->LeftEnd(seqI) == NO_MATCH )
 							continue;
@@ -765,9 +763,9 @@ void unalignIslands( IntervalList& iv_list, vector< CompactGappedAlignment<>* >&
 						}else
 						{
 							reverse = cur_d_matches[mI]->Start(seqI) < 0;
-							first = mI;
+							first = static_cast<int>(mI);
 						}
-						prev = mI;
+						prev = static_cast<int>(mI);
 					}
 					if( prev != -1 && !reverse )
 						edges.push_back( Pair( id_map[prev], cur_d_matches.size() ) );
@@ -1008,7 +1006,7 @@ void addUniqueSegments( std::vector< bb_seqentry_t >& bb_seq_list, size_t min_le
 			if( bb_seq_list[bbI][sI].first == 0 )
 				continue;
 			int64 diff = genome::absolut(bb_seq_list[bbI][sI].first) - genome::absolut(bb_seq_list[bbI-1][sI].second); 
-			if( genome::absolut(diff) > min_length )
+			if( genome::absolut(diff) > static_cast<int64>(min_length) )
 			{
 				bb_seqentry_t newb( seq_count, make_pair( 0,0 ) );
 				newb[sI].first = genome::absolut(bb_seq_list[bbI-1][sI].second) + 1;
@@ -1040,7 +1038,7 @@ void mergeAdjacentSegments( std::vector< bb_seqentry_t >& bb_seq_list )
 			size_t j = 0;
 			for( ; j < seq_count; j++ )
 			{
-				if( bb_seq_list[bbI][j].first == 0 ^ bb_seq_list[bbI-1][j].first == 0)
+				if( (bb_seq_list[bbI][j].first == 0) != (bb_seq_list[bbI-1][j].first == 0))
 					break;
 				if( bb_seq_list[bbI][j].first == 0)
 					continue;
@@ -1169,7 +1167,7 @@ void writeBackboneSeqCoordinates( backbone_list_t& bb_list, IntervalList& iv_lis
 					{
 						swap( leftI, rightI );	// must be reverse complement
 					}
-					if( rightI + 1 == leftI )
+					if( static_cast<int64>(rightI) + 1 == leftI )
 					{
 						bb_out << "0\t0";
 						continue;
@@ -1184,7 +1182,7 @@ void writeBackboneSeqCoordinates( backbone_list_t& bb_list, IntervalList& iv_lis
 					}
 					if( leftI == 0 )
 						leftI = iv_cga.LeftEnd(seqI);
-					if( rightI == iv_cga.RightEnd(seqI)+1 )
+					if( rightI == static_cast<int64>(iv_cga.RightEnd(seqI))+1 )
 						rightI--;
 					if( iv_cga.Orientation(seqI) == AbstractMatch::reverse )
 					{
@@ -1198,6 +1196,5 @@ void writeBackboneSeqCoordinates( backbone_list_t& bb_list, IntervalList& iv_lis
 		}
 	}
 }
-
 
 }  // namespace mems
