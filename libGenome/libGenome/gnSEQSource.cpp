@@ -470,7 +470,8 @@ boolean gnSEQSource::ParseStream( istream& fin )
 					}else if((i - lineStart == SEQ_SUBTAG_COLUMN)||((buf[lineStart]=='	')&&(i==lineStart+1))){
 						sectionStart = i;
 						readState = 2;
-					} //
+					}
+					[[fallthrough]];
 				case 2:  //Get the feature name.  stop on whitespace
 					if((ch == ' ')||(ch == '	')){
 						string featureName(buf+sectionStart, i - sectionStart);
