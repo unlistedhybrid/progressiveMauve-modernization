@@ -467,7 +467,6 @@ void MSAAppend(MSA &msa1, const MSA &msa2)
 
 	const unsigned uColCount1 = msa1.GetColCount();
 	const unsigned uColCount2 = msa2.GetColCount();
-	const unsigned uColCountCat = uColCount1 + uColCount2;
 
 	for (unsigned uSeqIndex = 0; uSeqIndex < uSeqCount; ++uSeqIndex)
 	{
