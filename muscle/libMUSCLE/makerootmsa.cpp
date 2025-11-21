@@ -91,7 +91,6 @@ static short *MakeRootSeqE(const Seq &s, const Tree &GuideTree, unsigned uLeafNo
 			break;
 		bool bRight = (GuideTree.GetLeft(uParent) == uNodeIndex);
 		uNodeIndex = uParent;
-		const PWPath &Path = Nodes[uNodeIndex].m_Path;
 		const short *EstringNode = bRight ?
 		  Nodes[uNodeIndex].m_EstringL : Nodes[uNodeIndex].m_EstringR;
 
@@ -228,3 +227,4 @@ void MakeRootMSA(const SeqVect &v, const Tree &GuideTree, ProgNode Nodes[],
 	assert(uSeqIndex == uSeqCount);
 	}
 }
+
