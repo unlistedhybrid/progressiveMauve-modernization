@@ -60,7 +60,6 @@ char** parseCommand( const string& cmd ){
 	stringstream qs( cmd );
 	string cur_str;
 	bool in_quote = true;
-	int token_count = 0;
 	vector< string > cmd_tokens;
 	while( getline( qs, cur_str, '"' ) ){
 		// never start out in a quote
@@ -94,7 +93,7 @@ char** parseCommand( const string& cmd ){
 
 // unix pipelined execution code
 bool pipeExec( char** cmd_argv, [[maybe_unused]] const string& command, const string& input, string& output, [[maybe_unused]] string& error ){
-	int stdin_pipe[2], stdout_pipe[2], stderr_pipe[2];
+	int stdin_pipe[2], stdout_pipe[2];
 	bool success = false;
 	pid_t sid;
 	pid_t pid1;
@@ -108,7 +107,6 @@ bool pipeExec( char** cmd_argv, [[maybe_unused]] const string& command, const st
 	if((sid < 0 && (fail = "sid"))
 	 || (pipe(stdin_pipe) < 0 && (fail = "stdin"))
 	 || (pipe(stdout_pipe) < 0 && (fail = "stdout"))
-//	 || (pipe(stderr_pipe) < 0 && (fail = "stderr"))
 	)
     {
 		fprintf(stderr, "Ouch, the world just collapsed (%s).\n", fail);
@@ -120,9 +118,7 @@ bool pipeExec( char** cmd_argv, [[maybe_unused]] const string& command, const st
 	fcntl(stdin_pipe[1], F_SETFL, fcntl(stdin_pipe[1], F_GETFL) & ~O_NONBLOCK);
 	fcntl(stdout_pipe[0], F_SETFL, fcntl(stdout_pipe[0], F_GETFL) & ~O_NONBLOCK);
 	fcntl(stdout_pipe[1], F_SETFL, fcntl(stdout_pipe[1], F_GETFL) & ~O_NONBLOCK);
-/*	fcntl(stderr_pipe[0], F_SETFL, fcntl(stderr_pipe[0], F_GETFL) & ~O_NONBLOCK);
-	fcntl(stderr_pipe[1], F_SETFL, fcntl(stderr_pipe[1], F_GETFL) & ~O_NONBLOCK);
-*/	
+
 	if((pid1 = fork()) < 0)goto cleanup;	
 	if(pid1)
 		setpgid(pid1, sid);
@@ -130,13 +126,10 @@ bool pipeExec( char** cmd_argv, [[maybe_unused]] const string& command, const st
 	{
 		dup2(stdin_pipe[0], 0);
 		dup2(stdout_pipe[1], 1);
-//		dup2(stderr_pipe[1], 2);
 		close( stdin_pipe[0] );
 		close( stdin_pipe[1] );
 		close( stdout_pipe[0] );
 		close( stdout_pipe[1] );
-//		close( stderr_pipe[0] );
-//		close( stderr_pipe[1] );
 		execvp(cmd_argv[0], cmd_argv);
 		_exit(errno);
 	}
@@ -168,8 +161,6 @@ cleanup:
 	close(stdin_pipe[1]);
 	close(stdout_pipe[0]);
 	close(stdout_pipe[1]);
-//	close(stderr_pipe[0]);
-//	close(stderr_pipe[1]);
 	return success;
 };
 
@@ -623,14 +614,13 @@ try{
 		}
 
 		cr.SetAlignment( aln_mat );
-
 		return true;
 	}
 }catch(exception& e){
 	cerr << "At: " << __FILE__ << ":" << __LINE__ << endl;
 	cerr << e.what();
 }
-	return false;
+return false;
 }
 
 bool MuscleInterface::CallMuscle( vector< string >& aln_matrix, const vector< string >& seq_table )
@@ -1151,3 +1141,4 @@ void MuscleInterface::CreateTree( const NumericMatrix<double>& distances, const 
 
 
 }
+
