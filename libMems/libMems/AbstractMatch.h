@@ -272,7 +272,6 @@ public:
 			for(uint seqI = m_seq; seqI < m_count; seqI++){
 				gnSeqI a_start = a->Orientation(seqI) == AbstractMatch::forward ? a->LeftEnd( seqI ) : a->RightEnd( seqI );
 				gnSeqI b_start = b->Orientation(seqI) == AbstractMatch::forward ? b->LeftEnd( seqI ) : b->RightEnd( seqI );
-				int64 diff = a_start - b_start;
 				if(a_start == NO_MATCH || b_start == NO_MATCH)
 					continue;
 				else if(a_start == b_start)
@@ -357,3 +356,4 @@ private:
 }
 
 #endif // __AbstractMatch_h__
+
