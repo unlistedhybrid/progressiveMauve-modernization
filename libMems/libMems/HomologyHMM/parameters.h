@@ -59,7 +59,6 @@ inline
 Params getAdaptedHoxdMatrixParameters( double gc_content )
 {
 	Params params;
-    double s = 0.03028173853;
     double at_content = 1-gc_content;
     double norm_factor = 0.0;
 
