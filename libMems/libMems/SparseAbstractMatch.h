@@ -221,7 +221,7 @@ void SparseAbstractMatch< gnSeqIAlloc, uintAlloc >::MoveEnd(int64 move_amount)
 }
 
 template< class gnSeqIAlloc, class uintAlloc >
-boolean SparseAbstractMatch< gnSeqIAlloc, uintAlloc >::operator==( const SparseAbstractMatch< gnSeqIAlloc, uintAlloc >& sam ) const override
+boolean SparseAbstractMatch< gnSeqIAlloc, uintAlloc >::operator==( const SparseAbstractMatch< gnSeqIAlloc, uintAlloc >& sam ) const
 {
 	for( uint i=0; i < leftend.size(); ++i ){
 		if( leftend[i] != sam.leftend[i] ||
