@@ -230,13 +230,9 @@ void CompactGappedAlignment<BaseType>::SetAlignment( const std::vector< std::str
 	bcount = std::vector< std::vector<size_t> >( seq_align.size() );
 	for( size_t seqI = 0; seqI < seq_align.size(); seqI++ )
 	{
-		bool nonzero = false;
 		for( size_t charI = 0; charI < seq_align[seqI].size(); charI++ )
 			if( seq_align[seqI][charI] != '-' )
-			{
 				align_matrix[seqI].set(charI);
-				nonzero = true;
-			}
 	}
 	this->create_bitcount();
 }
@@ -815,3 +811,4 @@ void swap( mems::CompactGappedAlignment<>& a, mems::CompactGappedAlignment<>& b 
 }
 
 #endif // __CompactGappedAlignment_h__
+
