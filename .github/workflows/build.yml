@@ -1,0 +1,60 @@
+name: Debug Linux Build
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    # ----------------------------
+    # LINUX DEPENDENCIES
+    # ----------------------------
+    - name: Install dependencies
+      run: |
+        sudo apt update
+        # Must have libicu-dev for Boost::regex
+        sudo apt install -y cmake g++ wget libzstd-dev libbz2-dev zlib1g-dev pkg-config libicu-dev
+        
+        # Install Boost 1.89 manually
+        cd /tmp
+        wget https://github.com/boostorg/boost/releases/download/boost-1.89.0/boost-1.89.0-cmake.tar.gz
+        tar xzf boost-1.89.0-cmake.tar.gz
+        cd boost-1.89.0
+        mkdir build && cd build
+        cmake .. -DCMAKE_INSTALL_PREFIX=/usr/local -DBUILD_SHARED_LIBS=OFF
+        sudo cmake --build . --target install -j$(nproc)
+
+    # ----------------------------
+    # BUILD (Debug + Logging)
+    # ----------------------------
+    - name: Build
+      run: |
+        mkdir build
+        cd build
+        
+        # Enable warnings to catch issues
+        export CXXFLAGS="-Wall -Wextra -Wno-unused-parameter"
+        
+        # Configure for Debug to get symbols and detailed output capability
+        cmake .. -DCMAKE_BUILD_TYPE=Debug -DBoost_USE_STATIC_LIBS=ON
+        
+        # Build and pipe all output (stdout and stderr) to build_log.txt
+        cmake --build . --parallel 2>&1 | tee build_log.txt
+
+    # ----------------------------
+    # SAVE ARTIFACTS
+    # ----------------------------
+    - name: Stage Binaries
+      run: |
+        mkdir dist
+        cp build/progressiveMauve dist/
+        cp build/build_log.txt dist/
+
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: debug-linux-artifacts
+        path: dist/*
