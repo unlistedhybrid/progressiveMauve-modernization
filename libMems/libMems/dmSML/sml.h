@@ -18,36 +18,11 @@ typedef unsigned long long uint64;
 
 #endif
 
-static uint8* CreateBasicDNATable(){
-	uint8* bdt = (uint8*)malloc( sizeof(uint8) * UINT8_MAX );
-	memset(bdt, 0, UINT8_MAX);
-	bdt['c'] = 1;
-	bdt['C'] = 1;
-	bdt['b'] = 1;
-	bdt['B'] = 1;
-	bdt['y'] = 1;
-	bdt['Y'] = 1;
-	bdt['g'] = 2;
-	bdt['G'] = 2;
-	bdt['s'] = 2;
-	bdt['S'] = 2;
-	bdt['k'] = 2;
-	bdt['K'] = 2;
-	bdt['t'] = 3;
-	bdt['T'] = 3;
-	return bdt;
-}
-
-static uint8* DNA_TABLE;
 typedef unsigned position_t;
 typedef unsigned long long mask_t;
 #define MASK_T_BYTES 8
-static mask_t seed_mask = 0x7FFFFFFF;
-static int mask_length = 31;
-static int mask_weight = 31;
 
 #define DESCRIPTION_SIZE 2048	/**< Number of bytes for the freeform text description of an SML */
-
 
 typedef signed short sarID_t;
 
@@ -67,13 +42,11 @@ typedef struct SMLHeader_s{
 	char description[DESCRIPTION_SIZE]; /**< Freeform text description of sequence data -- 2048 bytes */
 } SMLHeader_t;
 
-
 typedef struct sml_s {
 		char key[8];
 		position_t pos;
 } sml_t;
 
 SMLHeader_t InitSML( aFILE* file, uint64 file_size, uint64 seed );
-
 
 #endif /* _sml_h_ */
