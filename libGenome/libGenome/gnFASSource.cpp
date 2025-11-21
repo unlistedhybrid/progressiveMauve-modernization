@@ -439,6 +439,7 @@ boolean gnFASSource::ParseStream( istream& fin )
 						return false; // NOT a .fas file
 					}
 					readState = 1;
+					[[fallthrough]];
 				case 1: // BRANCH
 					if( ch == '>' )
 					{
