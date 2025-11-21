@@ -16,7 +16,6 @@ set(MUSCLE_SRC
     libMUSCLE/seq.cpp
     libMUSCLE/seqvect.cpp
     libMUSCLE/textfile.cpp
-    libMUSCLE/timing.cpp # Note: check for collision if linking globally
 )
 
 add_library(libMUSCLE STATIC ${MUSCLE_SRC})
