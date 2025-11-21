@@ -430,8 +430,8 @@ void GenericIntervalList<MatchType>::WriteStandardAlignment( std::ostream& out_f
 				out_file << seq_filename[ seqI ];	// write the sequence filename as the seq name
 			out_file << std::endl;
 			gnSeqI cur_pos = 0;
-			for( ; cur_pos < alignment[ seqI ].length(); cur_pos += 80 ){
-				gnSeqI cur_len = cur_pos + 80 < alignment[ seqI ].length() ? 80 : static_cast<gnSeqI>(alignment[ seqI ].length() - cur_pos);
+			for( ; cur_pos < static_cast<gnSeqI>(alignment[ seqI ].length()); cur_pos += 80 ){
+				gnSeqI cur_len = cur_pos + 80 < static_cast<gnSeqI>(alignment[ seqI ].length()) ? 80 : static_cast<gnSeqI>(alignment[ seqI ].length() - cur_pos);
 				out_file.write( alignment[ seqI ].data() + cur_pos, cur_len );
 				out_file << std::endl;
 			}
