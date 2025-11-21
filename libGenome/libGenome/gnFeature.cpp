@@ -1,3 +1,4 @@
+// gnFeature.cpp
 /////////////////////////////////////////////////////////////////////////////
 // File:            gnFeature.cpp
 // Purpose:         implements the gnBaseFeature for generic features
@@ -36,6 +37,7 @@ gnFeature::gnFeature( string& name, uint32 id, gnLocation::gnLocationType lt, bo
 {
 }
 gnFeature::gnFeature( const gnFeature& s )
+ : gnBaseFeature(s)
 {
 	uint32 i;
 	m_id = s.m_id;
@@ -53,4 +55,3 @@ gnFeature::~gnFeature()
 }
 
 }	// end namespace genome
-
