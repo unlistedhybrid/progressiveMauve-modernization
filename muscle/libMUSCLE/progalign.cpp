@@ -40,7 +40,6 @@ ProgNode *ProgressiveAlignE(const SeqVect &v, const Tree &GuideTree, MSA &a)
 
 	const unsigned uSeqCount = v.Length();
 	const unsigned uNodeCount = 2*uSeqCount - 1;
-	const unsigned uIterCount = uSeqCount - 1;
 
 	WEIGHT *Weights = new WEIGHT[uSeqCount];
 	CalcClustalWWeights(GuideTree, Weights);
@@ -207,3 +206,4 @@ ProgNode *ProgressiveAlignE(const SeqVect &v, const Tree &GuideTree, MSA &a)
 	return ProgNodes;
 	}
 } 
+
