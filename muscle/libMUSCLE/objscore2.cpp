@@ -432,7 +432,6 @@ SCORE ObjScoreXP(const MSA &msa1, const MSA &msa2)
 		for (unsigned uSeqIndex2 = 0; uSeqIndex2 < uSeqCount2; ++uSeqIndex2)
 		{
 			const WEIGHT w2 = msa2.GetSeqWeight(uSeqIndex2);
-			const WEIGHT w = w1*w2;
 			SCORE scoreLetters = ScoreSeqPairLetters(msa1, uSeqIndex1, msa2, uSeqIndex2);
 			SCORE scoreGaps = ScoreSeqPairGaps(msa1, uSeqIndex1, msa2, uSeqIndex2);
 			SCORE scorePair = scoreLetters + scoreGaps;
@@ -468,3 +467,4 @@ SCORE ObjScoreSPDimer(const MSA &msa)
 }
 
 }
+
