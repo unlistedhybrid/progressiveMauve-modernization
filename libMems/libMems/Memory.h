@@ -3,7 +3,6 @@
 
 
 void printMemUsage();
-static bool debugging_memory = false;
 #include <iostream>
 
 #ifdef WIN32
@@ -12,9 +11,6 @@ static bool debugging_memory = false;
 inline
 void printMemUsage()
 {
-//	if(!debugging_memory)
-//		return;
-
 	DWORD proclist[500];
 	DWORD cbNeeded;
 	BOOL rval;
@@ -57,4 +53,5 @@ void printMemUsage()
 #endif
 
 #endif	//__libMems_Memory_h__
+
 
