@@ -302,14 +302,13 @@ template <class MatchVector>
 void EliminateOverlaps_v2( MatchVector& ml, const std::vector< uint >& seq_ids, bool eliminate_both = false ){
 	if( ml.size() < 2 )
 		return;
-	uint seq_count = ml[0]->SeqCount();
 	for( uint sidI = 0; sidI < seq_ids.size(); sidI++ ){
 		uint seqI = seq_ids[ sidI ];
 		mems::SingleStartComparator<mems::AbstractMatch> msc( seqI );
 		std::sort( ml.begin(), ml.end(), msc );
-		int64 matchI = 0;
-		int64 nextI = 0;
-		int64 deleted_count = 0;
+		size_t matchI = 0;
+		size_t nextI = 0;
+		size_t deleted_count = 0;
 		MatchVector new_matches;
 
 		// scan forward to first defined match
@@ -348,7 +347,7 @@ void EliminateOverlaps_v2( MatchVector& ml, const std::vector< uint >& seq_ids, 
 					// mem_iter is smaller
 					new_match = ml[matchI]->Copy();
 					// erase base pairs from new_match
-					if( diff >= lenI ){
+					if( diff >= static_cast<int64>(lenI) ){
 //							cerr << "Deleting " << **mem_iter << " at the hands of\n" << **next_iter << endl;
 						ml[ matchI ]->Free();
 						ml[ matchI ] = NULL;
@@ -366,7 +365,7 @@ void EliminateOverlaps_v2( MatchVector& ml, const std::vector< uint >& seq_ids, 
 					// match_iter is smaller
 					new_match = ml[nextI]->Copy();
 					// erase base pairs from new_match
-					if( diff >= ml[ nextI ]->Length(seqI) ){
+					if( diff >= static_cast<int64>(ml[ nextI ]->Length(seqI)) ){
 //							cerr << "Deleting " << **next_iter << " at the hands of\n" << **mem_iter << endl;
 						ml[ nextI ]->Free();
 						ml[ nextI ] = NULL;
