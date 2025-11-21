@@ -51,7 +51,7 @@ void simpleFindIslands( IntervalList& iv_list, uint island_size, vector< Island 
 				gnSeqI curJ = 0;
 				gnSeqI lastI = 0;
 				gnSeqI lastJ = 0;
-				for( columnI = 0; columnI < gnas.alignedSeqsSize(); columnI++ ){
+				for( columnI = 0; columnI < static_cast<uint>(gnas.alignedSeqsSize()); columnI++ ){
 					if( gnas.sequences[ seqI ][ columnI ] != '-' )
 						curI++;
 					if( gnas.sequences[ seqJ ][ columnI ] != '-' )
@@ -60,8 +60,8 @@ void simpleFindIslands( IntervalList& iv_list, uint island_size, vector< Island 
 						toupper( gnas.sequences[ seqJ ][ columnI ] ) &&
 						gnas.sequences[ seqJ ][ columnI ] != '-' ){
 						// check for an island that was big enough
-						if( curI - lastI > island_size ||
-							curJ - lastJ > island_size ){
+						if( curI - lastI > static_cast<gnSeqI>(island_size) ||
+							curJ - lastJ > static_cast<gnSeqI>(island_size) ){
 							int64 leftI = iv.Start( seqI );
 							int64 rightI = leftI < 0 ? leftI - curI : leftI + curI;
 							leftI = leftI < 0 ? leftI - lastI : leftI + lastI;
@@ -123,7 +123,7 @@ void simpleFindBackbone( IntervalList& iv_list, uint backbone_size, uint max_gap
 		bool backbone = true;	// assume we are starting out with a complete alignment column
 		uint columnI = 0;
 		vector< int64 > prev_positions;
-		for( ; columnI < gnas.alignedSeqsSize(); columnI++ ){
+		for( ; columnI < static_cast<uint>(gnas.alignedSeqsSize()); columnI++ ){
 			bool no_gaps = true;
 			prev_positions = positions;
 			for( seqI = 0; seqI < seq_count; seqI++ ){
@@ -306,7 +306,7 @@ void findIslandsBetweenLCBs( IntervalList& iv_list, uint island_size, ostream& i
 	
 	for( int ivI = iv_list.size(); ivI < static_cast<int>(iv_list_tmp.size()); ivI++ ){
 		for( uint seqI = 0; seqI < seq_count; seqI++ ){
-			if( iv_list_tmp[ ivI ].Length( seqI ) < island_size )
+			if( iv_list_tmp[ ivI ].Length( seqI ) < static_cast<gnSeqI>(island_size) )
 				continue;
 
 			// this is an island, write the LCB island out
