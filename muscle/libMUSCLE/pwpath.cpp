@@ -78,7 +78,6 @@ void PWPath::Validate() const
 	if (0 == uEdgeCount)
 		return;
 	const PWEdge &FirstEdge = GetEdge(0);
-	const PWEdge &LastEdge = GetEdge(uEdgeCount - 1);
 	unsigned uStartA = FirstEdge.uPrefixLengthA;
 	unsigned uStartB = FirstEdge.uPrefixLengthB;
 	if (FirstEdge.cType != 'I')
@@ -211,7 +210,6 @@ void PWPath::FromFile(TextFile &File)
 		Quit("Invalid path file (edges value)");
 
 	const unsigned uEdgeCount = (unsigned) atoi(szToken);
-	unsigned uEdgeIndex = 0;
 	for (unsigned uEdgeIndex = 0; uEdgeIndex < uEdgeCount; ++uEdgeIndex)
 		{
 	// index
@@ -387,3 +385,4 @@ void PWPath::FromStr(const char Str[])
 		}
 	}
 } 
+
