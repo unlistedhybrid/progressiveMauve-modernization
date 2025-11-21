@@ -1,3 +1,5 @@
+# -------- libMems FIXED CMakeLists.txt --------
+
 set(LIBMEMS_SRC
     libMems/Aligner.cpp
     libMems/Backbone.cpp
@@ -24,7 +26,7 @@ set(LIBMEMS_SRC
     libMems/PairwiseMatchFinder.cpp
     libMems/ProgressiveAligner.cpp
     libMems/RepeatHash.cpp
-    libMems/SlotAllocator.cpp
+    # libMems/SlotAllocator.cpp  <-- REMOVED (does not exist)
     libMems/SortedMerList.cpp
     libMems/SuperInterval.cpp
     libMems/gnAlignedSequences.cpp
@@ -51,8 +53,7 @@ target_include_directories(libMems PUBLIC
     ${PROJECT_SOURCE_DIR}/muscle
 )
 
-# Link against our robust BoostInterface
-target_link_libraries(libMems PUBLIC 
+target_link_libraries(libMems PUBLIC
     libGenome
     BoostInterface
 )
