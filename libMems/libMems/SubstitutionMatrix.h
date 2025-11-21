@@ -64,12 +64,6 @@ public:
 	}
 };
 
-static PairwiseScoringScheme& getDefaultScoringScheme()
-{
-	static PairwiseScoringScheme pss( hoxd_matrix, default_gap_open, default_gap_extend );
-	return pss;
-}
-
 void readSubstitutionMatrix( std::istream& is, score_t matrix[4][4] );
 
 inline
@@ -109,3 +103,4 @@ void readSubstitutionMatrix( std::istream& is, score_t matrix[4][4] )
 }
 
 #endif // __SubstitutionMatrix_h__
+
