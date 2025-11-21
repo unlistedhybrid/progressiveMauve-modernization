@@ -1,6 +1,3 @@
-# muscle/CMakeLists.txt
-
-# Sources in libMUSCLE subfolder [cite: 21-25]
 set(MUSCLE_SRC
     libMUSCLE/alpha.cpp
     libMUSCLE/clust.cpp
@@ -21,5 +18,6 @@ set(MUSCLE_SRC
 add_library(libMUSCLE STATIC ${MUSCLE_SRC})
 
 target_include_directories(libMUSCLE PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/libMUSCLE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/libMUSCLE # Optional: Added just in case some files omit the prefix
 )
