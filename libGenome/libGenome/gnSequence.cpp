@@ -220,7 +220,7 @@ void gnSequence::erase( const gnSeqI offset, const gnSeqI len ){
 
 		gnGenomeSpec* tmpSpec = spec->CloneRange(endBase, GNSEQI_END);
 		spec->CropEnd(current_length - startBase);
-		lennard = length();
+		uint32 lennard = length();
 		insert(GNSEQI_END, *tmpSpec);
 		delete tmpSpec;
 	STACK_TRACE_END
