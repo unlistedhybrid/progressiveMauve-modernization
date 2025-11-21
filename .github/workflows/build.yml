@@ -50,10 +50,7 @@ jobs:
     - name: Stage Binaries
       run: |
         mkdir dist
-        # Copy Executables
         cp build/progressiveMauve dist/
-        cp build/mauveAligner dist/
-        # Copy Debug Log
         cp build/build_log.txt dist/
 
     - name: Upload Artifacts
