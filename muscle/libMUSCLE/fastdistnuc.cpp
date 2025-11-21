@@ -85,16 +85,6 @@ static void CountTuples(const unsigned L[], unsigned uTupleCount, unsigned char 
 		}
 	}
 
-static void ListCount(const unsigned char Count[])
-	{
-	for (unsigned n = 0; n < TUPLE_COUNT; ++n)
-		{
-		if (0 == Count[n])
-			continue;
-		Log("%s  %u\n", TupleToStr(n), Count[n]);
-		}
-	}
-
 void DistKmer4_6(const SeqVect &v, DistFunc &DF)
 	{
 	if (ALPHA_DNA != g_Alpha.get() && ALPHA_RNA != g_Alpha.get())
@@ -263,4 +253,5 @@ void DistKmer4_6(const SeqVect &v, DistFunc &DF)
 	delete[] Letters;
 	}
 }
+
 
