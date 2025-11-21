@@ -17,30 +17,6 @@ static const char *LocalScoreToStr(SCORE s)
 	return str.get();
 }
 
-static void ListDP(const SCORE *DPM_, const ProfPos *PA, const ProfPos *PB,
-  unsigned uPrefixCountA, unsigned uPrefixCountB)
-{
-	Log("        ");
-	for (unsigned uPrefixLengthB = 0; uPrefixLengthB < uPrefixCountB; ++uPrefixLengthB)
-	{
-		char c = ' ';
-		if (uPrefixLengthB > 0)
-			c = ConsensusChar(PB[uPrefixLengthB - 1]);
-		Log(" %4u:%c", uPrefixLengthB, c);
-	}
-	Log("\n");
-	for (unsigned uPrefixLengthA = 0; uPrefixLengthA < uPrefixCountA; ++uPrefixLengthA)
-	{
-		char c = ' ';
-		if (uPrefixLengthA > 0)
-			c = ConsensusChar(PA[uPrefixLengthA - 1]);
-		Log("%4u:%c  ", uPrefixLengthA, c);
-		for (unsigned uPrefixLengthB = 0; uPrefixLengthB < uPrefixCountB; ++uPrefixLengthB)
-			Log(" %s", LocalScoreToStr(DPM(uPrefixLengthA, uPrefixLengthB)));
-		Log("\n");
-	}
-}
-
 SCORE SW(const ProfPos *PA, unsigned uLengthA, const ProfPos *PB,
   unsigned uLengthB, PWPath &Path)
 {
@@ -187,3 +163,4 @@ SCORE SW(const ProfPos *PA, unsigned uLengthA, const ProfPos *PB,
 }
 
 }
+
