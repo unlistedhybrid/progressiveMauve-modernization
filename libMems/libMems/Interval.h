@@ -1,958 +1,842 @@
 /*******************************************************************************
- * $Id: GenericInterval.h,v 1.4 2004/03/01 02:40:08 darling Exp $
+ * $Id: GenericIntervalList.h,v 1.6 2004/03/01 02:40:08 darling Exp $
  * This file is copyright 2002-2007 Aaron Darling and authors listed in the AUTHORS file.
  * This file is licensed under the GPL.
  * Please see the file called COPYING for licensing details.
  * **************
  ******************************************************************************/
 
-#ifndef __Interval_h__
-#define __Interval_h__
+#ifndef _IntervalList_h_
+#define _IntervalList_h_
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
 
-#include "libGenome/gnClone.h"
-#include "libGenome/gnDebug.h"
-#include "libMems/SparseAbstractMatch.h"
-#include "libMems/gnAlignedSequences.h"
-#include "libMems/AbstractGappedAlignment.h"
-#include "libMems/Match.h"
-#include "libMems/GappedAlignment.h"
 #include <iostream>
-#include <vector>
-#include "libMems/twister.h"
+#include <list>
+#include <sstream>
 
-//#include "boost/pool/object_pool.hpp"
+#include "libMems/SortedMerList.h"
+#include "libGenome/gnSequence.h"
+#include "libMems/Interval.h"
+#include "libMems/MemHash.h"
+#include "libMems/CompactGappedAlignment.h"
+#include "libGenome/gnSourceFactory.h"
+#include "libGenome/gnFASSource.h"
+#include "libGenome/gnSEQSource.h"
+#include "libGenome/gnGBKSource.h"
+#include "libGenome/gnRAWSource.h"
 
 namespace mems {
 
-// adapter function to allow inserts on reverse iterators
-template< typename ListType, typename RanIt, typename Ty >
-void insert( ListType& the_list, std::reverse_iterator<RanIt>& riter, Ty& val )
-{
-	the_list.insert( riter.base(), val );
-	++riter;	// need to shift riter
-}
-template< typename ListType, typename Ty >
-void insert( ListType& the_list, const typename ListType::iterator& iter, Ty& val )
-{
-	the_list.insert( iter, val );
-}
-
-
-template< class GappedBaseImpl = AbstractGappedAlignment< SparseAbstractMatch<> > >
-class GenericInterval : public GappedBaseImpl
-{
+/**
+ * This class represents a set Intervals, each of which is a collinear aligned region
+ * There are functions to read and write an GenericIntervalList.
+ * @see Interval
+ */
+template< class MatchType = Interval >
+class GenericIntervalList : public std::vector< MatchType > {
 public:
-	GenericInterval(){};
-
-//	GenericInterval( uint seq_count, gnSeqI aln_length) : GappedBaseImpl( seq_count, aln_length ){};
-
-	/** construct from a MatchList or a vector of pointers to AbstractMatches */
-	template<typename BidIt>
-	GenericInterval( BidIt it_begin, const BidIt& it_end ) : GappedBaseImpl( (*it_begin)->SeqCount(), 0 )
-	{
-		std::vector<gnSeqI> pos((*it_begin)->SeqCount(), NO_MATCH);
-		for( ; it_begin != it_end; ++it_begin )
-			this->matches.push_back( (*it_begin)->Copy() );
-		CalculateOffset();
-		addUnalignedRegions();
-		CalculateAlignmentLength();
-		ValidateMatches();
-	}
-
-	GenericInterval( const GenericInterval& iv );
-	~GenericInterval();
-	GenericInterval& operator=( const GenericInterval& iv );
+	GenericIntervalList(){};
+	GenericIntervalList( const GenericIntervalList& ml );
+	GenericIntervalList& operator=( const GenericIntervalList& ml );
 	
-	GenericInterval* Clone() const;
-	GenericInterval* Copy() const;
-	virtual void Free();
-	
-	/** Set the matches in this interval *without* making a copy.  The GenericInterval takes ownership of matches */
-	template< class MatchVector >
-	void SetMatches( MatchVector& matches )
-	{
-		// Set the SeqCount and other bits
-		Match m( matches[0]->SeqCount() );
-		std::vector<AbstractMatch*> tmp(1, &m);
-		*this = GenericInterval( tmp.begin(), tmp.end() );
-
-		// then delete the allocated dummy match
-		for( std::size_t mI = 0; mI < this->matches.size(); mI++ )
-			this->matches[mI]->Free();
-		
-		// now set the matches and update the interval data
-		this->matches.resize(matches.size());
-		std::copy(matches.begin(), matches.end(), this->matches.begin());
-//		this->matches.insert( this->matches.end(), matches.begin(), matches.end() );
-		CalculateOffset();
- 	    addUnalignedRegions();
-		CalculateAlignmentLength();
-		ValidateMatches();
-
-		// finally, clear the user supplied matches to indicate that we own the memory
-		matches.clear();
-	}
-
-	/** Set the matches in this interval *without* cloberring the interval.*/
-	template< class MatchVector >
-	void SetMatchesTemp( MatchVector& matches )
-	{
-		// Set the SeqCount and other bits
-		Match m( matches[0]->SeqCount() );
-		std::vector<AbstractMatch*> tmp(1, &m);
-		*this = GenericInterval( tmp.begin(), tmp.end() );
-
-		// then delete the allocated dummy match
-		for( std::size_t mI = 0; mI < this->matches.size(); mI++ )
-			this->matches[mI]->Free();
-		
-		// now set the matches and update the interval data
-		this->matches.resize(matches.size());
-		std::copy(matches.begin(), matches.end(), this->matches.begin());
-		CalculateOffset();
-		CalculateAlignmentLength();
-		ValidateMatches();
-
-		// finally, clear the user supplied matches to indicate that we own the memory
-		matches.clear();
-	}
 	/**
-	 * Writes this GenericInterval to the specified output stream (e.g. cout).
+	 * Deletes the objects associated
+	 * with this GenericIntervalList.
 	 */
-	template<typename BaseImpl> friend std::ostream& operator<<(std::ostream& os, const GenericInterval<BaseImpl>& iv); //write to source.
+	void Clear();
 
 	/**
-	 * Reads a GenericInterval from the specified input stream (e.g. cin).
+	 * Reads a GenericIntervalList from an input stream
+	 * Sequence and SML file names are read into the seq_filename
+	 * and sml_filename vectors, but the actual files are not
+	 * opened.  The calling function should load them after
+	 * using this method.
+	 * @param match_stream The input stream to read from
 	 */
-	template<typename BaseImpl> friend std::istream& operator>>(std::istream& is, const GenericInterval<BaseImpl>& iv); //read from source
+	void ReadList( std::istream& match_stream );
 
-	// Inherited methods from AbstractMatch:
-	void Invert();
-	void CropStart(gnSeqI crop_amount);
-	void CropEnd(gnSeqI crop_amount);
-	void MoveStart(int64 move_amount);
-	void MoveEnd(int64 move_amount);
-
-	virtual void CalculateOffset();
-
-	void add( AbstractMatch* am ){ matches.push_back( am->Copy() ); }
-	
-	/** 
-	 * Get a gnAlignedSequences object
-	 * TODO: get rid of this
+	/**
+	 *  Writes a GenericIntervalList to the designated output stream
+	 * @param match_stream The outptu stream to write to
 	 */
-	virtual void GetAlignedSequences( gnAlignedSequences& gnas, const std::vector< genome::gnSequence* >& seq_table ) const;
-
-	void GetAlignment( std::vector< bitset_t >& align_matrix ) const;
-
-	void CropLeft( gnSeqI amount, uint seqI );
-	void CropRight( gnSeqI amount, uint seqI );
-
-	void SetAlignment( const std::vector< std::string >& seq_align );
-
-	// TODO: get rid of code that uses this hack...
-	const std::vector<AbstractMatch*>& GetMatches() const{ return matches; }
-	void StealMatches( std::vector<AbstractMatch*>& matches );
-
-	/** marbles the gaps so that no sequence has more than "size" contiguous gaps */
-	void Marble( gnSeqI size );
-
-	void GetColumn( gnSeqI col, std::vector<gnSeqI>& pos, std::vector<bool>& column ) const;
+	void WriteList( std::ostream& match_stream ) const;
 	
-	bool IsGap( uint seq, gnSeqI col ) const;
+	/**
+	 *  Writes a gapped alignment of sequences to the output stream
+	 */
+	void WriteAlignedSequences(std::ostream& match_file) const;
+	
+	/**
+	 *	Writes a gapped alignment of sequences in a standard format
+	 */
+	void WriteStandardAlignment( std::ostream& out_file ) const;
 
-	/** self test code */
-	void ValidateMatches() const;
+    /**
+	 *	Writes a gapped alignment of sequences in xml format
+	 */
+    void WriteXMLAlignment( std::ostream& out_file ) const;
+	
+	/**
+	 * Reads in a set of intervals that are in xmfa (eXtended MultiFastA) format
+	 */
+	void ReadStandardAlignment( std::istream& in_stream );
 
-	void swap( GenericInterval& other ){ swap(&other); }
+	/**
+	 * Reads in a set of intervals that are in xmfa (eXtended MultiFastA) format
+	 * and stores them in CompactGappedAlignments<>
+	 */
+	void ReadStandardAlignmentCompact( std::istream& in_stream );
+	
+	std::vector<std::string> seq_filename;	/**< The names of files associated with the sequences used by this alignment */
+	std::vector<genome::gnSequence*> seq_table;	/**< The actual sequences used in this alignment */
 
+	std::string backbone_filename;	/**< The name of an associated backbone file, or empty if none exists */
 protected:
-	// for use by derived classes in order to swap contents
-	void swap( GenericInterval* other ){
-		std::swap( matches, other->matches );
-		GappedBaseImpl::swap( other );
-	}
-	std::vector< AbstractMatch* > matches;
-private:
-	void addUnalignedRegions();
-	void FindMatchPos( uint seqI, gnSeqI pos, size_t& matchI, gnSeqI& match_pos );
-	void GetColumnAndMatch( gnSeqI col, std::vector<gnSeqI>& pos, std::vector<bool>& column, size_t& matchI, gnSeqI& match_col ) const;
-	void CalculateAlignmentLength();
+
 };
 
-typedef GenericInterval<> Interval;
 
+typedef GenericIntervalList<> IntervalList;
 
-template<class GappedBaseImpl>
-GenericInterval<GappedBaseImpl>* GenericInterval<GappedBaseImpl>::Copy() const
+template< class MatchType >
+GenericIntervalList<MatchType>::GenericIntervalList( const GenericIntervalList<MatchType>& ml )
+	: std::vector< MatchType >(ml)
 {
-	return m_allocateAndCopy( *this );
-}
-template<class GappedBaseImpl>
-void GenericInterval<GappedBaseImpl>::Free()
-{
-	m_free(this);
+	*this = ml;
 }
 
-template<class GappedBaseImpl>
-GenericInterval<GappedBaseImpl>::~GenericInterval()
+template< class MatchType >
+GenericIntervalList<MatchType>& GenericIntervalList<MatchType>::operator=( const GenericIntervalList<MatchType>& ml )
 {
-	for( std::size_t mI = 0; mI < matches.size(); mI++ )
-		matches[mI]->Free();
-}
-
-template<class GappedBaseImpl>
-void GenericInterval<GappedBaseImpl>::StealMatches( std::vector<AbstractMatch*>& matches ){
-	matches = this->matches;
-	this->matches.clear();
-	for( uint seqI = 0; seqI < this->SeqCount(); seqI++ )
-	{
-		this->SetLeftEnd( seqI, NO_MATCH );
-		this->SetLength( 0, seqI );
-	}
-	this->SetAlignmentLength(0);
-}
-
-template<class GappedBaseImpl>
-GenericInterval<GappedBaseImpl>::GenericInterval( const GenericInterval<GappedBaseImpl>& iv ) : GappedBaseImpl(iv)
-{
-	*this = iv;
-}
-
-template<class GappedBaseImpl>
-GenericInterval<GappedBaseImpl>& GenericInterval<GappedBaseImpl>::operator=( const GenericInterval& iv )
-{
-	GappedBaseImpl::operator=( iv );
-	for( std::size_t mI = 0; mI < matches.size(); mI++ )
-		matches[mI]->Free();
-	matches.clear();
-	for( std::size_t mI = 0; mI < iv.matches.size(); mI++ )
-		matches.push_back( iv.matches[mI]->Copy() );
+	std::vector< MatchType >::operator=( ml );
+	seq_filename = ml.seq_filename;
+	seq_table = ml.seq_table;
 	return *this;
 }
 
-template<class GappedBaseImpl>
-GenericInterval<GappedBaseImpl>* GenericInterval<GappedBaseImpl>::Clone() const 
+template< class MatchType >
+void GenericIntervalList<MatchType>::Clear() 
 {
-	return new GenericInterval( *this );
+	for( uint seqI = 0; seqI < seq_table.size(); seqI++ ){
+		if( seq_table[ seqI ] != NULL )
+			delete seq_table[ seqI ];
+	}
+	seq_filename.clear();
+	this->clear();
 }
 
-
-static bool debug_interval = false;
-
-template<class GappedBaseImpl>
-void GenericInterval<GappedBaseImpl>::ValidateMatches() const
+template< class MatchType >
+void GenericIntervalList<MatchType>::ReadList(std::istream& match_file)
 {
-	if( !debug_interval )
-		return;
-	if( matches.size() == 0 )
-	{
-//		genome::breakHere();
-//		std::cerr << "iv has no matches\n";
-		return;
+	std::string tag;
+	gnSeqI len;
+	int64 start;
+	unsigned int seq_count;
+	uint seqI;
+	
+	match_file >> tag;	//format version tag
+	if( tag != "FormatVersion" ){
+		Throw_gnEx(InvalidFileFormat());
 	}
-	for( uint seqI = 0; seqI < matches[0]->SeqCount(); ++seqI )
-	{
-		gnSeqI prev_rend = this->LeftEnd(seqI);
-		if( this->Orientation(seqI) == AbstractMatch::forward )
-		{
-			for( size_t mI = 0; mI < matches.size(); ++mI )
-			{
-				if( matches[mI]->LeftEnd(seqI) != NO_MATCH )
-				{
-					if( prev_rend != matches[mI]->LeftEnd(seqI) )
-					{
-						std::cerr << "iv broken\n";
-						std::cerr << "seqI: " << seqI << "\t prev_rend: " << prev_rend << std::endl;
-						std::cerr << "mI: " << mI << "\tlend: " << matches[mI]->LeftEnd(seqI) << std::endl;
-						genome::breakHere();
-					}
-					prev_rend = matches[mI]->RightEnd(seqI) + 1;
-				}
-			}
-		}else if( this->Orientation(seqI) == AbstractMatch::reverse )
-		{
-			for( size_t mI = matches.size(); mI > 0; mI-- )
-			{
-				if( matches[mI-1]->LeftEnd(seqI) != NO_MATCH )
-				{
-					if( prev_rend != matches[mI-1]->LeftEnd(seqI) )
-					{
-						std::cerr << "iv broken 2\n";
-						genome::breakHere();
-					}
-					prev_rend = matches[mI-1]->RightEnd(seqI) + 1;
-				}
-			}
-		}
+	match_file >> tag;	//format version
+	if( tag != "4" ){
+		Throw_gnEx(InvalidFileFormat());
+	}
+	match_file >> tag;	//sequence count tag
+	if( tag != "SequenceCount" ){
+		Throw_gnEx(InvalidFileFormat());
+	}
+	match_file >> seq_count;	//sequence count
+	if(seq_count < 2){
+		Throw_gnEx(InvalidFileFormat());
+	}
+	
+	std::vector< std::string > alignment;
+	// read the sequence file names and lengths
+	for( seqI = 0; seqI < seq_count; seqI++ ){
+		match_file >> tag;	// name tag
+		getline( match_file, tag );
+		// skip the tab character
+		tag = tag.substr( 1 );
+		seq_filename.push_back(tag);
+//		try{
+//			gnSequence *new_seq = new gnSequence();
+//			new_seq->LoadSource(tag);
+//			seq_table.push_back( new_seq );
+//		}catch( gnException& gne );
+		match_file >> tag;	// length tag
+		match_file >> tag;	// length
 
-		if( this->Orientation(seqI) != AbstractMatch::undefined && this->Length(seqI) == 0 )
-		{
-			genome::breakHere();
-			std::cerr << "ERROR: confused interval\n";
+		alignment.push_back( "" );	// initialize alignment vector
+	}
+	uint interval_count;
+	match_file >> tag;	// interval count tag
+	match_file >> interval_count;	// interval count
+	
+	
+	// read the matches
+	std::string cur_line;
+	Interval* cur_iv = NULL;
+	boolean clustal_match;
+	std::vector< AbstractMatch* > iv_matches;
+	bool parsing = false;
+	
+	while( std::getline( match_file, cur_line ) ){
+		if( cur_line.find( "Interval" ) != std::string::npos ){
+			// end the old interval
+			if( iv_matches.size() > 0 )
+			{
+				this->push_back( Interval(iv_matches.begin(), iv_matches.end()) );
+//				for( size_t mI = 0; mI < iv_matches.size(); mI++ )
+//					delete iv_matches[mI];
+				iv_matches.clear();
+			}
+			parsing = true;
+			continue;
+		}
+		if( !parsing )
+			continue;
+		if( cur_line.length() == 0 )
+			continue;
+		
+		clustal_match = false;
+		if( cur_line == "GappedAlignment" ){
+			clustal_match = true;
+			getline( match_file, cur_line );
+
+			std::stringstream line_stream( cur_line );
+			line_stream >> len;
+			GappedAlignment* cr = new GappedAlignment( seq_count, len );
+			
+			for( seqI = 0; seqI < seq_count; seqI++ ){
+				line_stream >> start;
+				cr->SetStart( seqI, start );
+				std::getline( match_file, alignment[ seqI ] );
+				int64 seq_len = 0;
+				for( uint charI = 0; charI < alignment[ seqI ].length(); charI++ )
+					if( alignment[ seqI ][ charI ] != '-' )
+						seq_len++;
+				cr->SetLength( seq_len, seqI );
+			}
+			cr->SetAlignment( alignment );
+			iv_matches.push_back( cr );
+		}
+		else{
+
+			Match mmhe( seq_count );
+			Match* mhe = mmhe.Copy();
+			std::stringstream line_stream( cur_line );
+			
+			line_stream >> len;
+			mhe->SetLength(len);
+
+			for( seqI = 0; seqI < seq_count; seqI++){
+				line_stream >> start;
+				mhe->SetStart(seqI, start);
+			}
+		
+			iv_matches.push_back( mhe );
 		}
 	}
+	if( iv_matches.size() > 0 )
+		this->push_back( Interval(iv_matches.begin(), iv_matches.end()) );
+	if( interval_count != this->size() ){
+		Throw_gnEx(InvalidFileFormat());
+	}
+	
 }
 
-template<class GappedBaseImpl>
-void GenericInterval<GappedBaseImpl>::GetColumnAndMatch( gnSeqI col, std::vector<gnSeqI>& pos, std::vector<bool>& column, size_t& matchI, gnSeqI& match_col ) const
+template< class MatchType >
+void GenericIntervalList<MatchType>::WriteList(std::ostream& match_file) const
 {
-	// bail when the appropriate match is found
-	gnSeqI col_pos = 0;
-	size_t mI = 0;
-	pos.clear();
-	for( uint seqI = 0; seqI < this->SeqCount(); ++seqI )
-	{
-		if( this->LeftEnd(seqI) == NO_MATCH )
-			pos.push_back(NO_MATCH);
-		else if( this->Orientation(seqI) == AbstractMatch::forward )
-			pos.push_back(this->LeftEnd(seqI));
+
+	unsigned int seq_count = seq_table.size();
+	uint seqI;
+	
+	match_file << "FormatVersion" << '\t' << 4 << "\n";
+	match_file << "SequenceCount" << '\t' << seq_count << "\n";
+	for(seqI = 0; seqI < seq_count; seqI++){
+		match_file << "Sequence" << seqI << "File" << '\t';
+		if( seq_filename.size() > seqI )
+			match_file << seq_filename[seqI];
 		else
-			pos.push_back(this->RightEnd(seqI)+1);
+			match_file << "null";
+		match_file << "\n";
+		match_file << "Sequence" << seqI << "Length" << '\t';
+		if( seq_table.size() > seqI )
+			match_file << seq_table[seqI]->length();
+		else
+			match_file << "0";
+		match_file << "\n";
 	}
 
-	column = std::vector<bool>(this->SeqCount(), false);
+	match_file << "IntervalCount" << '\t' << this->size() << std::endl;
+	
+	for( uint ivI = 0; ivI < this->size(); ivI++ ){
+		match_file << "Interval " << ivI << std::endl;
+		const std::vector<AbstractMatch*>& matches = (*this)[ ivI ].GetMatches();
+		for( uint matchI = 0; matchI < matches.size(); matchI++ ){
+			const AbstractMatch* m = matches[ matchI ];
+			const GappedAlignment* cr = dynamic_cast< const GappedAlignment* >( m );
+			const Match* match = dynamic_cast< const Match* >( m );
+			if( match != NULL ){
+				match_file << *match << std::endl;
+			}
+			else if( cr != NULL ){
+				match_file << "GappedAlignment\n";
+				match_file << cr->Length();
+				for( seqI = 0; seqI < seq_count; seqI++ )
+					match_file << '\t' << cr->Start( seqI );
+				match_file << std::endl;
 
-	for( ; mI < matches.size(); ++mI )
-	{
-		uint seqI = 0;
+				const std::vector< std::string >& align_matrix = GetAlignment( *cr, seq_table );
+				for( seqI = 0; seqI < seq_count; seqI++ )
+					match_file << align_matrix[ seqI ] << std::endl;
+			}
+		}
+		match_file << std::endl;
+	}
+}
 
-		gnSeqI diff = matches[mI]->AlignmentLength();
-		diff = col_pos + diff <= col ? diff : col - col_pos;
-
-		for( seqI = 0; seqI < this->SeqCount(); ++seqI )
-			if( this->Orientation(seqI) == AbstractMatch::forward )
-				pos[seqI] += diff;
-			else if( this->Orientation(seqI) == AbstractMatch::reverse )
-				pos[seqI] -= diff;
-
-		col_pos += diff;
-
-		if( col_pos >= col && diff < matches[mI]->AlignmentLength() )
-		{
-			std::vector<gnSeqI> m_pos;
-			matches[mI]->GetColumn( diff, m_pos, column );
-			for( uint seqI = 0; seqI < this->SeqCount(); ++seqI )
-				if( m_pos[seqI] != NO_MATCH )
-					pos[seqI] = m_pos[seqI];
-			matchI = mI;
-			match_col = diff;
+//stub for now, later use a XML library to write/read alignments in xml format..
+template< class MatchType >
+void GenericIntervalList<MatchType>::WriteXMLAlignment( std::ostream& out_file ) const 
+{
+	if( this->size() == 0 )
+		return;
+    // write source sequence filenames and formats
+	// to make Paul happy
+	boolean single_input = true;
+    uint seqI = 0;
+	for( seqI = 1; seqI < seq_filename.size(); seqI++ ){
+		if( seq_filename[ 0 ] != seq_filename[ seqI ] ){
+			single_input = false;
 			break;
 		}
 	}
+//	unsigned int seq_count = seq_table.size();
+	
+    out_file << "<procrastAlignment sequence=\"" << seq_filename[ 0 ] << "\">" << std::endl;
+	for( uint ivI = 0; ivI < this->size(); ivI++ ){
+		if( (*this)[ ivI ].AlignmentLength() == 0 ){
+			continue;
+		}
+        out_file << "\t<localAlignment id = \"" << ivI+1 << "\" length = \"" << (*this)[ ivI ].AlignmentLength() << "\" multiplicity = \"" << (*this)[ ivI ].Multiplicity() << "\" spscore=\"" << (*this)[ ivI ].spscore << "\">" << std::endl;
+    
+		std::vector<std::string> alignment;
+		if( seq_table.size() == 1 && seq_table.size() != (*this)[ ivI ].SeqCount() )
+		{
+			GetAlignment( (*this)[ ivI ], std::vector<genome::gnSequence*>((*this)[ ivI ].SeqCount(), seq_table[0]), alignment );
+		}else
+			GetAlignment( (*this)[ ivI ], seq_table, alignment );
+		for( seqI = 0; seqI < (*this)[ ivI ].SeqCount(); seqI++ ){
+			int64 startI = (*this)[ ivI ].Start( seqI );
+			// if this genome doesn't have any sequence in this
+			// interval then skip it...
+			if( startI == 0 &&ivI > 0)	// kludge: write all seqs into the first interval so java parser can read it
+				continue;
+   
+		    out_file << "\t\t<component id=\"" << seqI+1 << "\" seqid=\"1\" leftend=\"" << (*this)[ ivI ].LeftEnd( seqI ) << "\" length=\"" << (*this)[ ivI ].Length( seqI ) << "\" orientation=\"" <<  (*this)[ ivI ].Orientation( seqI) << "\">" << alignment[ seqI ].data();
+            out_file << "\t\t</component> " << std::endl;
+
+
+		}
+		out_file << "\t</localAlignment>" << std::endl;
+	}
+	out_file << "</procrastAlignment>" << std::endl;
 }
 
-template<typename ListType, typename Iter>
-void AddGapMatches( ListType& the_list, const Iter& first, const Iter& last, 
-				   uint seqI, int64 left_end, int64 right_end, 
-				   AbstractMatch::orientation seq_orient, uint seq_count )
+template< class MatchType >
+void GenericIntervalList<MatchType>::WriteStandardAlignment( std::ostream& out_file ) const 
 {
-	Iter iter = first;
-	int64 pos = left_end-1;
-    //MatchList& tmp_list;
-    std::vector< std::pair<Match*,Iter> > insert_pos;
-	for( ; iter != last; ++iter )
-	{
-		if( (*iter)->LeftEnd(seqI) != NO_MATCH )
-		{
-			gnSeqI len = (*iter)->LeftEnd(seqI)-pos-1;
+	if( this->size() == 0 )
+		return;
 
-            //tjt: there are perfectly valid chains that blow up when this is enabled
-            //i.e:      
-            //                         <----c1----><----d1---->
-            //          <--a1---><---b1--->
-            // pos would get set to b1->RightEnd() since diff between a1 & b1 == 0
-            // but then c1->LeftEnd < pos, so genome::breakHere() gets called
-            // this is because SetMatches() gets called before finalize(), but should it??
-
-            if( len > 4000000000u )
-			{
-				std::cerr << "triplebogus interval data\n";
-				std::cerr << "(*iter)->LeftEnd(" << seqI << "): " << (*iter)->LeftEnd(seqI) << std::endl;
-				std::cerr << "pos: " << pos << std::endl;
-				genome::breakHere();
-			}
-
-			if( len > 0 )
-			{
-				Match tmp(seq_count);
-				Match* new_m = tmp.Copy();
-				new_m->SetLeftEnd(seqI, pos + 1);
-				new_m->SetOrientation(seqI, seq_orient);
-				new_m->SetLength(len);
-				pos = (*iter)->RightEnd(seqI);
-				//insert(the_list, iter, new_m);	// this may move iter
-                //tmp_list.push_back(new_m);
-                insert_pos.push_back(make_pair(new_m,iter));
-			}
-            else
-				pos = (*iter)->RightEnd(seqI);
+//	unsigned int seq_count = seq_table.size();
+	uint seqI = 0;
+	
+	// write out the format version
+	out_file << "#FormatVersion Mauve1" << std::endl;
+	
+	// write source sequence filenames and formats
+	// to make Paul happy
+	boolean single_input = true;
+	for( seqI = 1; seqI < seq_filename.size(); seqI++ ){
+		if( seq_filename[ 0 ] != seq_filename[ seqI ] ){
+			single_input = false;
+			break;
 		}
 	}
-    for ( uint i = 0; i < insert_pos.size(); i++)
-    {
-        insert(the_list, insert_pos.at(i).second, insert_pos.at(i).first);
-    }
-	if( right_end != pos )
-	{
-		Match tmp(seq_count);
-		Match* new_m = tmp.Copy();
-		new_m->SetLeftEnd(seqI, pos+1);
-		new_m->SetLength(right_end-pos-1);
-		insert(the_list, iter, new_m);
+	for( seqI = 0; seqI < seq_filename.size(); seqI++ ){
+		out_file << "#Sequence" << seqI + 1 << "File\t" << seq_filename[ seqI ] << std::endl;
+		if( single_input )
+			out_file << "#Sequence" << seqI + 1 << "Entry\t" << seqI + 1 << std::endl;
+		
+		genome::gnSourceFactory* sf = genome::gnSourceFactory::GetSourceFactory();
+		genome::gnBaseSource* gnbs = sf->MatchSourceClass( seq_filename[ seqI ] );
+		genome::gnFASSource* gnfs = dynamic_cast< genome::gnFASSource* >(gnbs);
+		genome::gnRAWSource* gnrs = dynamic_cast< genome::gnRAWSource* >(gnbs);
+		genome::gnSEQSource* gnss = dynamic_cast< genome::gnSEQSource* >(gnbs);
+		genome::gnGBKSource* gngs = dynamic_cast< genome::gnGBKSource* >(gnbs);
+		if( gnfs != NULL )
+			out_file << "#Sequence" << seqI + 1 << "Format\tFastA" << std::endl;
+		else if( gnrs != NULL )
+			out_file << "#Sequence" << seqI + 1 << "Format\traw" << std::endl;
+		else if( gnss != NULL ){
+			out_file << "#Sequence" << seqI + 1 << "Format\tDNAstar" << std::endl;
+			out_file << "#Annotation" << seqI + 1 << "File\t" << seq_filename[ seqI ] << std::endl;
+			out_file << "#Annotation" << seqI + 1 << "Format\tDNAstar" << std::endl;
+		}else if( gngs != NULL ){
+			out_file << "#Sequence" << seqI + 1 << "Format\tGenBank" << std::endl;
+			out_file << "#Annotation" << seqI + 1 << "File\t" << seq_filename[ seqI ] << std::endl;
+			out_file << "#Annotation" << seqI + 1 << "Format\tGenBank" << std::endl;
+		}
 	}
+
+	if( this->backbone_filename != "" )
+		out_file << "#BackboneFile\t" << this->backbone_filename << std::endl;
+	
+	for( uint ivI = 0; ivI < this->size(); ivI++ ){
+		if( (*this)[ ivI ].AlignmentLength() == 0 ){
+			continue;
+		}
+		std::vector<std::string> alignment;
+		if( seq_table.size() == 1 && seq_table.size() != (*this)[ ivI ].SeqCount() )
+		{
+			GetAlignment( (*this)[ ivI ], std::vector<genome::gnSequence*>((*this)[ ivI ].SeqCount(), seq_table[0]), alignment );
+		}else
+			GetAlignment( (*this)[ ivI ], seq_table, alignment );
+		for( seqI = 0; seqI < (*this)[ ivI ].SeqCount(); seqI++ ){
+			int64 startI = (*this)[ ivI ].Start( seqI );
+			gnSeqI length = (*this)[ ivI ].Length( seqI );
+			// if this genome doesn't have any sequence in this
+			// interval then skip it...
+			if( startI == 0 &&ivI > 0)	// kludge: write all seqs into the first interval so java parser can read it
+				continue;
+			out_file << "> " << seqI + 1 << ":";
+			if( startI > 0 ){
+				out_file << genome::absolut( startI ) << "-" << genome::absolut( startI ) + length - 1 << " + ";
+			}else if(startI == 0){
+				out_file << 0 << "-" << 0 << " + ";
+			}else{
+				out_file << genome::absolut( startI ) << "-" << genome::absolut( startI ) + length - 1 << " - ";
+			}
+			if( single_input )
+				out_file << seq_filename[ 0 ];	// write the sequence filename as the seq name
+			else				
+				out_file << seq_filename[ seqI ];	// write the sequence filename as the seq name
+			out_file << std::endl;
+			gnSeqI cur_pos = 0;
+			for( ; cur_pos < static_cast<gnSeqI>(alignment[ seqI ].length()); cur_pos += 80 ){
+				gnSeqI cur_len = cur_pos + 80 < static_cast<gnSeqI>(alignment[ seqI ].length()) ? 80 : static_cast<gnSeqI>(alignment[ seqI ].length() - cur_pos);
+				out_file.write( alignment[ seqI ].data() + cur_pos, cur_len );
+				out_file << std::endl;
+			}
+		}
+		out_file << "=" << std::endl;
+		out_file.flush();
+	}
+	
 }
 
-// The best steaks are well marbled
-template<class GappedBaseImpl>
-void GenericInterval<GappedBaseImpl>::Marble( gnSeqI size )
+template< class MatchType >
+void GenericIntervalList<MatchType>::ReadStandardAlignment( std::istream& in_stream ) 
 {
-	if( this->SeqCount() > 2 )
-		throw "I can't handle that many at once\n";
-	if( this->Multiplicity() < 2 )
-		return;	// can't marble unless there are at least two seqs
-
-	// first break up all the pieces
-	std::list<AbstractMatch*> mlist;
-	mlist.insert( mlist.end(), matches.begin(), matches.end() );
-	std::list<AbstractMatch*>::iterator m_iter = mlist.begin();
-	for(; m_iter != mlist.end(); ++m_iter )
+	uint seq_count = 0;
+	gnSeqI max_len = 0;
+	std::string cur_line;
+	if( !std::getline( in_stream, cur_line ) )
 	{
-		if( (*m_iter)->Multiplicity() != 1 || (*m_iter)->AlignmentLength() <= size )
-			continue;
-		// which seq are we working with?
-		uint seqI = 0;
-		for( ; seqI < (*m_iter)->SeqCount(); seqI++ )
-			if( (*m_iter)->LeftEnd(seqI) != NO_MATCH )
+		Clear();	// if we can't read from the file then just return an empty interval list
+		return;
+	}
+	uint seqI = 0;
+	std::vector< gnSeqI > lengths;
+	std::vector< GappedAlignment* > ga_list;
+	GappedAlignment cr;
+	std::string empty_line;
+	std::vector< std::string > aln_mat;
+	uint line_count = 1;
+	while( true ){
+		
+		while( cur_line[0] == '#' ){
+			// hit a comment or metadata.  try to parse it if it's a filename
+			std::getline( in_stream, cur_line );
+			line_count++;
+			std::stringstream ss( cur_line );
+			std::string token;
+			std::getline( ss, token, '\t' );
+			if( token.substr(1, 8) != "Sequence" || token.find( "File" ) == std::string::npos )
+				continue;
+			std::getline( ss, token );
+			seq_filename.push_back( token );
+		}
+		
+		// read and parse the def. line
+		std::stringstream line_str( cur_line );
+		std::getline( line_str, cur_line, '>' );
+		std::getline( line_str, cur_line, ':' );
+		// take off leading whitespace
+		std::stringstream parse_str( cur_line );
+
+		parse_str >> seqI;	// the sequence number
+				
+		int64 start, stop;
+		std::getline( line_str, cur_line, '-' );
+		parse_str.clear();
+		parse_str.str( cur_line );
+		parse_str >> start;
+		line_str >> stop;
+		std::string strand;
+		line_str >> strand;
+
+		std::string name;	// anything left is the name
+		std::getline( line_str, name );
+
+		// read and parse the sequence
+		while( aln_mat.size() < seqI )
+			aln_mat.push_back( empty_line );
+
+		gnSeqI chars = 0;
+		while( std::getline( in_stream, cur_line ) ){
+			line_count++;
+			if( (cur_line[ 0 ] == '>' ) || (cur_line[ 0 ] == '=' ))
 				break;
-		AbstractMatch* left_iv = (*m_iter)->Copy();
-		left_iv->CropEnd( left_iv->AlignmentLength() - size );
-		(*m_iter)->CropStart( size );
-		m_iter = mlist.insert( m_iter, left_iv );
-	}
-	matches.clear();
-	matches.insert( matches.end(), mlist.begin(), mlist.end() );
-	this->ValidateMatches();
+			for( uint charI = 0; charI < cur_line.length(); charI++ )
+				if( cur_line[ charI ] != '-' )
+					chars++;
+			aln_mat[ seqI - 1 ] += cur_line;
+		}
+		while( lengths.size() < seqI )
+			lengths.push_back(0);
 
-	// now interleave the gaps
-	std::vector< std::vector<AbstractMatch*>::iterator > seq_iter( this->SeqCount(), matches.begin() );
-	std::vector< AbstractMatch* > interleaved(matches.size());
-	std::vector<AbstractMatch*>::iterator anchor = matches.begin();
-	for( uint seqI = 0; seqI < this->SeqCount(); seqI++ )
-	{
-		if( this->LeftEnd(seqI) == NO_MATCH )
-			continue;
-		for( ; seq_iter[seqI] != matches.end() && (*seq_iter[seqI])->LeftEnd(seqI) == NO_MATCH; ++seq_iter[seqI] );
-	}
-	for( ; anchor != matches.end() && (*anchor)->Multiplicity() < this->SeqCount(); ++anchor );
-	size_t cur = 0;
-	while(true)
-	{
-		// increment anchor if an iter has caught up to it...
-		uint seqI = 0;
-		do{
-			for( seqI = 0; seqI < this->SeqCount(); seqI++ )
-			{
-				if( seq_iter[seqI] == anchor && anchor != matches.end() )
-				{
-					for( uint seqJ = 0; seqJ < this->SeqCount(); seqJ++ )
-					{
-						// add anything in seq_iter[seqJ]
-						while( seq_iter[seqJ] != anchor )
-						{
-							interleaved[cur++] = *(seq_iter[seqJ]);
-							for( ++seq_iter[seqJ]; seq_iter[seqJ] != matches.end() && (*seq_iter[seqJ])->LeftEnd(seqJ) == NO_MATCH; ++seq_iter[seqJ] );
-						}
-						// don't end on an anchor
-						for( ++seq_iter[seqJ]; seq_iter[seqJ] != matches.end() && (*seq_iter[seqJ])->LeftEnd(seqJ) == NO_MATCH; ++seq_iter[seqJ] );
-					}
-					// increment anchor
-					interleaved[cur++] = *anchor;
-					for( ++anchor; anchor != matches.end() && (*anchor)->Multiplicity() < this->SeqCount(); ++anchor );
+		lengths[ seqI - 1 ] = chars;
 
-					break;
-				}
+// temporary workaround for file format inconsistency
+		if( strand == "+" )
+			cr.SetStart( seqI - 1, start );
+		else if( start < stop ){
+			if( chars == 0 )
+				cr.SetStart( seqI - 1, 0 );
+			else
+				cr.SetStart( seqI - 1, -start );
+			if( chars != stop - start + 1 && !(chars == 0 && stop - start == 1) ){
+				std::cerr << "Error in XMFA file format\n";
+				std::cerr << "Before line " << line_count << std::endl;
+				std::cerr << "Expecting " << stop - start + 1 << " characters based on defline\n";
+				std::cerr << "Actually read " << chars << " characters of sequence\n";
+				Throw_gnEx(InvalidFileFormat());
 			}
-		}while( seqI < this->SeqCount() );
-
-		size_t diff1 = anchor - seq_iter[0];
-		size_t diff2 = anchor - seq_iter[1];
-		if( diff1 == 0 && diff2 == 0 )
-			break;
-		// sample from a binomial with p(success) = diff1 / diff1+diff2
-//		double samp = ((double)rand())/((double)RAND_MAX);
-		double samp = RandTwisterDouble();
-		// add one of the intervals and move on to the next...
-		if( diff2 == 0 || (samp < .5 && diff1 > 0) )
-		{
-			interleaved[cur++] = *(seq_iter[0]);
-			for( ++seq_iter[0]; seq_iter[0] != matches.end() && (*seq_iter[0])->LeftEnd(0) == NO_MATCH; ++seq_iter[0] );
 		}else{
-			interleaved[cur++] = *(seq_iter[1]);
-			for( ++seq_iter[1]; seq_iter[1] != matches.end() && (*seq_iter[1])->LeftEnd(1) == NO_MATCH; ++seq_iter[1] );
+			if( chars == 0 )
+				cr.SetStart( seqI - 1, 0 );
+			else
+				cr.SetStart( seqI - 1, -stop );
+			if( chars != start - stop + 1 && !(chars == 0 && stop - start == 1) ){
+				std::cerr << "Error in XMFA file format\n";
+				std::cerr << "Before line " << line_count << std::endl;
+				std::cerr << "Expecting " << start - stop + 1 << " characters based on defline\n";
+				std::cerr << "Actually read " << chars << " characters of sequence\n";
+				Throw_gnEx(InvalidFileFormat());
+			}
+		}
+
+		if( chars > max_len )
+			max_len = aln_mat[ seqI - 1 ].length();
+			
+		if( cur_line.size() == 0 )
+			break;
+		// did we finish an aligned region?
+		if( cur_line[ 0 ] != '>' ){
+			GappedAlignment *new_cr = new GappedAlignment( aln_mat.size(), max_len );
+			for( uint seqJ = 0; seqJ < seqI; seqJ++ ){
+				new_cr->SetStart( seqJ, cr.Start( seqJ ) );
+				new_cr->SetLength( lengths[ seqJ ], seqJ );
+				cr.SetStart( seqJ, NO_MATCH );
+			}
+			for( uint seqJ = 0; seqJ < seqI; seqJ++ )
+				aln_mat[seqJ].resize( max_len, '-' );
+
+			new_cr->SetAlignment(aln_mat);
+			lengths.clear();
+			if( seq_count < seqI )
+				seq_count = seqI;
+
+			ga_list.push_back( new_cr );
+
+			max_len = 0;	// reset length for the next interval
+			aln_mat.clear();	// reset cr for next interval
+
+			// bail out on EOF or corruption
+			if( cur_line[ 0 ] != '=' )
+				break;
+			// otherwise read up to the next def. line
+			while( std::getline( in_stream, cur_line ) ){
+				line_count++;
+				if( cur_line[ 0 ] == '>' )
+					break;
+			}
+			if( cur_line[ 0 ] != '>' )
+				break;
 		}
 	}
-	matches = interleaved;
-	this->ValidateMatches();
+
+	// now process all GappedAlignments into Intervals
+	for( uint ivI = 0; ivI < ga_list.size(); ivI++ ){
+		GappedAlignment* cr = ga_list[ ivI ];
+		GappedAlignment* new_cr = new GappedAlignment( seq_count, cr->AlignmentLength() );
+
+		const std::vector< std::string >& align_matrix = GetAlignment( *cr, seq_table );
+		std::vector< std::string > new_aln_mat(seq_count);
+		for( seqI = 0; seqI < align_matrix.size(); seqI++ ){
+			new_cr->SetLength( cr->Length( seqI ), seqI );
+			new_cr->SetStart( seqI, cr->Start(seqI) );
+			new_aln_mat[ seqI ] = align_matrix[ seqI ];
+			if( new_aln_mat[ seqI ].length() == 0 )
+				new_aln_mat[ seqI ] = std::string( new_cr->AlignmentLength(), '-' );
+		}
+		for( ; seqI < seq_count; seqI++ ){
+			new_cr->SetLength( 0, seqI );
+			new_cr->SetStart( seqI, 0 );
+			new_aln_mat[ seqI ] = std::string( new_cr->AlignmentLength(), '-' );
+		}
+		new_cr->SetAlignment(new_aln_mat);
+		delete cr;
+		cr = new_cr;
+		ga_list[ ivI ] = new_cr;
+
+		std::vector<AbstractMatch*> asdf(1, cr);
+		Interval iv( asdf.begin(), asdf.end() );
+		this->push_back( iv );
+	}
+}
+
+template< class MatchType >
+void GenericIntervalList<MatchType>::ReadStandardAlignmentCompact( std::istream& in_stream ) 
+{
+	uint seq_count = 0;
+	gnSeqI max_len = 0;
+	std::string cur_line;
+	std::getline( in_stream, cur_line );
+	uint seqI = 0;
+	std::vector< gnSeqI > lengths;
+	std::vector< GappedAlignment* > ga_list;
+	GappedAlignment cr;
+	std::string empty_line;
+	std::vector< std::string > aln_mat;
+	uint line_count = 1;
+	while( true ){
+		
+		while( cur_line[0] == '#' ){
+			// hit a comment or metadata.  try to parse it if it's a filename
+			std::getline( in_stream, cur_line );
+			line_count++;
+			std::stringstream ss( cur_line );
+			std::string token;
+			std::getline( ss, token, '\t' );
+			if( token.substr(1, 8) != "Sequence" || token.find( "File" ) == std::string::npos )
+				continue;
+			std::getline( ss, token );
+			seq_filename.push_back( token );
+		}
+		
+		// read and parse the def. line
+		std::stringstream line_str( cur_line );
+		std::getline( line_str, cur_line, '>' );
+		std::getline( line_str, cur_line, ':' );
+		// take off leading whitespace
+		std::stringstream parse_str( cur_line );
+
+		parse_str >> seqI;	// the sequence number
+				
+		int64 start, stop;
+		std::getline( line_str, cur_line, '-' );
+		parse_str.clear();
+		parse_str.str( cur_line );
+		parse_str >> start;
+		line_str >> stop;
+		std::string strand;
+		line_str >> strand;
+
+		std::string name;	// anything left is the name
+		std::getline( line_str, name );
+
+		// read and parse the sequence
+		while( aln_mat.size() < seqI )
+			aln_mat.push_back( empty_line );
+
+		gnSeqI chars = 0;
+		while( std::getline( in_stream, cur_line ) ){
+			line_count++;
+			if( (cur_line[ 0 ] == '>' ) || (cur_line[ 0 ] == '=' ))
+				break;
+			for( uint charI = 0; charI < cur_line.length(); charI++ )
+				if( cur_line[ charI ] != '-' )
+					chars++;
+			aln_mat[ seqI - 1 ] += cur_line;
+		}
+		while( lengths.size() < seqI )
+			lengths.push_back(0);
+
+		lengths[ seqI - 1 ] = chars;
+
+// temporary workaround for file format inconsistency
+		if( strand == "+" )
+			cr.SetStart( seqI - 1, start );
+		else if( start < stop ){
+			if( chars == 0 )
+				cr.SetStart( seqI - 1, 0 );
+			else
+				cr.SetStart( seqI - 1, -start );
+			if( chars != stop - start + 1 && !(chars == 0 && stop - start == 1) ){
+				std::cerr << "Error in XMFA file format\n";
+				std::cerr << "Before line " << line_count << std::endl;
+				std::cerr << "Expecting " << stop - start + 1 << " characters based on defline\n";
+				std::cerr << "Actually read " << chars << " characters of sequence\n";
+				Throw_gnEx(InvalidFileFormat());
+			}
+		}else{
+			if( chars == 0 )
+				cr.SetStart( seqI - 1, 0 );
+			else
+				cr.SetStart( seqI - 1, -stop );
+			if( chars != start - stop + 1 && !(chars == 0 && stop - start == 1) ){
+				std::cerr << "Error in XMFA file format\n";
+				std::cerr << "Before line " << line_count << std::endl;
+				std::cerr << "Expecting " << start - stop + 1 << " characters based on defline\n";
+				std::cerr << "Actually read " << chars << " characters of sequence\n";
+				Throw_gnEx(InvalidFileFormat());
+			}
+		}
+
+		if( chars > max_len )
+			max_len = aln_mat[ seqI - 1 ].length();
+			
+		if( cur_line.size() == 0 )
+			break;
+		// did we finish an aligned region?
+		if( cur_line[ 0 ] != '>' ){
+			GappedAlignment *new_cr = new GappedAlignment( aln_mat.size(), max_len );
+			for( uint seqJ = 0; seqJ < seqI; seqJ++ ){
+				new_cr->SetStart( seqJ, cr.Start( seqJ ) );
+				new_cr->SetLength( lengths[ seqJ ], seqJ );
+				cr.SetStart( seqJ, NO_MATCH );
+			}
+			for( uint seqJ = 0; seqJ < seqI; seqJ++ )
+				aln_mat[seqJ].resize( max_len, '-' );
+
+			new_cr->SetAlignment(aln_mat);
+			lengths.clear();
+			if( seq_count < seqI )
+				seq_count = seqI;
+
+			ga_list.push_back( new_cr );
+
+			max_len = 0;	// reset length for the next interval
+			aln_mat.clear();	// reset cr for next interval
+
+			// bail out on EOF or corruption
+			if( cur_line[ 0 ] != '=' )
+				break;
+			// otherwise read up to the next def. line
+			while( std::getline( in_stream, cur_line ) ){
+				line_count++;
+				if( cur_line[ 0 ] == '>' )
+					break;
+			}
+			if( cur_line[ 0 ] != '>' )
+				break;
+		}
+	}
+
+	// now process all GappedAlignments into Intervals
+	//cerr << "Stuffing all GappedAlignments into Intervals" << endl;
+	for( uint ivI = 0; ivI < ga_list.size(); ivI++ )
+	{	
+		GappedAlignment* cr = ga_list[ ivI ];
+		uint compact_seq_count =  cr->SeqCount();
+		CompactGappedAlignment<>* new_cr = new CompactGappedAlignment<>(compact_seq_count, cr->AlignmentLength() );
+		const std::vector< std::string > align_matrix = GetAlignment( *cr, seq_table );
+		//cout << cr->SeqCount() << " " << seq_count << " "  << align_matrix.size() << endl;
+		
+		std::vector< std::string > new_aln_mat(compact_seq_count);
+		for( seqI = 0; seqI < compact_seq_count; seqI++ ){
+			new_cr->SetLength( cr->Length( seqI ), seqI );
+			new_cr->SetStart( seqI, cr->Start(seqI) );
+			new_aln_mat[ seqI ] = align_matrix[ seqI ];
+			if( new_aln_mat[ seqI ].length() == 0 )
+				new_aln_mat[ seqI ] = std::string( new_cr->AlignmentLength(), '-' );
+		}
+		
+		for( ; seqI < compact_seq_count; seqI++ ){
+			new_cr->SetLength( 0, seqI );
+			new_cr->SetStart( seqI, 0 );
+			new_aln_mat[ seqI ] = std::string( new_cr->AlignmentLength(), '-' );
+		}
+		
+		new_cr->SetAlignment( new_aln_mat );
+		delete cr;
+
+		//CompactGappedAlignment<>* cga =  new_cr;
+		//ga_list[ ivI ] = dynamic_cast<GappedAlignment*>(cga);
+		Interval iv;
+		this->push_back( iv );
+		std::vector< AbstractMatch* > matches(1, new_cr);
+		this->back().SetMatches( matches );
+	}
 }
 
 
-template<class GappedBaseImpl>
-void GenericInterval<GappedBaseImpl>::CropStart(gnSeqI crop_amount)
+template< class MatchType >
+void GenericIntervalList<MatchType>::WriteAlignedSequences(std::ostream& match_file) const
 {
-	if( crop_amount > this->AlignmentLength() )
-		Throw_gnEx( genome::SeqIndexOutOfBounds() );
-	if( crop_amount == 0 )
+
+	unsigned int seq_count = seq_table.size();
+	uint seqI;
+	
+	match_file << "mauveAligner data\n";
+	match_file << "FormatVersion" << '\t' << 5 << "\n";
+	match_file << "SequenceCount" << '\t' << seq_count << "\n";
+	for(seqI = 0; seqI < seq_count; seqI++){
+		match_file << "Sequence" << seqI << "File" << '\t';
+		if( seq_filename.size() > seqI )
+			match_file << seq_filename[seqI];
+		else
+			match_file << "null";
+		match_file << "\n";
+		match_file << "Sequence" << seqI << "Length" << '\t';
+		if( seq_table.size() > seqI )
+			match_file << seq_table[seqI]->length();
+		else
+			match_file << "0";
+		match_file << "\n";
+	}
+
+	match_file << "AlignmentCount" << '\t' << this->size() << std::endl;
+
+	if( this->size() == 0 )
 		return;
 	
-	std::vector<bool> col;
-	std::vector<gnSeqI> pos;
-	size_t matchI = 0;
-	gnSeqI match_col;
-	this->GetColumnAndMatch( crop_amount, pos, col, matchI, match_col );
+	for( uint ivI = 0; ivI < this->size(); ivI++ ){
+		
+		match_file << (*this)[ ivI ].AlignmentLength();
+		for( seqI = 0; seqI < seq_count; seqI++ )
+			match_file << '\t' << (*this)[ ivI ].Start( seqI );
+		match_file << std::endl;
 
-	// delete everything before matchI
-	for( size_t mI = 0; mI < matchI; ++mI )
-		matches[mI]->Free();
-	matches.erase(matches.begin(), matches.begin()+matchI);
-
-	// crop from within matchI
-	matches[0]->CropStart(match_col);
-
-	this->CalculateOffset();
-	this->ValidateMatches();
-}
-
-template<class GappedBaseImpl>
-void GenericInterval<GappedBaseImpl>::CropEnd(gnSeqI crop_amount)
-{
-	if( crop_amount > this->AlignmentLength() )
-		Throw_gnEx( genome::SeqIndexOutOfBounds() );
-	if( crop_amount == 0 )
-		return;
-	std::vector<bool> col;
-	std::vector<gnSeqI> pos;
-	size_t matchI = 0;
-	gnSeqI match_col;
-	this->GetColumnAndMatch( this->AlignmentLength()-crop_amount, pos, col, matchI, match_col );
-
-	// delete everything after matchI
-	size_t plusmatch = match_col == 0 ? 0 : 1;
-	for( size_t mI = matchI+plusmatch; mI < matches.size(); ++mI )
-		matches[mI]->Free();
-	matches.erase(matches.begin()+matchI+plusmatch, matches.end());
-
-	// crop from within matchI
-	if( matches.size() > 0 && plusmatch == 1 )
-		matches.back()->CropEnd(matches.back()->AlignmentLength() - match_col);
-
-	this->CalculateOffset();
-	this->ValidateMatches();
-}
-
-template<class GappedBaseImpl>
-void GenericInterval<GappedBaseImpl>::GetAlignment( std::vector< bitset_t >& align_matrix ) const
-{
-	gnSeqI cur_col = 0;
-	align_matrix = std::vector< bitset_t >( this->SeqCount(), bitset_t(this->AlignmentLength(),false) );
-	for( uint matchI = 0; matchI < matches.size(); ++matchI ){
-		std::vector< bitset_t > aln_mat;
-		matches[matchI]->GetAlignment( aln_mat );
-		for( uint seqI = 0; seqI < this->SeqCount(); ++seqI )
-		{
-			if( matches[matchI]->LeftEnd(seqI) == NO_MATCH || matches[matchI]->Length(seqI) == 0 )
-				continue;
-
-			size_t ct = 0;
-			gnSeqI len = matches[matchI]->Length(seqI);
-			for( bitset_t::size_type pos = aln_mat[seqI].find_first(); ct < len; pos = aln_mat[seqI].find_next(pos) )
-			{
-				align_matrix[seqI].set( cur_col + pos );
-				ct++;
-			}
-		}
-		cur_col += matches[matchI]->AlignmentLength();
+		std::vector<std::string> alignment;
+		GetAlignment( (*this)[ ivI ], this->seq_table, alignment );
+		for( seqI = 0; seqI < seq_count; seqI++ )
+			match_file << alignment[ seqI ] << std::endl;
+		match_file << std::endl;
 	}
-}
-
-template<class GappedBaseImpl>
-void GenericInterval<GappedBaseImpl>::CropLeft( gnSeqI amount, uint seqI )
-{
-	if( amount > this->Length(seqI) )
-		Throw_gnEx( genome::SeqIndexOutOfBounds() );
-	if( this->LeftEnd(seqI) == NO_MATCH || amount == 0 )
-		return;
-
-	// for debugging
-	gnSeqI pre_len = this->Length(seqI);
-	gnSeqI pre_lend = this->LeftEnd(seqI);
-
-	gnSeqI match_pos;
-	size_t mI;
-	this->FindMatchPos(seqI, amount, mI, match_pos);
-	if( matches[mI]->Orientation(seqI) == this->Orientation(seqI) )
-		matches[mI]->CropLeft(match_pos, seqI);
-	else
-		matches[mI]->CropRight(match_pos, seqI);
-
-	if( matches[mI]->Length(seqI) == 0 )
-		std::cerr << "Big fat zero 1\n";
-
-	// get rid of everything to the left of mI
-	if( this->Orientation(seqI) == AbstractMatch::forward )
-	{
-		for( size_t m = 0; m < mI; m++ )
-			matches[m]->Free();
-		matches.erase(matches.begin(), matches.begin()+mI);
-	}else{
-		for( size_t m = mI+1; m < matches.size(); m++ )
-			matches[m]->Free();
-		matches.erase(matches.begin()+mI+1, matches.end());
-	}
-
-	this->CalculateOffset();
-	this->ValidateMatches();
-
-	if( this->Length(seqI) != pre_len - amount )
-	{
-		std::cerr << "Error intercroplef\n";
-		std::cerr << "pre len: " << pre_len << std::endl;
-		std::cerr << "pre lend: " << pre_lend << std::endl;
-		std::cerr << "amount: " << amount << std::endl;
-		std::cerr << "LeftEnd(seqI) " << this->LeftEnd(seqI) << std::endl;
-		std::cerr << "Length(seqI) " << this->Length(seqI) << std::endl;
-		std::cerr << "AlignmentLength() " << this->AlignmentLength() << std::endl;
-		genome::breakHere();
-	}
-}
-
-template<class GappedBaseImpl>
-void GenericInterval<GappedBaseImpl>::CropRight( gnSeqI amount, uint seqI )
-{
-	if( amount > this->Length(seqI) )
-		Throw_gnEx( genome::SeqIndexOutOfBounds() );
-
-	if( this->LeftEnd(seqI) == NO_MATCH || amount == 0 )
-		return;
-
-	// for debugging
-	gnSeqI pre_len = this->Length(seqI);
-	gnSeqI pre_lend = this->LeftEnd(seqI);
-
-	gnSeqI left_amount = this->Length(seqI) - amount;
-	gnSeqI match_pos;
-	size_t mI;
-	this->FindMatchPos(seqI, left_amount, mI, match_pos);
-	if( matches[mI]->Orientation(seqI) == this->Orientation(seqI) )
-		matches[mI]->CropRight(matches[mI]->Length(seqI)-match_pos, seqI);
-	else
-		matches[mI]->CropLeft(matches[mI]->Length(seqI)-match_pos, seqI);
-
-	if( matches[mI]->Length(seqI) == 0 )
-		mI += this->Orientation(seqI) == AbstractMatch::forward ? -1 : 1;	// delete this match too
-
-	// get rid of everything to the left of mI
-	if( this->Orientation(seqI) == AbstractMatch::forward )
-	{
-		for( size_t m = mI+1; m < matches.size(); m++ )
-			matches[m]->Free();
-		matches.erase(matches.begin()+(mI+1), matches.end());
-	}else{
-		for( size_t m = 0; m < mI; m++ )
-			matches[m]->Free();
-		matches.erase(matches.begin(), matches.begin()+mI);
-	}
-
-	this->CalculateOffset();
-	this->ValidateMatches();
-
-	if( this->Length(seqI) != pre_len - amount )
-	{
-		std::cerr << "Error intercropright\n";
-		std::cerr << "pre len: " << pre_len << std::endl;
-		std::cerr << "pre lend: " << pre_lend << std::endl;
-		std::cerr << "amount: " << amount << std::endl;
-		std::cerr << "LeftEnd(seqI) " << this->LeftEnd(seqI) << std::endl;
-		std::cerr << "Length(seqI) " << this->Length(seqI) << std::endl;
-		std::cerr << "AlignmentLength() " << this->AlignmentLength() << std::endl;
-		genome::breakHere();
-	}
-}
-
-template<class GappedBaseImpl>
-void GenericInterval<GappedBaseImpl>::MoveStart(int64 move_amount)
-{
-	GappedBaseImpl::MoveStart(move_amount);
-	for( size_t mI = 0; mI < matches.size(); mI++ )
-		matches[mI]->MoveStart(move_amount);
-}
-
-template<class GappedBaseImpl>
-void GenericInterval<GappedBaseImpl>::MoveEnd(int64 move_amount)
-{
-	GappedBaseImpl::MoveEnd(move_amount);
-	for( size_t mI = 0; mI < matches.size(); mI++ )
-		matches[mI]->MoveEnd(move_amount);
+	
 }
 
 
-template< class MatchVector >
-void FindBoundaries( const MatchVector& matches, std::vector<gnSeqI>& left_ends, std::vector<gnSeqI>& lengths, std::vector<bool>& orientations )
-{
-	uint seqI;
-	boolean zero_exists = false;
-	uint seq_count = matches.front()->SeqCount();
-	left_ends = std::vector<gnSeqI>( seq_count, NO_MATCH );
-	lengths = std::vector<gnSeqI>( seq_count, 0 );
-	orientations = std::vector<bool>( seq_count, false );
-
-	// find leftend in each forward sequence
-	uint matchI = 0;
-	for(; matchI != matches.size(); ++matchI )
-	{
-		zero_exists = false;
-		for( seqI = 0; seqI < seq_count; ++seqI )
-		{
-			if( left_ends[seqI] == NO_MATCH && matches[matchI]->Orientation(seqI) == AbstractMatch::forward )
-			{
-				left_ends[seqI] = matches[ matchI ]->LeftEnd(seqI);
-				orientations[seqI] = true;
-			}
-			else if( left_ends[seqI] == NO_MATCH )
-				zero_exists = true;
-		}
-		if( !zero_exists )
-			break;
-	}
-
-	// find end in each forward sequence
-	for( matchI = matches.size(); matchI > 0; matchI-- )
-	{
-		zero_exists = false;
-		for( seqI = 0; seqI < seq_count; ++seqI )
-		{
-			if( lengths[seqI] == 0 &&
-				matches[ matchI - 1 ]->Orientation(seqI) == AbstractMatch::forward )
-			{
-					lengths[seqI] = matches[matchI - 1]->LeftEnd(seqI) + matches[matchI - 1]->Length(seqI) - left_ends[seqI];
-			}
-			if( left_ends[seqI] != NO_MATCH && lengths[seqI] == 0 )
-				zero_exists = true;
-		}
-		if( !zero_exists )
-			break;
-	}
-
-	// find start in each reverse sequence
-	for( matchI = matches.size(); matchI > 0; matchI-- )
-	{
-		zero_exists = false;
-		for( seqI = 0; seqI < seq_count; ++seqI )
-		{
-			if( left_ends[seqI] == NO_MATCH && matches[ matchI - 1 ]->Orientation(seqI) == AbstractMatch::reverse )
-				left_ends[seqI] = matches[matchI - 1]->LeftEnd(seqI);
-			if( left_ends[seqI] == NO_MATCH )
-				zero_exists = true;
-		}
-		if( !zero_exists )
-			break;
-	}
-
-	// find end in each reverse sequence
-	for( matchI = 0; matchI != matches.size(); ++matchI )
-	{
-		zero_exists = false;
-		for( seqI = 0; seqI < seq_count; ++seqI )
-		{
-			if( lengths[seqI] == 0 &&
-				matches[matchI]->Orientation(seqI) == AbstractMatch::reverse )
-			{
-					lengths[seqI] = matches[matchI]->Length(seqI)+(matches[matchI]->LeftEnd(seqI) - left_ends[seqI]);
-			}
-			if( lengths[seqI] == 0 )
-				zero_exists = true;
-		}
-		if( !zero_exists )
-			break;
-	}
 }
 
-
-template<class GappedBaseImpl>
-void GenericInterval<GappedBaseImpl>::addUnalignedRegions()
-{
-	std::list<AbstractMatch*> new_matches(matches.begin(), matches.end());
-
-	for( uint seqI = 0; seqI < this->SeqCount(); ++seqI )
-	{
-		if( this->LeftEnd(seqI) == NO_MATCH )
-			continue;
-		if(this->Orientation(seqI) == AbstractMatch::forward)
-			AddGapMatches( new_matches, new_matches.begin(), new_matches.end(), seqI, this->LeftEnd(seqI), this->RightEnd(seqI), this->Orientation(seqI), this->SeqCount() );
-		else
-			AddGapMatches( new_matches, new_matches.rbegin(), new_matches.rend(), seqI, this->LeftEnd(seqI), this->RightEnd(seqI), this->Orientation(seqI), this->SeqCount() );
-	}
-	matches.clear();
-	matches.insert(matches.end(), new_matches.begin(), new_matches.end());
-}
-
-template<class GappedBaseImpl>
-void GenericInterval<GappedBaseImpl>::Invert(){
-	GappedBaseImpl::Invert();
-	for( uint matchI = 0; matchI < matches.size(); ++matchI )
-		matches[ matchI ]->Invert();
-
-	std::reverse( matches.begin(), matches.end() );
-}
-
-template<class GappedBaseImpl>
-void GenericInterval<GappedBaseImpl>::GetColumn( gnSeqI col, std::vector<gnSeqI>& pos, std::vector<bool>& column ) const
-{
-	size_t matchI;
-	gnSeqI match_col;
-	this->GetColumnAndMatch( col, pos, column, matchI, match_col );
-}
-
-template<class GappedBaseImpl>
-void GenericInterval<GappedBaseImpl>::FindMatchPos( uint seqI, gnSeqI pos, size_t& matchI, gnSeqI& match_pos )
-{
-	match_pos = pos;
-	int diff_amt = 0;
-	int incr = 1;
-	matchI = 0;
-	size_t end_mI = matches.size();
-	if( this->Orientation(seqI) == AbstractMatch::reverse )
-	{
-		diff_amt = -1;
-		incr = -1;
-		matchI = matches.size();
-		end_mI = 0;
-	}
-
-	for( ; matchI != end_mI; matchI+=incr )
-	{
-		if( matches[matchI+diff_amt]->LeftEnd(seqI) == NO_MATCH )
-			continue;
-		if( matches[matchI+diff_amt]->Length(seqI) <= match_pos )
-			match_pos -= matches[matchI+diff_amt]->Length(seqI);
-		else
-			break;
-	}
-
-	if( this->Orientation(seqI) == AbstractMatch::reverse )
-		matchI--;
-}
-
-template<class GappedBaseImpl>
-void GenericInterval<GappedBaseImpl>::CalculateOffset(){
-	std::vector<gnSeqI> left_end( this->SeqCount(), NO_MATCH );
-	std::vector<gnSeqI> length( this->SeqCount(), 0 );
-	std::vector<bool> orientation;
-	if( this->matches.size() > 0 )
-		FindBoundaries( this->matches, left_end, length, orientation );
-	for( uint seqI = 0; seqI < this->SeqCount(); seqI++ )
-	{
-		if( left_end[seqI] != 0 )
-		{
-			this->SetLeftEnd(seqI, left_end[seqI]);
-			this->SetLength(length[seqI], seqI);
-			if( orientation[seqI] )
-				this->SetOrientation(seqI, AbstractMatch::forward);
-			else
-				this->SetOrientation(seqI, AbstractMatch::reverse);
-		}else if( this->LeftEnd(seqI) != NO_MATCH )
-		{
-			this->SetLength(0, seqI);
-			this->SetLeftEnd(seqI, NO_MATCH);
-		}
-
-	}
-
-	this->CalculateAlignmentLength();
-}
-
-template<class GappedBaseImpl>
-void GenericInterval<GappedBaseImpl>::SetAlignment( const std::vector< std::string >& seq_align )
-{
-	GappedAlignment* ga = new GappedAlignment(seq_align.size(), seq_align[0].size());
-	matches.clear();
-	matches.push_back(ga);
-	ga->SetAlignment(seq_align);
-	for( uint seqI = 0; seqI < this->SeqCount(); ++seqI )
-	{
-		ga->SetStart(seqI, this->Start(seqI));
-		ga->SetLength(this->Length(seqI), seqI);
-	}
-}
-
-
-/**
- * Writes this GenericInterval to the specified output stream (e.g. cout).
- */
-template<class GappedBaseImpl>
-std::ostream& operator<<(std::ostream& os, const GenericInterval<GappedBaseImpl>& cr){
-	try{
-	for( uint matchI = 0; matchI < cr.matches.size(); ++matchI ){
-		const AbstractMatch* m = cr.matches[ matchI ];
-		const GappedAlignment* clust = dynamic_cast< const GappedAlignment* >( m );
-		if( clust != NULL )
-			os << *clust;
-		const Match* match = dynamic_cast< const Match* >( m );
-		if( match != NULL )
-			os << *match;
-		os << std::endl;
-	}
-	}catch(...){
-		std::cerr << "Exceptional handler\n";
-	}
-	return os;
-}
-
-template<class GappedBaseImpl>
-void GenericInterval<GappedBaseImpl>::CalculateAlignmentLength()
-{
-	gnSeqI aln_len = 0;
-	// count each match's alignment length
-	for( size_t mI = 0; mI < matches.size(); ++mI )
-		aln_len += matches[mI]->AlignmentLength();
-	this->SetAlignmentLength(aln_len);
-}
-
-template<class GappedBaseImpl>
-void GenericInterval<GappedBaseImpl>::GetAlignedSequences( gnAlignedSequences& gnas, const std::vector< genome::gnSequence* >& seq_table ) const 
-{
-	gnas.names.clear();
-	for( uint seqI = 0; seqI < seq_table.size(); ++seqI ){
-		std::string name;
-		if( seq_table[ seqI ]->contigListSize() > 0 )
-			name = seq_table[ seqI ]->contigName( 0 );
-		gnas.names.push_back( name );
-		gnas.positions.push_back(this->Start(seqI));
-	}
-	mems::GetAlignment( *this, seq_table, gnas.sequences );
-}
-
-template<class GappedBaseImpl>
-bool GenericInterval<GappedBaseImpl>::IsGap( uint seq, gnSeqI col ) const
-{
-	std::vector<gnSeqI> pos;
-	std::vector<bool> column;
-	GetColumn(col, pos, column);
-	return column[seq];
-}
-
-}
-
-namespace std {
-template<> inline
-void swap( mems::Interval& a, mems::Interval& b )
-{
-	a.swap(b);
-}
-}
-
-#endif	// __Interval_h__
+#endif	//_IntervalList_h_
