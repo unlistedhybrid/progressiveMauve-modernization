@@ -197,7 +197,6 @@ currently_recursing(false)
 {}
 
 Aligner::Aligner( const Aligner& al ) :
-gap_mh( al.gap_mh ),
 nway_mh( al.nway_mh ),
 seq_count( al.seq_count ),
 LCB_minimum_density( al.LCB_minimum_density),
