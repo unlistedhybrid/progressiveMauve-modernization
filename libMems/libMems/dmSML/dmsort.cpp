@@ -68,6 +68,11 @@ buffer_list_t   ToProcess;
 buffer_list_t   Reading;
 buffer_list_t   Restructure;
 
+extern mask_t seed_mask;
+extern int mask_length;
+extern int mask_weight;
+extern uint8* DNA_TABLE;
+
 static buffer_t * AllocateFree( void ) {
     buffer_t * ret;
     if( Free.nitems ) {
