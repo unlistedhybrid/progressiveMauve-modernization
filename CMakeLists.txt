@@ -1,8 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 project(ProgressiveMauveModern LANGUAGES C CXX)
 
-cmake_policy(SET CMP0167 OLD)
-
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
@@ -12,129 +10,65 @@ if(MSVC)
     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded")
     add_compile_options($<$<CONFIG:Release>:/MT>)
     add_compile_options($<$<CONFIG:Debug>:/MTd>)
-    add_compile_options(/wd4834)
-    add_compile_options(/wd4996)
+    add_compile_options(/wd4834) # C++17 attribute ignored
+    add_compile_options(/wd4996) # Deprecation warnings
+    add_compile_options(/bigobj) # Essential for large template projects
 endif()
 
-# ------------------ PLATFORM-SPECIFIC EXTRAS ------------------
-set(EXTRA_SRCS "")
-set(EXTRA_LIBS "")
-
-# Windows needs getopt compatibility
-if(WIN32)
-    list(APPEND EXTRA_SRCS mauveAligner/src/win_getopt.cpp)
-    list(APPEND EXTRA_LIBS winmm psapi)
-endif()
-
-# macOS ICU fixes
-if(APPLE)
-    list(APPEND CMAKE_PREFIX_PATH "/opt/homebrew/opt/icu4c" "/usr/local/opt/icu4c")
-    include_directories("/opt/homebrew/opt/icu4c/include" "/usr/local/opt/icu4c/include")
-    link_directories("/opt/homebrew/opt/icu4c/lib" "/usr/local/opt/icu4c/lib")
-endif()
-
-# ------------------ BOOST + ZLIB + BZIP2 + ZSTD ------------------
+# ------------------ DEPENDENCIES ------------------
 set(Boost_DEBUG OFF)
 set(Boost_USE_STATIC_LIBS ON)
 set(Boost_USE_MULTITHREADED ON)
 
-find_package(Boost 1.89 REQUIRED
-    COMPONENTS
-    filesystem
-    iostreams
-    program_options
-    regex
-)
+find_package(Boost 1.89 REQUIRED COMPONENTS filesystem iostreams program_options regex)
+find_package(OpenMP)
+find_package(ICU COMPONENTS uc data i18n) 
 
-find_package(ZLIB)
-find_package(BZip2)
-find_package(PkgConfig)
-
-# ICU (needed by Boost::regex)
-find_package(ICU REQUIRED COMPONENTS uc data i18n)
-
-# ZSTD detection
-if(PKG_CONFIG_FOUND)
-    pkg_check_modules(ZSTD libzstd)
-endif()
-
-if(NOT ZSTD_FOUND)
-    find_library(ZSTD_LIB
-        NAMES zstd zstd_static libzstd
-        HINTS "/opt/homebrew/lib" "/usr/local/lib"
-    )
-else()
-    set(ZSTD_LIB ${ZSTD_LIBRARIES})
-    link_directories(${ZSTD_LIBRARY_DIRS})
-endif()
-
-# ------------------ BOOST INTERFACE ------------------
+# Create an interface for Boost to share settings with sub-projects
 add_library(BoostInterface INTERFACE)
 target_link_libraries(BoostInterface INTERFACE
     Boost::filesystem
     Boost::iostreams
     Boost::program_options
     Boost::regex
-    ICU::uc ICU::data ICU::i18n
 )
-
-if(ZLIB_FOUND)
-    target_link_libraries(BoostInterface INTERFACE ZLIB::ZLIB)
-endif()
-
-if(BZIP2_FOUND)
-    target_link_libraries(BoostInterface INTERFACE BZip2::BZip2)
-endif()
-
-if(ZSTD_LIB)
-    target_link_libraries(BoostInterface INTERFACE ${ZSTD_LIB})
-else()
-    target_link_libraries(BoostInterface INTERFACE zstd)
-endif()
-
-if(TARGET Boost::headers)
-    target_link_libraries(BoostInterface INTERFACE Boost::headers)
-elseif(TARGET Boost::boost)
-    target_link_libraries(BoostInterface INTERFACE Boost::boost)
-endif()
-
-if(Boost_INCLUDE_DIRS)
-    target_include_directories(BoostInterface INTERFACE ${Boost_INCLUDE_DIRS})
+if(ICU_FOUND)
+    target_link_libraries(BoostInterface INTERFACE ICU::uc ICU::data ICU::i18n)
 endif()
 
 # ------------------ SUBDIRECTORIES ------------------
+# These match the folders in your filelist.txt
 add_subdirectory(libGenome)
-add_subdirectory(libMems)
 add_subdirectory(muscle)
+add_subdirectory(libMems) 
 
-# ------------------ progressiveMauve REQUIRED SOURCES ------------------
-set(PM_SRC
+# ------------------ EXECUTABLE ------------------
+# Define sources based on mauveAligner/src content 
+set(MAUVE_SRCS
     mauveAligner/src/progressiveMauve.cpp
     mauveAligner/src/UniqueMatchFinder.cpp
-    mauveAligner/src/AlignmentTree.cpp
-    ${EXTRA_SRCS}
 )
 
-# ------------------ EXECUTABLE: progressiveMauve ------------------
-add_executable(progressiveMauve ${PM_SRC})
+if(WIN32)
+    list(APPEND MAUVE_SRCS mauveAligner/src/win_getopt.cpp)
+endif()
 
+add_executable(progressiveMauve ${MAUVE_SRCS})
+
+# Include paths for the executable
 target_include_directories(progressiveMauve PRIVATE
-    ${PROJECT_SOURCE_DIR}/libGenome
-    ${PROJECT_SOURCE_DIR}/libMems
-    ${PROJECT_SOURCE_DIR}/muscle
-    ${PROJECT_SOURCE_DIR}/mauveAligner/src
+    "${CMAKE_SOURCE_DIR}/mauveAligner/src"
 )
 
+# Link everything together
 target_link_libraries(progressiveMauve
-    libGenome
+    PRIVATE
     libMems
+    libGenome
     libMUSCLE
     BoostInterface
-    ${EXTRA_LIBS}
 )
 
-# ------------------ OPTIONAL: OPENMP ACCELERATION ------------------
-find_package(OpenMP)
 if(OpenMP_CXX_FOUND)
-    target_link_libraries(progressiveMauve OpenMP::OpenMP_CXX)
+    target_link_libraries(progressiveMauve PRIVATE OpenMP::OpenMP_CXX)
 endif()
