@@ -1,3 +1,4 @@
+// profilefrommsa.cpp
 #include "libMUSCLE/muscle.h"
 #include "libMUSCLE/msa.h"
 #include "libMUSCLE/profile.h"
@@ -15,15 +16,6 @@ static void LogF(FCOUNT f)
 		Log("  %5.3f", f);
 }
 
-static const char *LocalScoreToStr(SCORE s)
-{
-	static TLS<char[16]> str;
-	if (s < -1e10 || s > 1e10)
-		return "    *";
-	snprintf(str.get(), 16, "%5.1f", s);
-	return str.get();
-}
-
 #if DOUBLE_AFFINE
 void ListProfile(const ProfPos *Prof, unsigned uLength, const MSA *ptrMSA)
 {
@@ -38,10 +30,10 @@ void ListProfile(const ProfPos *Prof, unsigned uLength, const MSA *ptrMSA)
 		LogF(PP.m_LG);
 		LogF(PP.m_GL);
 		LogF(PP.m_GG);
-		Log("  %s", LocalScoreToStr(-PP.m_scoreGapOpen));
-		Log("  %s", LocalScoreToStr(-PP.m_scoreGapClose));
-		Log("  %s", LocalScoreToStr(-PP.m_scoreGapOpen2));
-		Log("  %s", LocalScoreToStr(-PP.m_scoreGapClose2));
+		Log("  %5.1f", -PP.m_scoreGapOpen);
+		Log("  %5.1f", -PP.m_scoreGapClose);
+		Log("  %5.1f", -PP.m_scoreGapOpen2);
+		Log("  %5.1f", -PP.m_scoreGapClose2);
 		if (ptrMSA != 0)
 		{
 			const unsigned uSeqCount = ptrMSA->GetSeqCount();
@@ -248,7 +240,6 @@ unsigned ResidueGroupFromFCounts(const FCOUNT fcCounts[])
 
 ProfPos *ProfileFromMSA(const MSA &a)
 {
-	const unsigned uSeqCount = a.GetSeqCount();
 	const unsigned uColCount = a.GetColCount();
 
 	SetMSAWeightsMuscle((MSA &) a);
@@ -256,7 +247,6 @@ ProfPos *ProfileFromMSA(const MSA &a)
 	ProfPos *Pos = new ProfPos[uColCount];
 	memset(Pos, 0, sizeof(ProfPos)*uColCount);
 
-	unsigned uHydrophobicRunLength = 0;
 	for (unsigned uColIndex = 0; uColIndex < uColCount; ++uColIndex)
 	{
 		ProfPos &PP = Pos[uColIndex];
