@@ -198,16 +198,16 @@ protected:
 	TLS<MemHash> gap_mh;			/**< Used during recursive alignment */
 	MaskedMemHash nway_mh;	/**< Used during recursive alignment to find nway matches only */
 	uint32 seq_count;		/**< The number of sequences this aligner is working with */
-	bool debug;			/**< Flag for debugging output */
-	
 	double LCB_minimum_density;
 	double LCB_minimum_range;
-
-	uint max_extension_iters;	/**< maximum number of attempts at LCB extension */
-	
 	int64 cur_min_coverage;	/**< Tracks the minimum weight of the least weight LCB */
-	
 	gnSeqI min_recursive_gap_length;	/**< Minimum size of gap regions that will be recursed on */
+	bool collinear_genomes;	/**< Set to true if all genomes are assumed to be collinear */
+	GappedAligner* gal;
+	std::string permutation_filename;
+	int64 permutation_weight;
+	uint max_extension_iters;	/**< maximum number of attempts at LCB extension */
+	bool debug;			/**< Flag for debugging output */
 
 	void consistencyCheck( uint lcb_count, std::vector< LCB >& adjacencies, std::vector< MatchList >& lcb_list, std::vector< int64 >& weights );
 	
@@ -215,13 +215,7 @@ protected:
 	bool extend_lcbs;	/**< Set to true if LCB extension should be attempted */
 	bool gapped_alignment;	/**< Set to true to complete a gapped alignment */
 	bool currently_recursing;	/**< True when the recursive search has begun */
-	bool collinear_genomes;	/**< Set to true if all genomes are assumed to be collinear */
 	
-	GappedAligner* gal;
-
-	std::string permutation_filename;
-	int64 permutation_weight;
-
 	std::vector< search_cache_t > search_cache; /**< a list of recursive searches that have already been done */
 };
 
