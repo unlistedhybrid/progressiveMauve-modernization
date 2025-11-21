@@ -21,14 +21,11 @@ void TraceBackSW(const ProfPos *PA, unsigned uLengthA, const ProfPos *PB,
 	assert(uLengthB > 0 && uLengthA > 0);
 
 	const unsigned uPrefixCountA = uLengthA + 1;
-	const unsigned uPrefixCountB = uLengthB + 1;
 
 	Path.Clear();
 
 	unsigned uPrefixLengthA = uPrefixLengthAMax;
 	unsigned uPrefixLengthB = uPrefixLengthBMax;
-
-	SCORE scoreMax = DPM(uPrefixLengthA, uPrefixLengthB);
 	char cEdgeType = 'M';
 
 	for (;;)
@@ -187,3 +184,4 @@ void TraceBackSW(const ProfPos *PA, unsigned uLengthA, const ProfPos *PB,
 		}
 	}
 } 
+
