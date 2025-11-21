@@ -1,3 +1,4 @@
+// MatchList.h
 /*******************************************************************************
  * $Id: MatchList.h,v 1.10 2004/03/01 02:40:08 darling Exp $
  * This file is copyright 2002-2007 Aaron Darling and authors listed in the AUTHORS file.
@@ -142,7 +143,9 @@ void WriteList( const MatchList& mlist, std::ostream& match_stream );
 typedef void* MatchID_t;
 
 template< typename MatchPtrType >
-GenericMatchList< MatchPtrType >::GenericMatchList( const GenericMatchList< MatchPtrType >& ml ){
+GenericMatchList< MatchPtrType >::GenericMatchList( const GenericMatchList< MatchPtrType >& ml )
+	: std::vector< MatchPtrType >(ml)
+{
 	*this = ml;
 }
 
@@ -272,7 +275,7 @@ void GenericMatchList< MatchPtrType >::LoadSMLs( uint mer_size, std::ostream* lo
 	// load and creates SMLs as necessary
 	uint64 default_seed = getSeed( mer_size, seed_rank );
 	if (solid)
-		uint64 default_seed = getSolidSeed( mer_size );
+		default_seed = getSolidSeed( mer_size );
 	std::vector< uint > create_list;
 	uint seqI = 0;
 	for( seqI = 0; seqI < seq_table.size(); seqI++ ){
@@ -391,7 +394,6 @@ void LoadMFASequences( MatchListType& mlist, const std::string& mfa_filename, st
 	}
 
 	mlist.seq_filename.clear();
-	gnSeqI total_len = 0;
 	for( uint contigI = 0; contigI < file_sequence.contigListSize(); contigI++ ){
 		genome::gnSequence* contig_seq = new genome::gnSequence( file_sequence.contig( contigI ) );
 		mlist.seq_filename.push_back( mfa_filename );
@@ -421,7 +423,6 @@ void GenericMatchList< MatchPtrType >::CreateMemorySMLs( uint mer_size, std::ost
 	for( uint contigI = 0; contigI < seq_table.size(); contigI++ )
 	{
 		DNAMemorySML* contig_sml = new DNAMemorySML();
-		boolean success = true;
 		if( log_stream != NULL )
 			(*log_stream) << "Creating sorted mer list\n";
 		time_t start_time = time(NULL);
