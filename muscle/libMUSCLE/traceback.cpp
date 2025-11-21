@@ -20,7 +20,6 @@ SCORE TraceBack(const ProfPos *PA, unsigned uLengthA, const ProfPos *PB,
 	assert(uLengthB > 0 && uLengthA > 0);
 
 	const unsigned uPrefixCountA = uLengthA + 1;
-	const unsigned uPrefixCountB = uLengthB + 1;
 
 	Path.Clear();
 
@@ -209,3 +208,4 @@ SCORE TraceBack(const ProfPos *PA, unsigned uLengthA, const ProfPos *PB,
 	return scoreMax;
 	}
 } 
+
