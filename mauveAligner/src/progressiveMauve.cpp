@@ -76,7 +76,7 @@ public:
 class OptionList : public vector< MauveOption* >
 {
 public:
-	OptionList() : config_opt(0), opt_list(NULL) {};
+	OptionList() : opt_list(NULL), config_opt(0) {};
 	~OptionList()
 	{
 		if( opt_list != NULL )
@@ -526,7 +526,7 @@ int doAlignment( int argc, char* argv[] ){
 		if( mer_size == 0 )
 		{
 			size_t avg = 0;
-			for( size_t i = 0; i < pairwise_match_list.seq_table.size(); i++ )
+			for( int i = 0; i < pairwise_match_list.seq_table.size(); i++ )
 				avg += pairwise_match_list.seq_table[i]->length();
 			avg /= pairwise_match_list.seq_table.size();
 			mer_size = getDefaultSeedWeight( avg );
