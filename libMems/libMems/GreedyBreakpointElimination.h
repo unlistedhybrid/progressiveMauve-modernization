@@ -549,12 +549,12 @@ protected:
 
 	std::vector< TrackingMatch* > deleted_tracking_matches;
 
-	double min_breakpoint_penalty;
-
 private:
 	// avoid continuous size lookup
 	const size_t seqI_count;
 	const size_t seqJ_count;
+
+	double min_breakpoint_penalty;
 
 	// variables used during score computation
 	boost::multi_array< std::vector< std::pair< uint, uint > >, 2 > all_id_remaps;
@@ -661,9 +661,7 @@ int64 greedyBreakpointElimination_v4( std::vector< mems::LCB >& adjacencies,
 
 	if( adjacencies.size() == 0 )
 		return 0;	// nothing can be done
-	uint seq_count = adjacencies[0].left_end.size();
 	
-	double prev_score = bp_scorer.score();
 	uint report_frequency = 10;
 	uint moves_made = 0;
 
@@ -744,7 +742,6 @@ int64 greedyBreakpointElimination_v4( std::vector< mems::LCB >& adjacencies,
 		}
 #endif
 		double cur_score = bp_scorer.score();
-		prev_score = cur_score;
 		moves_made++;
 #ifndef LCB_WEIGHT_LOSS_PLOT
 		if( status_out != NULL && moves_made % report_frequency == 0 )
