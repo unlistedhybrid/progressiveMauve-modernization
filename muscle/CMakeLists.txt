@@ -7,6 +7,7 @@ set(MUSCLE_SRC
     libMUSCLE/msa.cpp
     libMUSCLE/muscle.cpp
     libMUSCLE/objscore.cpp
+    libMUSCLE/onexception.cpp
     libMUSCLE/params.cpp
     libMUSCLE/profile.cpp
     libMUSCLE/pwpath.cpp
