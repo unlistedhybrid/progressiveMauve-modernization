@@ -1,3 +1,5 @@
+# -------- libMUSCLE FIXED CMakeLists.txt --------
+
 set(MUSCLE_SRC
     libMUSCLE/aligngivenpath.cpp
     libMUSCLE/aligngivenpathsw.cpp
@@ -31,7 +33,7 @@ set(MUSCLE_SRC
     libMUSCLE/enumopts.cpp
     libMUSCLE/enumtostr.cpp
     libMUSCLE/estring.cpp
-    libMUSCLE/fasta.cpp
+    # libMUSCLE/fasta.cpp        <-- REMOVED (missing)
     libMUSCLE/fasta2.cpp
     libMUSCLE/fastclust.cpp
     libMUSCLE/fastdist.cpp
@@ -147,6 +149,7 @@ set(MUSCLE_SRC
 )
 
 add_library(libMUSCLE STATIC ${MUSCLE_SRC})
+
 target_include_directories(libMUSCLE PUBLIC
     ${PROJECT_SOURCE_DIR}/muscle
     ${PROJECT_SOURCE_DIR}/muscle/libMUSCLE
