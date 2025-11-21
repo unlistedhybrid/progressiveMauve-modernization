@@ -17,6 +17,10 @@ if(MSVC)
     add_compile_options(/wd4996)
 endif()
 
+# ------------------ OPENMP ACCELERATION ------------------
+
+find_package(OpenMP REQUIRED)
+
 # ------------------ PLATFORM-SPECIFIC EXTRAS ------------------
 
 set(EXTRA_SRCS "")
@@ -106,6 +110,9 @@ if(Boost_INCLUDE_DIRS)
     target_include_directories(BoostInterface INTERFACE ${Boost_INCLUDE_DIRS})
 endif()
 
+# Add OpenMP to BoostInterface
+target_link_libraries(BoostInterface INTERFACE OpenMP::OpenMP_CXX)
+
 # ------------------ SUBDIRECTORIES ------------------
 
 add_subdirectory(libGenome)
@@ -137,12 +144,6 @@ target_link_libraries(progressiveMauve
     libMems
     libMUSCLE
     BoostInterface
+    OpenMP::OpenMP_CXX
     ${EXTRA_LIBS}
 )
-
-# ------------------ OPTIONAL: OPENMP ACCELERATION ------------------
-
-find_package(OpenMP)
-if(OpenMP_CXX_FOUND)
-    target_link_libraries(progressiveMauve OpenMP::OpenMP_CXX)
-endif()
