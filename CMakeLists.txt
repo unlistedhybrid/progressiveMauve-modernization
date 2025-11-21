@@ -68,7 +68,7 @@ else()
     link_directories(${ZSTD_LIBRARY_DIRS})
 endif()
 
-# Create interface for all Boost-related linking
+# ------------------ BOOST INTERFACE ------------------
 add_library(BoostInterface INTERFACE)
 target_link_libraries(BoostInterface INTERFACE
     Boost::filesystem
@@ -117,7 +117,7 @@ set(PM_SRC
     ${EXTRA_SRCS}  # win_getopt.cpp on Windows
 )
 
-# ------------------ EXECUTABLE: progressiveMauve ONLY ------------------
+# ------------------ EXECUTABLE: progressiveMauve ------------------
 add_executable(progressiveMauve ${PM_SRC})
 
 target_include_directories(progressiveMauve PRIVATE
@@ -138,5 +138,5 @@ target_link_libraries(progressiveMauve
 # ------------------ OPTIONAL: OPENMP ACCELERATION ------------------
 find_package(OpenMP)
 if(OpenMP_CXX_FOUND)
-    target_link_libraries(progressiveMauve PRIVATE OpenMP::OpenMP_CXX)
+    target_link_libraries(progressiveMauve OpenMP::OpenMP_CXX)
 endif()
