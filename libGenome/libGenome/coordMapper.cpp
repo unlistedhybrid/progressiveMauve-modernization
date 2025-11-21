@@ -101,7 +101,6 @@ uint32 loc_binary_search(vector<gnLocation>& loc_list,
 
 int main(int argc, char* argv[]){
 
-    boolean run_interactive = false;
     string seq_filename;
     string exon_list_filename;
     string intron_list_filename;
