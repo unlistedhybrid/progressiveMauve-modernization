@@ -140,6 +140,7 @@ set(MUSCLE_SRC
     libMUSCLE/treefrommsa.cpp
     libMUSCLE/typetostr.cpp
     libMUSCLE/upgma2.cpp
+    libMUSCLE/usage.cpp
     libMUSCLE/validateids.cpp
     libMUSCLE/vtml2.cpp
     libMUSCLE/writescorefile.cpp
