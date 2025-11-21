@@ -188,7 +188,7 @@ bool MemHash::HashMatch(IdmerList& match_list){
 	
 	// Verify all sequence IDs in match_list are valid
 	for(auto& idmer : match_list){
-		if(idmer.id >= seq_count){
+		if(static_cast<uint32_t>(idmer.id) >= seq_count){
 			std::cerr << "ERROR: Invalid sequence ID " << idmer.id << " (seq_count=" << seq_count << ")\n";
 			return false;
 		}
@@ -303,7 +303,7 @@ MatchHashEntry* MemHash::AddHashEntry(MatchHashEntry& mhe){
 	
 	// link up the subset matches
 	for(uint32_t subsetI = 0; subsetI < subset_matches.size(); ++subsetI){
-		MatchHashEntry* submem = AddHashEntry( subset_matches[ subsetI ] );
+		AddHashEntry( subset_matches[ subsetI ] );
 	}
 	
 	++mem_table_count[bucketI];
