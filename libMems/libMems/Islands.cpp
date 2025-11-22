@@ -276,7 +276,7 @@ void addUnalignedIntervals( IntervalList& iv_list, set< uint > seq_set, vector<g
 			int rightI = lcbI < static_cast<int>(adjacencies.size()) ? lcbI : -1;
 // right is always to the right!!
 			if( lcbI < static_cast<int>(adjacencies.size()) )
-				if( adjacencies[ lcbI ].right_adjacency[ seqI ] == -1 )
+				if( static_cast<int>(adjacencies[ lcbI ].right_adjacency[ seqI ]) == -1 )
 					rightmost[ seqI ] = lcbI;
 			
 			int64 left_start, right_start;
