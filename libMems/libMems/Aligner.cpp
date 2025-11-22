@@ -77,11 +77,11 @@ void EliminateOverlaps( MatchList& ml ){
 			if( ml[ matchI ]->Start( seqI ) != NO_MATCH )
 				break;
 
-		for(; matchI < ml.size(); matchI++ ){
+		for(; matchI < (int64)ml.size(); matchI++ ){
 			if( ml[ matchI ] == NULL )
 				continue;
 			
-			for( nextI = matchI + 1; nextI < ml.size(); nextI++ ){
+			for( nextI = matchI + 1; nextI < (int64)ml.size(); nextI++ ){
 				if( ml[ nextI ] == NULL )
 					continue;
 
@@ -124,7 +124,7 @@ void EliminateOverlaps( MatchList& ml ){
 						// match_iter is smaller
 						new_match = ml[nextI]->Copy();
 						// erase base pairs from new_match
-						if( diff >= ml[ nextI ]->Length() ){
+						if( diff >= (int64)ml[ nextI ]->Length() ){
 //							cerr << "Deleting " << **next_iter << " at the hands of\n" << **mem_iter << endl;
 							ml[ nextI ]->Free();
 							ml[ nextI ] = NULL;
@@ -161,7 +161,7 @@ void EliminateOverlaps( MatchList& ml ){
 
 		if( deleted_count > 0 ){
 			result_matches.reserve( ml.size() - deleted_count );
-			for( int64 copyI = 0; copyI < ml.size(); copyI++ ){
+			for( int64 copyI = 0; copyI < (int64)ml.size(); copyI++ ){
 				if( ml[ copyI ] != NULL )
 					result_matches.push_back( ml[ copyI ] );
 			}
@@ -311,7 +311,7 @@ void scanFit( list< LabeledMem >& pair_list, list< LabeledMem >::iterator& list_
 //		if( absolut( last_iter->mem->Start( sort_seq ) ) < initial_start ||
 //			absolut( last_iter->mem->Start( sort_seq ) ) > (uint64)new_match->Start( sort_seq ) )
 		if( absolut( last_iter->mem->Start( sort_seq ) ) < initial_start ||
-			absolut( last_iter->mem->Start( sort_seq ) ) > (uint64)new_match->Start( sort_seq ) )
+			(int64)absolut( last_iter->mem->Start( sort_seq ) ) > new_match->Start( sort_seq ) )
 			break;
 		++match_count;
 	}
@@ -750,8 +750,8 @@ void CreateGapSearchList( vector< LCB >& adjacencies, const vector< gnSequence* 
 	for( seqI = 0; seqI < seq_count; seqI++ ){
 
 		// find the first LCB in this sequence
-		for( lcbI = 0; lcbI < adjacencies.size(); lcbI++ ){
-			if( adjacencies[ lcbI ].left_adjacency[ seqI ] == -1 )
+		for( lcbI = 0; lcbI < (int)adjacencies.size(); lcbI++ ){
+			if( adjacencies[ lcbI ].left_adjacency[ seqI ] == (uint)-1 )
 				break;
 		}
 		// start concatenating the intervening regions
@@ -1002,7 +1002,7 @@ void transposeMatches( MatchList& mlist, uint seqI, const vector< int64 >& seq_r
 		int64 iv_orig_start = trans_start;
 		if( trans_start == 0 )
 			continue;
-		while( region_sum < absolut( trans_start ) && regionI + 2 < seq_regions.size() ){
+		while( (int64)region_sum < absolut( trans_start ) && regionI + 2 < seq_regions.size() ){
 			regionI += 2;
 			region_start_sum = region_sum;
 			region_sum += seq_regions[ regionI + 1 ] - seq_regions[ regionI ];
@@ -1020,10 +1020,10 @@ void transposeMatches( MatchList& mlist, uint seqI, const vector< int64 >& seq_r
 		
 		// this bad boy may need to be split
 		gnSeqI end_region_sum = region_sum;
-		gnSeqI end_prev_sum = region_start_sum;
+		
 		uint end_regionI = regionI;
 		Match* cur_match = mlist[ matchI ];
-		while( end_region_sum < absolut( trans_end ) && end_regionI + 2 < seq_regions.size() ){
+		while( (int64)end_region_sum < absolut( trans_end ) && end_regionI + 2 < seq_regions.size() ){
 			end_regionI += 2;
 
 			Match* left_match = new Match( *cur_match );
@@ -1311,7 +1311,7 @@ void AlignLCBInParallel( bool collinear_genomes, mems::GappedAligner* gal, Match
 		iv.SetMatches( mlist );
 		return;
 	}
-	size_t galI = 0;
+	
 	vector<GappedAlignment*> gapped_alns(mlist.size()+1, NULL);
 	vector<int> success(gapped_alns.size(), 0);
 	gnSeqI progress_base = apt.cur_leftend;
@@ -1414,9 +1414,9 @@ void Aligner::AlignLCB( MatchList& mlist, Interval& iv ){
 		cout << "Assuming collinear genomes...\n";
 	
 	uint memI = 0;
-	uint matchI = 0;
+	
 	while( true ){
-		if( memI >= print_interval && memI % print_interval == 0 || debug)
+		if( (memI >= (uint)print_interval && memI % (uint)print_interval == 0) || debug)
 			cout << "Number: " << memI << " match " << **recurse_prev << endl;
 		++memI;
 		if( debug_recurse ){
@@ -1489,7 +1489,7 @@ void Aligner::SearchWithinLCB( MatchList& mlist, std::vector< search_cache_t >& 
 		return;
 
 	bool debug_recurse = false;
-	int64 config_value = 138500;
+	
 	int print_interval = 50;
 
 	try{
@@ -1506,7 +1506,7 @@ void Aligner::SearchWithinLCB( MatchList& mlist, std::vector< search_cache_t >& 
 	uint memI = 0;
 	uint matchI = 0;
 	while( recurse_prev != match_list.end() ){
-		if( memI >= print_interval && memI % print_interval == 0 || debug)
+		if( (memI >= (uint)print_interval && memI % (uint)print_interval == 0) || debug)
 			cout << "Number: " << memI << " match " << **recurse_prev << endl;
 		++memI;
 		if( debug_recurse ){
@@ -1653,11 +1653,11 @@ int64 greedyBreakpointElimination( gnSeqI minimum_weight, vector< LCB >& adjacen
 
 			// start with current_lcbI since everything up to it has already been scanned
 			for( lcbI = current_lcbI; lcbI < weights.size(); lcbI++ ){
-				if( adjacencies[ lcbI ].lcb_id != lcbI ){
+				if( adjacencies[ lcbI ].lcb_id != (uint)lcbI ){
 					// this lcb has been removed or merged with another lcb
 					continue;
 				}
-				if( weights[ lcbI ] < min_weight || !have_weight ){
+				if( weights[ lcbI ] < (int64)min_weight || !have_weight ){
 					min_weight = weights[ lcbI ];
 					min_lcb = lcbI;
 					have_weight = true;
@@ -1701,21 +1701,21 @@ int64 greedyBreakpointElimination( gnSeqI minimum_weight, vector< LCB >& adjacen
 			left_adj = adjacencies[ lcbI ].left_adjacency[ seqI ];
 			right_adj = adjacencies[ lcbI ].right_adjacency[ seqI ];
 			if( debug_bp_elimination ){
-				if( left_adj == -2 || right_adj == -2 ){
+				if( left_adj == (uint)-2 || right_adj == (uint)-2 ){
 					cerr << "improper linking\n";
 				}
 				// for debugging, check for consistency:
-				if( left_adj != -1 && adjacencies[ left_adj ].right_adjacency[ seqI ] != lcbI )
+				if( left_adj != (uint)-1 && adjacencies[ left_adj ].right_adjacency[ seqI ] != lcbI )
 					cerr << "Mutiny on the bounty!\n";
 				// for debugging, check for consistency
 				if( right_adj == adjacencies.size() )
 					cerr << "Horrible Error -399a\n";
-				if( right_adj != -1 && adjacencies[ right_adj ].left_adjacency[ seqI ] != lcbI )
+				if( right_adj != (uint)-1 && adjacencies[ right_adj ].left_adjacency[ seqI ] != lcbI )
 					cerr << "Mutiny on the bounty!\n";
 			}
-			if( left_adj != -1 )
+			if( left_adj != (uint)-1 )
 				adjacencies[ left_adj ].right_adjacency[ seqI ] = right_adj;
-			if( right_adj != -1 && right_adj != adjacencies.size() )
+			if( right_adj != (uint)-1 && right_adj != adjacencies.size() )
 				adjacencies[ right_adj ].left_adjacency[ seqI ] = left_adj;
 			
 		}
@@ -1726,22 +1726,22 @@ int64 greedyBreakpointElimination( gnSeqI minimum_weight, vector< LCB >& adjacen
 		for( seqI = 0; seqI < seq_count; seqI++ ){
 			left_adj = adjacencies[ lcbI ].left_adjacency[ seqI ];
 			right_adj = adjacencies[ lcbI ].right_adjacency[ seqI ];
-			if( left_adj == -1 || right_adj == -1 )
+			if( left_adj == (uint)-1 || right_adj == (uint)-1 )
 				continue;	// can't collapse with a non-existant LCB!
 
 			if( debug_bp_elimination ){
 				if( right_adj == adjacencies.size() )
 					cerr << "Horrible Error -399a\n";
 				// check whether this LCB has already been merged
-				if( left_adj != adjacencies[ left_adj ].lcb_id ||
-					right_adj != adjacencies[ right_adj ].lcb_id ){
+				if( left_adj != (int)adjacencies[ left_adj ].lcb_id ||
+					right_adj != (int)adjacencies[ right_adj ].lcb_id ){
 					// because adjacency pointers are always updated to point to the 
 					// representative entry of an LCB, the lcb_id and the array index
 					// should always be identical
 					cerr << "improper linking\n";
 					continue;
 				}
-				if( left_adj == -2 || right_adj == -2 ){
+				if( left_adj == (uint)-2 || right_adj == (uint)-2 ){
 					cerr << "improper linking\n";
 				}
 			}
@@ -1758,7 +1758,7 @@ int64 greedyBreakpointElimination( gnSeqI minimum_weight, vector< LCB >& adjacen
 					adjacencies[ left_adj ].left_adjacency[ seqJ ] != right_adj )
 					break;
 				// check that they are both in the same orientation
-				if( adjacencies[ right_adj ].left_end[ seqJ ] > 0 != j_orientation )
+				if( (adjacencies[ right_adj ].left_end[ seqJ ] > 0) != j_orientation )
 					break;
 			}
 
@@ -1784,14 +1784,14 @@ int64 greedyBreakpointElimination( gnSeqI minimum_weight, vector< LCB >& adjacen
 					adjacencies[ left_adj ].right_adjacency[ seqJ ] = rr_adj;
 					if( rr_adj == adjacencies.size() )
 						cerr << "Horrible Error -399a\n";
-					if( rr_adj != -1 )
+					if( rr_adj != (uint)-1 )
 						adjacencies[ rr_adj ].left_adjacency[ seqJ ] = left_adj;
 				}else{
 					adjacencies[ left_adj ].left_end[ seqJ ] = adjacencies[ right_adj ].left_end[ seqJ ];
 					adjacencies[ left_adj ].left_adjacency[ seqJ ] = rl_adj;
 					if( rl_adj == adjacencies.size() )
 						cerr << "Horrible Error -399a\n";
-					if( rl_adj != -1 )
+					if( rl_adj != (uint)-1 )
 						adjacencies[ rl_adj ].right_adjacency[ seqJ ] = left_adj;
 				}
 				// update lcbI's adjacency links to point nowhere
@@ -1833,7 +1833,7 @@ void filterMatches( vector< LCB >& adjacencies, vector< MatchList >& lcb_list, v
 	vector< MatchList > filtered_lcbs = vector< MatchList >( lcb_list.size(), lcb_tmp );
 	uint lcbI;
 	for( lcbI = 0; lcbI < adjacencies.size(); lcbI++ ){
-		if( adjacencies[ lcbI ].lcb_id == lcbI ){
+		if( adjacencies[ lcbI ].lcb_id == (uint)lcbI ){
 			filtered_lcbs[ lcbI ].insert( filtered_lcbs[ lcbI ].end(), lcb_list[ lcbI ].begin(), lcb_list[ lcbI ].end() );
 			continue;
 		}
@@ -1849,10 +1849,10 @@ void filterMatches( vector< LCB >& adjacencies, vector< MatchList >& lcb_list, v
 		stack< uint > visited_lcbs;
 		visited_lcbs.push( lcbI );
 		uint cur_lcb = adjacencies[ lcbI ].lcb_id;
-		while( adjacencies[ cur_lcb ].lcb_id != cur_lcb ){
+		while( adjacencies[ cur_lcb ].lcb_id != (uint)cur_lcb ){
 			visited_lcbs.push( cur_lcb );
 			cur_lcb = adjacencies[ cur_lcb ].lcb_id;
-			if( cur_lcb == -1 || cur_lcb == -2 ){
+			if( cur_lcb == (uint)-1 || cur_lcb == (uint)-2 ){
 //				cerr << "improper hoodidge\n";
 				break;	// this one points to an LCB that got deleted
 			}
@@ -1862,7 +1862,7 @@ void filterMatches( vector< LCB >& adjacencies, vector< MatchList >& lcb_list, v
 			visited_lcbs.pop();
 		}
 		// add this LCB's matches to the target LCB.
-		if( cur_lcb != -1 && cur_lcb != -2 )
+		if( cur_lcb != (uint)-1 && cur_lcb != (uint)-2 )
 			filtered_lcbs[ cur_lcb ].insert( filtered_lcbs[ cur_lcb ].end(), lcb_list[ lcbI ].begin(), lcb_list[ lcbI ].end() );
 	}
 
@@ -2040,7 +2040,7 @@ void Aligner::RecursiveAnchorSearch( MatchList& mlist, gnSeqI minimum_weight, ve
 					if( prev_extension_weight > extension_weight ){
 						cerr << "Error! Previous weight: " << prev_extension_weight << " new weight: " << extension_weight << endl;
 					}
-				}while( extension_weight > prev_extension_weight && local_round < this->max_extension_iters);
+				}while( extension_weight > prev_extension_weight && local_round < (int)this->max_extension_iters);
 			}
 			swap( prev_iv_regions, cur_iv_regions );
 		}
@@ -2053,11 +2053,11 @@ void Aligner::RecursiveAnchorSearch( MatchList& mlist, gnSeqI minimum_weight, ve
 //					*status_out << "Searching in LCB: " << lcbI << endl;
 				[[maybe_unused]] int prev_size = LCB_list[ lcbI ].size();
 				bool leftmost = true;
-				for( int i = 0; leftmost && i < adjacencies[lcbI].left_adjacency.size(); i++ )
+				for( int i = 0; leftmost && i < (int)adjacencies[lcbI].left_adjacency.size(); i++ )
 					if(adjacencies[lcbI].left_adjacency[i] != NO_ADJACENCY)
 						leftmost = false;
 				bool rightmost = true;
-				for( int i = 0; rightmost && i < adjacencies[lcbI].right_adjacency.size(); i++ )
+				for( int i = 0; rightmost && i < (int)adjacencies[lcbI].right_adjacency.size(); i++ )
 					if(adjacencies[lcbI].right_adjacency[i] != NO_ADJACENCY)
 						rightmost = false;
 				SearchWithinLCB( LCB_list[ lcbI ], new_cache, leftmost, rightmost );
@@ -2150,7 +2150,7 @@ void Aligner::RecursiveAnchorSearch( MatchList& mlist, gnSeqI minimum_weight, ve
 				// increment the current weight
 				cur_perm_weight = *min_w + seq_count;
 			}
-		}while( cur_perm_weight < minimum_weight );
+		}while( cur_perm_weight < (int64)minimum_weight );
 		// only enable recursive anchor search once we achieve
 		// the desired weight threshold once -- for speed's sake
 		if( recursive && entire_genome ){
