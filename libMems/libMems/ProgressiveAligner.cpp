@@ -1613,10 +1613,24 @@ void ProgressiveAligner::constructLcbTrackingMatches(
 		cerr << "DEBUG: Calling GetAlignment for match " << mI << endl;
 		ancestral_matches[mI]->GetAlignment(aln);
 		cerr << "DEBUG: GetAlignment completed, aln.size()=" << aln.size() << endl;
-		swap( bs[mI][child_0], aln[0] );
-		cerr << "DEBUG: Swapped bs[" << mI << "][child_0]" << endl;
-		swap( bs[mI][child_1], aln[1] );
-		cerr << "DEBUG: Swapped bs[" << mI << "][child_1]" << endl;
+		
+		// Check if alignment is valid before accessing
+		if( aln.size() < 2 )
+		{
+			cerr << "WARNING: Match " << mI << " has invalid alignment size " << aln.size() << ", expected at least 2." << endl;
+			cerr << "         Creating empty bitsets for this match." << endl;
+			// Create empty bitsets to avoid crashes
+			bs[mI][child_0] = bitset_t();
+			bs[mI][child_1] = bitset_t();
+		}
+		else
+		{
+			swap( bs[mI][child_0], aln[0] );
+			cerr << "DEBUG: Swapped bs[" << mI << "][child_0]" << endl;
+			swap( bs[mI][child_1], aln[1] );
+			cerr << "DEBUG: Swapped bs[" << mI << "][child_1]" << endl;
+		}
+		
 		CompactGappedAlignment<> c(alignment_tree.size(),0);
 		cerr << "DEBUG: CompactGappedAlignment created for match " << mI << endl;
 		c.SetLeftEnd(child_0, ancestral_matches[mI]->LeftEnd(0));
