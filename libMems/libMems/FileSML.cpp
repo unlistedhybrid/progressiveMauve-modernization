@@ -250,7 +250,7 @@ void maskNNNNN( const gnSequence& in_seq, gnSequence& out_seq, vector< int64 >& 
 				}
 				n_count++;
 			}else{
-				if( n_count > mask_n_length ){
+				if( n_count > static_cast<gnSeqI>(mask_n_length) ){
 					if( n_stretch_start - n_stretch_end != 0 ){
 						// Add the sequence region to the output sequence
 						out_seq += in_seq.subseq( n_stretch_end, n_stretch_start - n_stretch_end );
