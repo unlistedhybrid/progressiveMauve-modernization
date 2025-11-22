@@ -261,23 +261,23 @@ void addUnalignedIntervals( IntervalList& iv_list, set< uint > seq_set, vector<g
 	for( seqI = 0; seqI < seq_count; seqI++ ){
 		rightmost.push_back( -1 );
 	}
-	for( size_t lcbI = 0; lcbI <= adjacencies.size(); lcbI++ ){
+	for( int lcbI = 0; lcbI <= static_cast<int>(adjacencies.size()); lcbI++ ){
 		set< uint >::iterator seq_set_iterator = seq_set.begin();
 		for( ; seq_set_iterator != seq_set.end(); seq_set_iterator++ ){
 			seqI = *seq_set_iterator;
 			// scan left
 			int leftI;
-			if( lcbI < adjacencies.size() ){
+			if( lcbI < static_cast<int>(adjacencies.size()) ){
 // left is always to the left!!
 				leftI = adjacencies[ lcbI ].left_adjacency[ seqI ];
 			}else
 				leftI = rightmost[ seqI ];
 
-			int rightI = lcbI < adjacencies.size() ? static_cast<int>(lcbI) : -1;
+			int rightI = lcbI < static_cast<int>(adjacencies.size()) ? lcbI : -1;
 // right is always to the right!!
-			if( lcbI < adjacencies.size() )
+			if( lcbI < static_cast<int>(adjacencies.size()) )
 				if( adjacencies[ lcbI ].right_adjacency[ seqI ] == -1 )
-					rightmost[ seqI ] = static_cast<int>(lcbI);
+					rightmost[ seqI ] = lcbI;
 			
 			int64 left_start, right_start;
 			getGapBounds( seq_lengths, adjacencies, seqI, leftI, rightI, left_start, right_start );
