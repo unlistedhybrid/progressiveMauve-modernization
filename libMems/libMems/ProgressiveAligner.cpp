@@ -1200,11 +1200,25 @@ void ProgressiveAligner::refineAlignment( GappedAlignment& gal, node_id_t ancest
 			GappedAlignment ga2;
 			splitGappedAlignment( **my_g_iter, ga1, ga2, seqs1, seqs2 );
 			cerr << "DEBUG: splitGappedAlignment completed, ga1.Multiplicity()=" << ga1.Multiplicity() << ", ga2.Multiplicity()=" << ga2.Multiplicity() << endl;
-			if( ga1.Multiplicity() > 0 && ga2.Multiplicity() > 0 )
+			// ProfileAlign requires both profiles to have multiple sequences
+			// If either has only 1 sequence, use regular refinement instead
+			if( ga1.Multiplicity() > 1 && ga2.Multiplicity() > 1 )
 			{
 				cerr << "DEBUG: Calling ProfileAlignFast" << endl;
 				mi.ProfileAlignFast( ga1, ga2, **my_g_iter, true );
 				cerr << "DEBUG: ProfileAlignFast completed" << endl;
+			}
+			else if( ga1.Multiplicity() > 0 && ga2.Multiplicity() > 0 )
+			{
+				cerr << "DEBUG: Skipping ProfileAlignFast (Multiplicity too low), using RefineFast instead" << endl;
+				int density = IsDenseEnough( *my_g_iter );
+				if( density == 0 )
+					mi.RefineFast( **my_g_iter );
+				else if( density == 1 )
+					mi.RefineFast( **my_g_iter, 500 );
+				else
+					mi.RefineFast( **my_g_iter, 200 );
+				cerr << "DEBUG: RefineFast completed" << endl;
 			}
 		}else if(!(*my_b_iter))
 		{
