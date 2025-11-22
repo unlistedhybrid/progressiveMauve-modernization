@@ -1210,11 +1210,12 @@ void ProgressiveAligner::refineAlignment( GappedAlignment& gal, node_id_t ancest
 			}
 			else if( ga1.Multiplicity() > 0 && ga2.Multiplicity() > 0 )
 			{
-				cerr << "DEBUG: Skipping ProfileAlignFast (Multiplicity too low), using RefineFast instead" << endl;
+				cerr << "DEBUG: Skipping ProfileAlignFast (Multiplicity too low)" << endl;
 				cerr << "DEBUG: my_g_iter Multiplicity=" << (*my_g_iter)->Multiplicity() 
 				     << ", AlignmentLength=" << (*my_g_iter)->AlignmentLength() << endl;
-				// Only refine if there's actually something to refine (multiplicity > 1)
-				if( (*my_g_iter)->Multiplicity() > 1 && (*my_g_iter)->AlignmentLength() > 0 )
+				// Skip refinement for 2-sequence alignments - they're already pairwise aligned
+				// and refining them can cause crashes in MUSCLE
+				if( (*my_g_iter)->Multiplicity() > 2 && (*my_g_iter)->AlignmentLength() > 0 )
 				{
 					int density = IsDenseEnough( *my_g_iter );
 					cerr << "DEBUG: Calling RefineFast with density=" << density << endl;
@@ -1228,7 +1229,7 @@ void ProgressiveAligner::refineAlignment( GappedAlignment& gal, node_id_t ancest
 				}
 				else
 				{
-					cerr << "DEBUG: Skipping RefineFast - insufficient multiplicity or zero length" << endl;
+					cerr << "DEBUG: Skipping RefineFast - 2-sequence alignment doesn't need refinement" << endl;
 				}
 			}
 		}else if(!(*my_b_iter))
