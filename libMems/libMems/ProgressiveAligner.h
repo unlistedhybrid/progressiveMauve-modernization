@@ -473,8 +473,18 @@ void addUnalignedIntervals_v2( MatchVectorType& iv_list, std::set< uint > seq_se
 			// scan left
 			int leftI;
 			if( lcbI < adjacencies.size() ){
+				std::cerr << "DEBUG: About to access adjacencies[" << lcbI << "].left_adjacency[" << seqI << "]" << std::endl;
+				std::cerr << "DEBUG: adjacencies[" << lcbI << "].left_adjacency.size()=" << adjacencies[lcbI].left_adjacency.size() << std::endl;
+				
+				// Bounds check
+				if( seqI >= adjacencies[lcbI].left_adjacency.size() )
+				{
+					std::cerr << "ERROR: seqI=" << seqI << " >= left_adjacency.size()=" << adjacencies[lcbI].left_adjacency.size() << std::endl;
+					continue;
+				}
 // left is always to the left!!
 				leftI = adjacencies[ lcbI ].left_adjacency[ seqI ];
+				std::cerr << "DEBUG: leftI=" << leftI << std::endl;
 			}else
 				leftI = rightmost[ seqI ];
 
