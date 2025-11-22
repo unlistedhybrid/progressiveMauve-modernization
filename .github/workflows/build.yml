@@ -15,7 +15,6 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt update
-        # Must have libicu-dev for Boost::regex and gdb for debugging!
         sudo apt install -y cmake g++ wget libzstd-dev libbz2-dev zlib1g-dev pkg-config libicu-dev gdb
         
         # Install Boost 1.89 manually
@@ -34,15 +33,17 @@ jobs:
       run: |
         mkdir build
         cd build
-        
-        # Enable warnings to catch issues
         export CXXFLAGS="-Wall -Wextra -Wno-unused-parameter"
-        
-        # Configure for Debug to get symbols and detailed output capability
         cmake .. -DCMAKE_BUILD_TYPE=Debug -DBoost_USE_STATIC_LIBS=ON
-        
-        # Build and pipe all output (stdout and stderr) to build_log.txt
         cmake --build . --parallel 2>&1 | tee build_log.txt
+
+    # ----------------------------
+    # COPY SAMPLE FASTA FILES
+    # ----------------------------
+    - name: Copy sample FASTA files to build directory
+      run: |
+        cp test_data/1.fasta build/
+        cp test_data/2.fasta build/
 
     # ----------------------------
     # RUN UNDER GDB FOR BACKTRACE
@@ -51,9 +52,7 @@ jobs:
       run: |
         cd build
         set +e
-        # Adjust the arguments below to match your usual run/test setup!
-        # Example input files are 1.fasta and 2.fasta—replace if needed.
-        gdb -q -batch -ex "run --backbone-output=bb.txt --output=seqs.xmfa 1.fasta 2.fasta" -ex "bt" ./progressiveMauve || true
+        gdb -q -batch -ex "run 1.fasta 2.fasta --output=seqs.xmfa" -ex "bt" ./progressiveMauve || true
 
     # ----------------------------
     # SAVE ARTIFACTS
@@ -63,6 +62,9 @@ jobs:
         mkdir dist
         cp build/progressiveMauve dist/
         cp build/build_log.txt dist/
+        # Optionally, copy output or logs
+        [ -f build/bb.txt ] && cp build/bb.txt dist/
+        [ -f build/seqs.xmfa ] && cp build/seqs.xmfa dist/
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4
