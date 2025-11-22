@@ -236,15 +236,22 @@ void ProgressiveAligner::getPath( node_id_t first_n, node_id_t last_n, vector< n
 template<class MatchType>
 void ProgressiveAligner::propagateDescendantBreakpoints( node_id_t node1, uint seqI, std::vector<MatchType*>& iv_list )
 {
+	cerr << "DEBUG: propagateDescendantBreakpoints START, node1=" << node1 << ", seqI=" << seqI << ", iv_list.size()=" << iv_list.size() << endl;
 	SSC<MatchType> ilc(seqI);
+	cerr << "DEBUG: About to sort iv_list" << endl;
 	sort( iv_list.begin(), iv_list.end(), ilc );
+	cerr << "DEBUG: Sort completed" << endl;
 	vector< SuperInterval >& ord = alignment_tree[ node1 ].ordering;
+	cerr << "DEBUG: Got ordering, ord.size()=" << ord.size() << endl;
 	vector<gnSeqI> bp_list;
 	for( size_t sI = 0; sI < ord.size(); sI++ )
 		bp_list.push_back( ord[sI].LeftEnd() );
+	cerr << "DEBUG: Built bp_list with " << bp_list.size() << " breakpoints" << endl;
 
 	GenericMatchSeqManipulator<MatchType> ism( seqI );
+	cerr << "DEBUG: About to call applyBreakpoints" << endl;
 	applyBreakpoints( bp_list, iv_list, ism );
+	cerr << "DEBUG: propagateDescendantBreakpoints COMPLETED" << endl;
 }
 
 // T should be a pointer type
@@ -1581,8 +1588,12 @@ void ProgressiveAligner::constructLcbTrackingMatches(
 	node_id_t child_1 = alignment_tree[ancestral_node].children[1];
 	cerr << "DEBUG: child_0=" << child_0 << ", child_1=" << child_1 << endl;
 	// split up matches at descendant's breakpoints
+	cerr << "DEBUG: Calling propagateDescendantBreakpoints for child_0=" << child_0 << endl;
 	propagateDescendantBreakpoints( child_0, 0, ancestral_matches );
+	cerr << "DEBUG: propagateDescendantBreakpoints child_0 completed" << endl;
+	cerr << "DEBUG: Calling propagateDescendantBreakpoints for child_1=" << child_1 << endl;
 	propagateDescendantBreakpoints( child_1, 1, ancestral_matches );
+	cerr << "DEBUG: propagateDescendantBreakpoints child_1 completed" << endl;
 
 	// store alignment bitvectors for each match...
 	vector< bitset_t > bs_tmp(alignment_tree.size());
