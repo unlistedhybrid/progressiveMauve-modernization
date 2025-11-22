@@ -1180,8 +1180,10 @@ void ProgressiveAligner::refineAlignment( GappedAlignment& gal, node_id_t ancest
 // this section can not be paralellized b/c it makes calls to muscle
 #pragma omp critical
 {
+	cerr << "DEBUG: refineAlignment processing " << gal_count << " gapped alignments" << endl;
 	for( size_t galI = 0; galI < static_cast<size_t>(gal_count); galI++ )
 	{
+		cerr << "DEBUG: Processing gapped alignment " << galI << " of " << gal_count << endl;
 		list<GappedAlignment*>::iterator my_g_iter = gal_list.begin();
 		vector<bool>::iterator my_b_iter = gap_iv.begin();
 		for(uint a = 0; a < galI; a++)
@@ -1190,24 +1192,31 @@ void ProgressiveAligner::refineAlignment( GappedAlignment& gal, node_id_t ancest
 			++my_b_iter;
 		}
 		apt.cur_leftend += (*my_g_iter)->AlignmentLength();
+		cerr << "DEBUG: profile_aln=" << profile_aln << ", gap_iv=" << (*my_b_iter) << endl;
 		if( profile_aln && !(*my_b_iter) )
 		{
+			cerr << "DEBUG: Calling splitGappedAlignment" << endl;
 			GappedAlignment ga1;
 			GappedAlignment ga2;
 			splitGappedAlignment( **my_g_iter, ga1, ga2, seqs1, seqs2 );
+			cerr << "DEBUG: splitGappedAlignment completed, ga1.Multiplicity()=" << ga1.Multiplicity() << ", ga2.Multiplicity()=" << ga2.Multiplicity() << endl;
 			if( ga1.Multiplicity() > 0 && ga2.Multiplicity() > 0 )
 			{
+				cerr << "DEBUG: Calling ProfileAlignFast" << endl;
 				mi.ProfileAlignFast( ga1, ga2, **my_g_iter, true );
+				cerr << "DEBUG: ProfileAlignFast completed" << endl;
 			}
 		}else if(!(*my_b_iter))
 		{
 			int density = IsDenseEnough( *my_g_iter );
+			cerr << "DEBUG: Calling RefineFast with density=" << density << endl;
 			if( density == 0 )
 				mi.RefineFast( **my_g_iter );
 			else if( density == 1 )
 				mi.RefineFast( **my_g_iter, 500 );
 			else
 				mi.RefineFast( **my_g_iter, 200 );
+			cerr << "DEBUG: RefineFast completed" << endl;
 		}
 
 		new_len += (*my_g_iter)->AlignmentLength();
