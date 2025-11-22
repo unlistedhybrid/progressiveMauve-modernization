@@ -1211,14 +1211,25 @@ void ProgressiveAligner::refineAlignment( GappedAlignment& gal, node_id_t ancest
 			else if( ga1.Multiplicity() > 0 && ga2.Multiplicity() > 0 )
 			{
 				cerr << "DEBUG: Skipping ProfileAlignFast (Multiplicity too low), using RefineFast instead" << endl;
-				int density = IsDenseEnough( *my_g_iter );
-				if( density == 0 )
-					mi.RefineFast( **my_g_iter );
-				else if( density == 1 )
-					mi.RefineFast( **my_g_iter, 500 );
+				cerr << "DEBUG: my_g_iter Multiplicity=" << (*my_g_iter)->Multiplicity() 
+				     << ", AlignmentLength=" << (*my_g_iter)->AlignmentLength() << endl;
+				// Only refine if there's actually something to refine (multiplicity > 1)
+				if( (*my_g_iter)->Multiplicity() > 1 && (*my_g_iter)->AlignmentLength() > 0 )
+				{
+					int density = IsDenseEnough( *my_g_iter );
+					cerr << "DEBUG: Calling RefineFast with density=" << density << endl;
+					if( density == 0 )
+						mi.RefineFast( **my_g_iter );
+					else if( density == 1 )
+						mi.RefineFast( **my_g_iter, 500 );
+					else
+						mi.RefineFast( **my_g_iter, 200 );
+					cerr << "DEBUG: RefineFast completed" << endl;
+				}
 				else
-					mi.RefineFast( **my_g_iter, 200 );
-				cerr << "DEBUG: RefineFast completed" << endl;
+				{
+					cerr << "DEBUG: Skipping RefineFast - insufficient multiplicity or zero length" << endl;
+				}
 			}
 		}else if(!(*my_b_iter))
 		{
