@@ -267,7 +267,6 @@ void checkForAllGapColumns( IntervalList& iv_list )
 }
 
 
-
 void translateToPairwiseGenomeHSS( const hss_array_t& hss_array, pairwise_genome_hss_t& hss_cols )
 {
 	uint seq_count = hss_array.shape()[0];
@@ -281,7 +280,7 @@ void translateToPairwiseGenomeHSS( const hss_array_t& hss_array, pairwise_genome
 		{
 			for( size_t ivI = 0; ivI < iv_count; ++ivI )
 			{
-				const hss_list_t& cur_list = hss_array[seqI][seqJ][ivI];
+				hss_list_t cur_list = hss_array[seqI][seqJ][ivI];
 				hss_cols[seqI][seqJ][ivI].resize( cur_list.size() );
 				for( size_t hssI = 0; hssI < cur_list.size(); hssI++ )
 				{
@@ -1198,3 +1197,4 @@ void writeBackboneSeqCoordinates( backbone_list_t& bb_list, IntervalList& iv_lis
 }
 
 }  // namespace mems
+
