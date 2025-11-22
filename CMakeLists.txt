@@ -7,8 +7,10 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-# ------------------ MSVC CONFIG ------------------
+# Ensure Release flags are not forced for Debug builds
+# Debug symbols will be present if -DCMAKE_BUILD_TYPE=Debug is passed
 
+# ------------------ MSVC CONFIG ------------------
 if(MSVC)
     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded")
     add_compile_options($<$<CONFIG:Release>:/MT>)
@@ -18,21 +20,17 @@ if(MSVC)
 endif()
 
 # ------------------ OPENMP ACCELERATION ------------------
-
 find_package(OpenMP REQUIRED)
 
 # ------------------ PLATFORM-SPECIFIC EXTRAS ------------------
-
 set(EXTRA_SRCS "")
 set(EXTRA_LIBS "")
 
-# Windows needs getopt compatibility
 if(WIN32)
     list(APPEND EXTRA_SRCS mauveAligner/src/win_getopt.cpp)
     list(APPEND EXTRA_LIBS winmm psapi)
 endif()
 
-# macOS ICU fixes
 if(APPLE)
     list(APPEND CMAKE_PREFIX_PATH "/opt/homebrew/opt/icu4c" "/usr/local/opt/icu4c")
     include_directories("/opt/homebrew/opt/icu4c/include" "/usr/local/opt/icu4c/include")
@@ -40,7 +38,6 @@ if(APPLE)
 endif()
 
 # ------------------ BOOST + ZLIB + BZIP2 + ZSTD ------------------
-
 set(Boost_DEBUG OFF)
 set(Boost_USE_STATIC_LIBS ON)
 set(Boost_USE_MULTITHREADED ON)
@@ -56,11 +53,8 @@ find_package(Boost 1.89 REQUIRED
 find_package(ZLIB)
 find_package(BZip2)
 find_package(PkgConfig)
-
-# ICU (needed by Boost::regex)
 find_package(ICU REQUIRED COMPONENTS uc data i18n)
 
-# ZSTD detection
 if(PKG_CONFIG_FOUND)
     pkg_check_modules(ZSTD libzstd)
 endif()
@@ -76,7 +70,6 @@ else()
 endif()
 
 # ------------------ BOOST INTERFACE ------------------
-
 add_library(BoostInterface INTERFACE)
 target_link_libraries(BoostInterface INTERFACE
     Boost::filesystem
@@ -110,17 +103,14 @@ if(Boost_INCLUDE_DIRS)
     target_include_directories(BoostInterface INTERFACE ${Boost_INCLUDE_DIRS})
 endif()
 
-# Add OpenMP to BoostInterface
 target_link_libraries(BoostInterface INTERFACE OpenMP::OpenMP_CXX)
 
 # ------------------ SUBDIRECTORIES ------------------
-
 add_subdirectory(libGenome)
 add_subdirectory(libMems)
 add_subdirectory(muscle)
 
 # ------------------ progressiveMauve REQUIRED SOURCES ------------------
-
 set(PM_SRC
     mauveAligner/src/progressiveMauve.cpp
     mauveAligner/src/UniqueMatchFinder.cpp
@@ -129,7 +119,6 @@ set(PM_SRC
 )
 
 # ------------------ EXECUTABLE: progressiveMauve ------------------
-
 add_executable(progressiveMauve ${PM_SRC})
 
 target_include_directories(progressiveMauve PRIVATE
