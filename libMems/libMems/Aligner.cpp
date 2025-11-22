@@ -1021,6 +1021,7 @@ void transposeMatches( MatchList& mlist, uint seqI, const vector< int64 >& seq_r
 		// this bad boy may need to be split
 		gnSeqI end_region_sum = region_sum;
 		
+		gnSeqI end_prev_sum = region_start_sum;
 		uint end_regionI = regionI;
 		Match* cur_match = mlist[ matchI ];
 		while( (int64)end_region_sum < absolut( trans_end ) && end_regionI + 2 < seq_regions.size() ){
