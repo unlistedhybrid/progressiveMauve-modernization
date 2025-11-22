@@ -1049,15 +1049,35 @@ void splitGappedAlignment( const GappedAlignment& ga, GappedAlignment& ga1, Gapp
 
 void removeLargeGapsPP( GappedAlignment& gal, list< GappedAlignment* >& gal_list, vector<bool>& gap_iv, const vector< size_t >& group1, const vector< size_t >& group2 )
 {
+	cerr << "DEBUG: removeLargeGapsPP called with gal.SeqCount()=" << gal.SeqCount() << ", gal.AlignmentLength()=" << gal.AlignmentLength() << endl;
+	cerr << "DEBUG: group1.size()=" << group1.size() << ", group2.size()=" << group2.size() << endl;
+	cerr << "DEBUG: group1 indices: ";
+	for( size_t i = 0; i < group1.size(); ++i )
+		cerr << group1[i] << " ";
+	cerr << endl;
+	cerr << "DEBUG: group2 indices: ";
+	for( size_t i = 0; i < group2.size(); ++i )
+		cerr << group2[i] << " ";
+	cerr << endl;
+	
 	// scan through and remove any section where members of group1 aren't aligned to members of group2
 	// for more than some number of nucleotides
 	gap_iv.clear();
 	gal_list.clear();
 	const vector< string >& aln_matrix = GetAlignment(gal, vector<gnSequence*>(gal.SeqCount(),NULL));
+	
+	cerr << "DEBUG: aln_matrix.size()=" << aln_matrix.size() << endl;
+	if( aln_matrix.size() > 0 )
+		cerr << "DEBUG: aln_matrix[0].size()=" << aln_matrix[0].size() << endl;
+	
 	size_t gap_cols = 0;
 	size_t last_aln_col = (std::numeric_limits<size_t>::max)();
 	size_t col_base = 0;
 	GappedAlignment* galp = gal.Copy();
+	
+	size_t aligned_col_count = 0;
+	size_t gap_segment_count = 0;
+	
 	for( size_t colI = 0; colI < gal.AlignmentLength(); colI++ )
 	{
 		 size_t g1 = 0;
@@ -1075,9 +1095,11 @@ void removeLargeGapsPP( GappedAlignment& gal, list< GappedAlignment* >& gal_list
 		 if( g1 < group1.size() && g2 < group2.size() )
 		 {
 			 // it's an aligned col
+			 aligned_col_count++;
 			 if( gap_cols > max_gap_length )
 			 {
 				// crop out the middle gapped section
+				gap_segment_count++;
 				gnSeqI split_point = 0;
 				if( last_aln_col != (std::numeric_limits<size_t>::max)() )
 				{
@@ -1113,6 +1135,12 @@ void removeLargeGapsPP( GappedAlignment& gal, list< GappedAlignment* >& gal_list
 	}else
 		gap_iv.push_back(false);
 	gal_list.push_back( galp );
+	
+	cerr << "DEBUG: removeLargeGapsPP results: aligned_col_count=" << aligned_col_count << ", gap_segment_count=" << gap_segment_count << ", final gal_list.size()=" << gal_list.size() << endl;
+	cerr << "DEBUG: gap_iv values: ";
+	for( size_t i = 0; i < gap_iv.size(); ++i )
+		cerr << gap_iv[i] << " ";
+	cerr << endl;
 }
 
 void ProgressiveAligner::refineAlignment( GappedAlignment& gal, node_id_t ancestor, bool profile_aln, AlnProgressTracker& apt )
@@ -1315,7 +1343,24 @@ void ProgressiveAligner::doGappedAlignment( node_id_t ancestor, bool profile_aln
 		cerr << "DEBUG: Calling extractAlignment for interval " << aI << endl;
 		GappedAlignment gal;
 		extractAlignment(ancestor, aI, gal);
-		cerr << "DEBUG: extractAlignment completed, gal.Multiplicity()=" << gal.Multiplicity() << endl;
+		cerr << "DEBUG: extractAlignment completed, gal.Multiplicity()=" << gal.Multiplicity() << ", gal.SeqCount()=" << gal.SeqCount() << ", gal.AlignmentLength()=" << gal.AlignmentLength() << endl;
+		
+		// Debug: check what's in the alignment
+		if( gal.AlignmentLength() > 0 )
+		{
+			cerr << "DEBUG: gal LeftEnds: ";
+			for( uint seqI = 0; seqI < gal.SeqCount(); ++seqI )
+				cerr << "seq" << seqI << "=" << gal.LeftEnd(seqI) << " ";
+			cerr << endl;
+			
+			// Sample first few columns
+			const vector< string >& aln_mat = GetAlignment(gal, vector<gnSequence*>(gal.SeqCount(), NULL));
+			cerr << "DEBUG: First 50 columns of alignment:" << endl;
+			for( uint seqI = 0; seqI < aln_mat.size() && seqI < gal.SeqCount(); ++seqI )
+			{
+				cerr << "DEBUG:   seq" << seqI << ": " << aln_mat[seqI].substr(0, std::min((size_t)50, aln_mat[seqI].size())) << endl;
+			}
+		}
 //		printMemUsage();
 //		cout << "refine aln\n";
 		if( gal.Multiplicity() > 1 )	// no point in refining intervals that are unaligned anyways
@@ -3983,6 +4028,17 @@ void ProgressiveAligner::align( vector< gnSequence* >& seq_table, IntervalList& 
 	mlist.clear();
 	mlist = original_ml;
 	cout << "Starting with " << mlist.size() << " multi-matches\n";
+	cerr << "DEBUG: Initial multi-matches details:" << endl;
+	for( size_t mI = 0; mI < mlist.size(); ++mI )
+	{
+		cerr << "DEBUG:   Match " << mI << ": ";
+		for( uint seqI = 0; seqI < seq_count; ++seqI )
+		{
+			if( mlist[mI]->LeftEnd(seqI) != NO_MATCH )
+				cerr << "seq" << seqI << "=[" << mlist[mI]->LeftEnd(seqI) << ".." << mlist[mI]->RightEnd(seqI) << "] ";
+		}
+		cerr << "Length=" << mlist[mI]->Length() << ", Multiplicity=" << mlist[mI]->Multiplicity() << endl;
+	}
 	cout << "Computing genome content distance matrix...\n";
 
 //
