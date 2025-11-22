@@ -722,7 +722,7 @@ bool MuscleInterface::CallMuscleFast( vector< string >& aln_matrix, const vector
 
 bool MuscleInterface::Refine( GappedAlignment& ga, size_t windowsize )
 {
-	const vector< string > seq_table = GetAlignment( ga, vector< gnSequence* >() );
+	vector< string > seq_table = GetAlignment( ga, vector< gnSequence* >() );
 	vector< string > aln_table;
 	for( uint seqI = 0; seqI < ga.SeqCount(); seqI++ )
 	{
