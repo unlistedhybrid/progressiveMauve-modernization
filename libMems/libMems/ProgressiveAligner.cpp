@@ -1360,6 +1360,68 @@ void ProgressiveAligner::doGappedAlignment( node_id_t ancestor, bool profile_aln
 			{
 				cerr << "DEBUG:   seq" << seqI << ": " << aln_mat[seqI].substr(0, std::min((size_t)50, aln_mat[seqI].size())) << endl;
 			}
+			
+			// Check if this is actually an unaligned interval (all gaps in one sequence)
+			// This happens when we have a single large seed match with no internal anchors
+			bool needs_initial_alignment = false;
+			if( gal.Multiplicity() > 1 )
+			{
+				// Check if any sequence is entirely gaps
+				for( uint seqI = 0; seqI < gal.SeqCount(); ++seqI )
+				{
+					if( gal.LeftEnd(seqI) == NO_MATCH )
+						continue;
+					size_t gap_count = 0;
+					for( size_t colI = 0; colI < aln_mat[seqI].size(); ++colI )
+						if( aln_mat[seqI][colI] == '-' )
+							gap_count++;
+					if( gap_count == aln_mat[seqI].size() )
+					{
+						needs_initial_alignment = true;
+						break;
+					}
+				}
+			}
+			
+			if( needs_initial_alignment )
+			{
+				cerr << "DEBUG: Detected unaligned interval, performing initial MUSCLE alignment" << endl;
+				// Extract the sequences and create a proper alignment
+				MuscleInterface& mi = MuscleInterface::getMuscleInterface();
+				vector<string> seq_strings;
+				for( uint seqI = 0; seqI < gal.SeqCount(); ++seqI )
+				{
+					if( gal.LeftEnd(seqI) != NO_MATCH )
+					{
+						// Get the actual sequence data
+						gnSeqI start = gal.LeftEnd(seqI);
+						gnSeqI len = gal.Length(seqI);
+						string seq_str;
+						seq_str.reserve(len);
+						for( gnSeqI pos = 0; pos < len; ++pos )
+						{
+							if( aln_mat[seqI][pos] != '-' )
+								seq_str += aln_mat[seqI][pos];
+						}
+						seq_strings.push_back(seq_str);
+					}
+					else
+					{
+						seq_strings.push_back("");
+					}
+				}
+				
+				vector<string> aligned_strings;
+				if( mi.CallMuscleFast(aligned_strings, seq_strings) )
+				{
+					cerr << "DEBUG: Initial MUSCLE alignment succeeded, updating gal" << endl;
+					gal.SetAlignment(aligned_strings);
+				}
+				else
+				{
+					cerr << "WARNING: Initial MUSCLE alignment failed, proceeding with unaligned data" << endl;
+				}
+			}
 		}
 //		printMemUsage();
 //		cout << "refine aln\n";
