@@ -194,7 +194,6 @@ void AddToMatchIdentityMatrix( const Match& m, const std::vector< genome::gnSequ
 template< typename MatchVector >
 void SingleCopyDistanceMatrix( MatchVector& iv_list, std::vector< genome::gnSequence* >& seq_table, NumericMatrix<double>& distance )
 {
-	std::cerr << "DEBUG: SingleCopyDistanceMatrix called with " << iv_list.size() << " matches and " << seq_table.size() << " sequences" << std::endl;
 	uint seq_count = seq_table.size();
 	distance = NumericMatrix<double>( seq_count, seq_count );
 	distance.init( 0 );
@@ -202,29 +201,26 @@ void SingleCopyDistanceMatrix( MatchVector& iv_list, std::vector< genome::gnSequ
 	uint seqJ;
 	std::vector< std::pair< bitset_t, bitset_t > > tmp_comp( seq_count );
 	std::vector< std::vector< std::pair< bitset_t, bitset_t > > > pair_comp( seq_count, tmp_comp );
-	
-	std::cerr << "DEBUG: Initializing pair_comp bitsets" << std::endl;
 	for( uint seqI = 0; seqI < seq_count; ++seqI )
 	{
-		std::cerr << "DEBUG: Sequence " << seqI << " length: " << seq_table[seqI]->length() << std::endl;
 		for( uint seqJ = seqI+1; seqJ < seq_count; ++seqJ )
 		{
 			pair_comp[seqI][seqJ].first.resize( seq_table[seqI]->length(), false );
 			pair_comp[seqI][seqJ].second.resize( seq_table[seqJ]->length(), false );
 		}
 	}
-	
-	std::cerr << "DEBUG: Processing matches in parallel loop" << std::endl;
 #pragma omp parallel for
 	for( int ivI = 0; ivI < iv_list.size(); ++ivI )
 	{
 		std::vector< bitset_t > aln_table;
 #pragma omp critical
 {
-		std::cerr << "DEBUG: Getting alignment for match " << ivI << std::endl;
 		iv_list[ivI]->GetAlignment(aln_table);
-		std::cerr << "DEBUG: Match " << ivI << " alignment table size: " << aln_table.size() << std::endl;
 }
+		// Skip matches with empty alignment tables to prevent crashes
+		if( aln_table.size() == 0 || aln_table.size() < seq_count )
+			continue;
+			
 		for( uint seqI = 0; seqI < seq_count; ++seqI )
 		{
 			for( uint seqJ = seqI+1; seqJ < seq_count; ++seqJ )
@@ -233,48 +229,22 @@ void SingleCopyDistanceMatrix( MatchVector& iv_list, std::vector< genome::gnSequ
 				gnSeqI seqJ_pos = iv_list[ivI]->LeftEnd(seqJ);
 				AbstractMatch::orientation o_i = iv_list[ivI]->Orientation(seqI);
 				AbstractMatch::orientation o_j = iv_list[ivI]->Orientation(seqJ);
-#pragma omp critical
-{
-				std::cerr << "DEBUG: Match " << ivI << " seq pair (" << seqI << "," << seqJ << ") LeftEnd: (" << seqI_pos << "," << seqJ_pos << ")" << std::endl;
-}
 				if( o_i == AbstractMatch::reverse )
 					seqI_pos = iv_list[ivI]->RightEnd(seqI);
 				if( o_j == AbstractMatch::reverse )
 					seqJ_pos = iv_list[ivI]->RightEnd(seqJ);
-#pragma omp critical
-{
-				std::cerr << "DEBUG: After orientation check: (" << seqI_pos << "," << seqJ_pos << ") orientations: (" << o_i << "," << o_j << ")" << std::endl;
-}
 				if( seqI_pos == NO_MATCH || seqJ_pos == NO_MATCH )
-				{
-#pragma omp critical
-{
-					std::cerr << "DEBUG: Skipping - NO_MATCH found" << std::endl;
-}
 					continue;
-				}
-#pragma omp critical
-{
-				std::cerr << "DEBUG: Processing alignment columns, aln_table[" << seqI << "].size() = " << aln_table[seqI].size() << std::endl;
-}
 				for( size_t colI = 0; colI < aln_table[seqI].size(); ++colI )
 				{
 					if( aln_table[seqI].test(colI) && aln_table[seqJ].test(colI) )
 					{
-						// Bounds check before setting
-						if( seqI_pos > 0 && seqI_pos-1 < seq_table[seqI]->length() &&
-						    seqJ_pos > 0 && seqJ_pos-1 < seq_table[seqJ]->length() )
+						// Bounds check before setting bits
+						if( seqI_pos > 0 && seqI_pos <= seq_table[seqI]->length() &&
+						    seqJ_pos > 0 && seqJ_pos <= seq_table[seqJ]->length() )
 						{
 							pair_comp[seqI][seqJ].first.set(seqI_pos-1,true);
 							pair_comp[seqI][seqJ].second.set(seqJ_pos-1,true);
-						}
-						else
-						{
-#pragma omp critical
-{
-							std::cerr << "DEBUG: BOUNDS ERROR at colI=" << colI << " seqI_pos=" << seqI_pos << " seqJ_pos=" << seqJ_pos 
-							          << " seq_lens=(" << seq_table[seqI]->length() << "," << seq_table[seqJ]->length() << ")" << std::endl;
-}
 						}
 					}
 					if( aln_table[seqI].test(colI) )
@@ -291,8 +261,6 @@ void SingleCopyDistanceMatrix( MatchVector& iv_list, std::vector< genome::gnSequ
 			}
 		}
 	}
-	
-	std::cerr << "DEBUG: Computing final distance matrix" << std::endl;
 	for( uint seqI = 0; seqI < seq_count; ++seqI )
 	{
 		distance(seqI,seqI) = 1;
@@ -304,9 +272,7 @@ void SingleCopyDistanceMatrix( MatchVector& iv_list, std::vector< genome::gnSequ
 			distance(seqJ,seqI) = (pI + pJ) / 2.0;
 		}
 	}
-	std::cerr << "DEBUG: Calling TransformDistanceIdentity" << std::endl;
 	TransformDistanceIdentity(distance);
-	std::cerr << "DEBUG: SingleCopyDistanceMatrix completed successfully" << std::endl;
 }
 
 inline
