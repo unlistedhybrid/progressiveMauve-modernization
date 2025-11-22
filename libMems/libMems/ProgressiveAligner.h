@@ -433,6 +433,8 @@ uint64 SimpleGetLCBCoverage( MatchVector& lcb ){
 template< class MatchVectorType >
 void addUnalignedIntervals_v2( MatchVectorType& iv_list, std::set< uint > seq_set, std::vector<gnSeqI> seq_lengths )
 {
+	std::cerr << "DEBUG: addUnalignedIntervals_v2 START, iv_list.size()=" << iv_list.size() 
+	          << ", seq_lengths.size()=" << seq_lengths.size() << std::endl;
 	std::vector< mems::LCB > adjacencies;
 	uint lcbI;
 	uint seqI;
@@ -446,22 +448,28 @@ void addUnalignedIntervals_v2( MatchVectorType& iv_list, std::set< uint > seq_se
 		for( seqI = 0; seqI < seq_count; seqI++ )
 			seq_set.insert( seqI );
 	}
+	std::cerr << "DEBUG: seq_set.size()=" << seq_set.size() << std::endl;
 	std::vector< std::vector< typename MatchVectorType::value_type > > ymmv;
 	for( size_t ivI = 0; ivI < iv_list.size(); ++ivI )
 		ymmv.push_back( std::vector< typename MatchVectorType::value_type >( 1, iv_list[ivI] ) );
 
 	std::vector< double > scores( iv_list.size(), 0 );
+	std::cerr << "DEBUG: Calling computeLCBAdjacencies_v3" << std::endl;
 	computeLCBAdjacencies_v3( ymmv, scores, adjacencies );
+	std::cerr << "DEBUG: computeLCBAdjacencies_v3 completed, adjacencies.size()=" << adjacencies.size() << std::endl;
 
 	std::vector< int > rightmost;
 	for( seqI = 0; seqI < seq_count; seqI++ ){
 		rightmost.push_back( -1 );
 	}
 
+	std::cerr << "DEBUG: Entering main loop, adjacencies.size()=" << adjacencies.size() << std::endl;
 	for( lcbI = 0; lcbI <= adjacencies.size(); lcbI++ ){
+		std::cerr << "DEBUG: Processing lcbI=" << lcbI << std::endl;
 		std::set< uint >::iterator seq_set_iterator = seq_set.begin();
 		for( ; seq_set_iterator != seq_set.end(); seq_set_iterator++ ){
 			seqI = *seq_set_iterator;
+			std::cerr << "DEBUG: Processing seqI=" << seqI << std::endl;
 			// scan left
 			int leftI;
 			if( lcbI < adjacencies.size() ){
@@ -476,8 +484,10 @@ void addUnalignedIntervals_v2( MatchVectorType& iv_list, std::set< uint > seq_se
 				if( adjacencies[ lcbI ].right_adjacency[ seqI ] == static_cast<uint>(-1) )
 					rightmost[ seqI ] = lcbI;
 			
+			std::cerr << "DEBUG: Calling getGapBounds with leftI=" << leftI << ", rightI=" << rightI << std::endl;
 			int64 left_start, right_start;
 			mems::getGapBounds( seq_lengths, adjacencies, seqI, leftI, rightI, left_start, right_start );
+			std::cerr << "DEBUG: getGapBounds completed, left_start=" << left_start << ", right_start=" << right_start << std::endl;
 			int64 gap_len =  genome::absolut( right_start ) - genome::absolut( left_start );
 			if( gap_len > 0 ){
 				mems::Match mm( seq_count );
