@@ -1250,8 +1250,10 @@ void ProgressiveAligner::doGappedAlignment( node_id_t ancestor, bool profile_aln
 	printProgress(-1, 0, cout);
 	apt.cur_leftend = 1;
 
+	cerr << "DEBUG: doGappedAlignment processing " << alignment_tree[ancestor].ordering.size() << " intervals" << endl;
 	for( size_t aI = 0; aI < alignment_tree[ancestor].ordering.size(); aI++ )
 	{
+		cerr << "DEBUG: Processing interval " << aI << ", Multiplicity=" << alignment_tree[ancestor].ordering[aI].reference_iv.Multiplicity() << endl;
 		if( alignment_tree[ancestor].ordering[aI].reference_iv.Multiplicity() == 1 )
 		{
 			apt.cur_leftend += alignment_tree[ancestor].ordering[aI].reference_iv.AlignmentLength();
@@ -1260,17 +1262,25 @@ void ProgressiveAligner::doGappedAlignment( node_id_t ancestor, bool profile_aln
 
 //		printMemUsage();
 //		cout << "extract aln\n";
+		cerr << "DEBUG: Calling extractAlignment for interval " << aI << endl;
 		GappedAlignment gal;
 		extractAlignment(ancestor, aI, gal);
+		cerr << "DEBUG: extractAlignment completed, gal.Multiplicity()=" << gal.Multiplicity() << endl;
 //		printMemUsage();
 //		cout << "refine aln\n";
 		if( gal.Multiplicity() > 1 )	// no point in refining intervals that are unaligned anyways
+		{
+			cerr << "DEBUG: Calling refineAlignment for interval " << aI << endl;
 			refineAlignment( gal, ancestor, profile_aln, apt );
+			cerr << "DEBUG: refineAlignment completed" << endl;
+		}
 		else
 			apt.cur_leftend += gal.AlignmentLength();
 //		printMemUsage();
 //		cout << "construct siv\n";
+		cerr << "DEBUG: Calling ConstructSuperIntervalFromMSA for interval " << aI << endl;
 		ConstructSuperIntervalFromMSA(ancestor, aI, gal);
+		cerr << "DEBUG: ConstructSuperIntervalFromMSA completed" << endl;
 //		printMemUsage();
 
 		// print a progress message
