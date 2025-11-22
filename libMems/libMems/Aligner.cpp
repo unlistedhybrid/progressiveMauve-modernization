@@ -217,7 +217,6 @@ currently_recursing( al.currently_recursing )
 
 Aligner& Aligner::operator=( const Aligner& al )
 {
-	gap_mh = al.gap_mh;
 	nway_mh = al.nway_mh;
 	seq_count = al.seq_count;
 	
@@ -2301,3 +2300,4 @@ void Aligner::align( MatchList& mlist, IntervalList& interval_list, double LCB_m
 }
 
 }	// namespace mems
+
