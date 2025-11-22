@@ -1654,7 +1654,7 @@ int64 greedyBreakpointElimination( gnSeqI minimum_weight, vector< LCB >& adjacen
 
 			// start with current_lcbI since everything up to it has already been scanned
 			for( lcbI = current_lcbI; lcbI < weights.size(); lcbI++ ){
-				if( adjacencies[ lcbI ].lcb_id != (uint)lcbI ){
+				if( adjacencies[ lcbI ].lcb_id != (int)adjacencies[ lcbI ].lcb_id ){
 					// this lcb has been removed or merged with another lcb
 					continue;
 				}
@@ -1734,8 +1734,8 @@ int64 greedyBreakpointElimination( gnSeqI minimum_weight, vector< LCB >& adjacen
 				if( right_adj == adjacencies.size() )
 					cerr << "Horrible Error -399a\n";
 				// check whether this LCB has already been merged
-				if( left_adj != (int)adjacencies[ left_adj ].lcb_id ||
-					right_adj != (int)adjacencies[ right_adj ].lcb_id ){
+				if( left_adj != (uint)adjacencies[ left_adj ].lcb_id ||
+					right_adj != (uint)adjacencies[ right_adj ].lcb_id ){
 					// because adjacency pointers are always updated to point to the 
 					// representative entry of an LCB, the lcb_id and the array index
 					// should always be identical
@@ -1834,7 +1834,7 @@ void filterMatches( vector< LCB >& adjacencies, vector< MatchList >& lcb_list, v
 	vector< MatchList > filtered_lcbs = vector< MatchList >( lcb_list.size(), lcb_tmp );
 	uint lcbI;
 	for( lcbI = 0; lcbI < adjacencies.size(); lcbI++ ){
-		if( adjacencies[ lcbI ].lcb_id == (uint)lcbI ){
+		if( adjacencies[ lcbI ].lcb_id == (int)adjacencies[ lcbI ].lcb_id ){
 			filtered_lcbs[ lcbI ].insert( filtered_lcbs[ lcbI ].end(), lcb_list[ lcbI ].begin(), lcb_list[ lcbI ].end() );
 			continue;
 		}
@@ -1850,7 +1850,7 @@ void filterMatches( vector< LCB >& adjacencies, vector< MatchList >& lcb_list, v
 		stack< uint > visited_lcbs;
 		visited_lcbs.push( lcbI );
 		uint cur_lcb = adjacencies[ lcbI ].lcb_id;
-		while( adjacencies[ cur_lcb ].lcb_id != (uint)cur_lcb ){
+		while( adjacencies[ cur_lcb ].lcb_id != (int)adjacencies[ cur_lcb ].lcb_id ){
 			visited_lcbs.push( cur_lcb );
 			cur_lcb = adjacencies[ cur_lcb ].lcb_id;
 			if( cur_lcb == (uint)-1 || cur_lcb == (uint)-2 ){
