@@ -605,7 +605,7 @@ void ProgressiveAligner::pairwiseAnchorSearch( MatchList& r_list, Match* r_begin
 
 		starts.push_back( gap_start );
 		gnSequence* new_seq = NULL;
-		if(diff > 0 && gap_start + diff - 1 <= r_list.seq_table[ seqI ]->length())
+		if(diff > 0 && static_cast<gnSeqI>(gap_start + diff - 1) <= r_list.seq_table[ seqI ]->length())
 			new_seq = new gnSequence( r_list.seq_table[ seqI ]->ToString( diff, gap_start ) );
 		else
 			new_seq = new gnSequence();
@@ -694,7 +694,7 @@ void ProgressiveAligner::recurseOnPairs( const vector<node_id_t>& node1_seqs, co
 			node_pairs[nni++] = make_pair(n1,n2);
 
 #pragma omp parallel for
-	for(int ni = 0; ni < node_pairs.size(); ni++)
+	for(size_t ni = 0; ni < node_pairs.size(); ni++)
 	{
 		size_t n1 = node_pairs[ni].first;
 		size_t n2 = node_pairs[ni].second;
@@ -1181,11 +1181,11 @@ void ProgressiveAligner::refineAlignment( GappedAlignment& gal, node_id_t ancest
 // this section can not be paralellized b/c it makes calls to muscle
 #pragma omp critical
 {
-	for( int galI = 0; galI < gal_count; galI++ )
+	for( size_t galI = 0; galI < static_cast<size_t>(gal_count); galI++ )
 	{
 		list<GappedAlignment*>::iterator my_g_iter = gal_list.begin();
 		vector<bool>::iterator my_b_iter = gap_iv.begin();
-		for(uint a = 0; a < galI; a++)
+		for(size_t a = 0; a < galI; a++)
 		{
 			++my_g_iter;
 			++my_b_iter;
@@ -2814,12 +2814,12 @@ ProgressiveAligner::validateSuperIntervals(node_id_t node1, node_id_t node2, nod
 
 	// check that each picks up where the last left off
 	for( size_t sivI = 1; sivI < siv1_list.size(); sivI++ )
-		if( siv1_list[sivI].LeftEnd() != siv1_list[sivI-1].LeftEnd() + siv1_list[sivI-1].Length() )
+		if( siv1_list[sivI].LeftEnd() != static_cast<int64>(siv1_list[sivI-1].LeftEnd() + siv1_list[sivI-1].Length()) )
 		{
 			borked = true;
 		}
 	for( size_t sivI = 1; sivI < siv2_list.size(); sivI++ )
-		if( siv2_list[sivI].LeftEnd() != siv2_list[sivI-1].LeftEnd() + siv2_list[sivI-1].Length() )
+		if( siv2_list[sivI].LeftEnd() != static_cast<int64>(siv2_list[sivI-1].LeftEnd() + siv2_list[sivI-1].Length()) )
 		{
 			borked = true;
 		}
@@ -3141,7 +3141,7 @@ void chooseNextAlignmentPair( PhyloTree< AlignmentTreeNode >& alignment_tree, no
 		{
 			// this one already has at least two sequences aligned, if another
 			// is alignable then check its distance
-			for( int i = 0; i < neighbor_id.size(); i++ ){
+			for( size_t i = 0; i < neighbor_id.size(); i++ ){
 				if( !alignable[i] )
 					continue;
 				if( distance[i] < nearest_distance )
@@ -3154,11 +3154,11 @@ void chooseNextAlignmentPair( PhyloTree< AlignmentTreeNode >& alignment_tree, no
 			}
 		}else{
 			// find the nearest alignable pair
-			for( int i = 0; i < neighbor_id.size(); i++ )
+			for( size_t i = 0; i < neighbor_id.size(); i++ )
 			{
 				if( !alignable[i] )
 					continue;
-				for( int j = i+1; j < neighbor_id.size(); j++ )
+				for( size_t j = i+1; j < neighbor_id.size(); j++ )
 				{
 					if( !alignable[j] )
 						continue;
@@ -3332,7 +3332,7 @@ void ProgressiveAligner::extractAlignment( node_id_t ancestor, size_t super_iv, 
 			aln_mats[seqI].resize( a_iv.Length() );
 			aln_mats[seqI] <<= offset;	// this is backwards in boost::dynamic_bitset for some reason...
 		}
-		if( trans_cga->LeftEnd(0) < a_iv.LeftEnd() )
+		if( static_cast<int64>(trans_cga->LeftEnd(0)) < a_iv.LeftEnd() )
 		{
 			cerr << "trans_cga->LeftEnd(0): " << trans_cga->LeftEnd(0) << endl;
 			cerr << "a_iv.LeftEnd(): " << a_iv.LeftEnd() << endl;
@@ -3391,7 +3391,7 @@ void ProgressiveAligner::CreatePairwiseBPDistance( boost::multi_array<double, 2>
 			seq_pairs[ii++] = make_pair(seqI,seqJ);
 
 #pragma omp parallel for
-	for(int i = 0; i < seq_pairs.size(); i++)
+	for(size_t i = 0; i < seq_pairs.size(); i++)
 	{
 		uint seqI = seq_pairs[i].first;
 		uint seqJ = seq_pairs[i].second;
@@ -3898,7 +3898,7 @@ void ProgressiveAligner::align( vector< gnSequence* >& seq_table, IntervalList& 
 */
 		cout << "Constructing seed occurrence lists for repeat detection\n";
 #pragma omp parallel for
-		for( int seqI = 0; seqI < seq_count; seqI++ )
+		for( uint seqI = 0; seqI < seq_count; seqI++ )
 		{
 			sol_list[seqI].construct(*(mlist.sml_table[seqI]));
 //			delete w11_mlist.sml_table[seqI];

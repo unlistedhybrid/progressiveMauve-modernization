@@ -353,7 +353,7 @@ void filterMatches_v2( std::vector< mems::LCB >& adjacencies, std::vector< Match
 	std::vector< MatchVector > filtered_lcbs( lcb_list.size(), lcb_tmp );
 	uint lcbI;
 	for( lcbI = 0; lcbI < adjacencies.size(); lcbI++ ){
-		if( adjacencies[ lcbI ].lcb_id == lcbI ){
+		if( static_cast<uint>(adjacencies[ lcbI ].lcb_id) == lcbI ){
 			filtered_lcbs[ lcbI ].insert( filtered_lcbs[ lcbI ].end(), lcb_list[ lcbI ].begin(), lcb_list[ lcbI ].end() );
 			continue;
 		}
@@ -372,7 +372,7 @@ void filterMatches_v2( std::vector< mems::LCB >& adjacencies, std::vector< Match
 		std::stack< uint > visited_lcbs;
 		visited_lcbs.push( lcbI );
 		uint cur_lcb = adjacencies[ lcbI ].lcb_id;
-		while( adjacencies[ cur_lcb ].lcb_id != cur_lcb ){
+		while( static_cast<uint>(adjacencies[ cur_lcb ].lcb_id) != cur_lcb ){
 			visited_lcbs.push( cur_lcb );
 			cur_lcb = adjacencies[ cur_lcb ].lcb_id;
 			if( cur_lcb == -1 || cur_lcb == -2 ){

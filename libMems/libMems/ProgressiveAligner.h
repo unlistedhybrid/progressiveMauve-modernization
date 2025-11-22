@@ -313,15 +313,15 @@ void EliminateOverlaps_v2( MatchVector& ml, const std::vector< uint >& seq_ids, 
 		MatchVector new_matches;
 
 		// scan forward to first defined match
-		for(; matchI != ml.size(); matchI++ )
+		for(; matchI != static_cast<int64>(ml.size()); matchI++ )
 			if( ml[ matchI ]->Start( seqI ) != mems::NO_MATCH )
 				break;
 
-		for(; matchI < ml.size(); matchI++ ){
+		for(; matchI < static_cast<int64>(ml.size()); matchI++ ){
 			if( ml[ matchI ] == NULL )
 				continue;
 			
-			for( nextI = matchI + 1; nextI < ml.size(); nextI++ ){
+			for( nextI = matchI + 1; nextI < static_cast<int64>(ml.size()); nextI++ ){
 				if( ml[ nextI ] == NULL )
 					continue;
 
@@ -366,7 +366,7 @@ void EliminateOverlaps_v2( MatchVector& ml, const std::vector< uint >& seq_ids, 
 					// match_iter is smaller
 					new_match = ml[nextI]->Copy();
 					// erase base pairs from new_match
-					if( diff >= ml[ nextI ]->Length(seqI) ){
+					if( diff >= static_cast<int64>(ml[ nextI ]->Length(seqI)) ){
 //							cerr << "Deleting " << **next_iter << " at the hands of\n" << **mem_iter << endl;
 						ml[ nextI ]->Free();
 						ml[ nextI ] = NULL;
