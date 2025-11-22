@@ -1241,9 +1241,8 @@ void ProgressiveAligner::refineAlignment( GappedAlignment& gal, node_id_t ancest
 				cerr << "DEBUG: Skipping ProfileAlignFast (Multiplicity too low)" << endl;
 				cerr << "DEBUG: my_g_iter Multiplicity=" << (*my_g_iter)->Multiplicity() 
 				     << ", AlignmentLength=" << (*my_g_iter)->AlignmentLength() << endl;
-				// Skip refinement for 2-sequence alignments - they're already pairwise aligned
-				// and refining them can cause crashes in MUSCLE
-				if( (*my_g_iter)->Multiplicity() > 2 && (*my_g_iter)->AlignmentLength() > 0 )
+				// Refine the alignment
+				if( (*my_g_iter)->AlignmentLength() > 0 )
 				{
 					int density = IsDenseEnough( *my_g_iter );
 					cerr << "DEBUG: Calling RefineFast with density=" << density << endl;
@@ -1255,10 +1254,6 @@ void ProgressiveAligner::refineAlignment( GappedAlignment& gal, node_id_t ancest
 						mi.RefineFast( **my_g_iter, 200 );
 					cerr << "DEBUG: RefineFast completed" << endl;
 				}
-				else
-				{
-					cerr << "DEBUG: Skipping RefineFast - 2-sequence alignment doesn't need refinement" << endl;
-				}
 			}
 		}else if(!(*my_b_iter))
 		{
@@ -1266,21 +1261,14 @@ void ProgressiveAligner::refineAlignment( GappedAlignment& gal, node_id_t ancest
 			cerr << "DEBUG: Regular RefineFast path - Multiplicity=" << (*my_g_iter)->Multiplicity() 
 			     << ", AlignmentLength=" << (*my_g_iter)->AlignmentLength() << endl;
 			cerr << "DEBUG: Calling RefineFast with density=" << density << endl;
-			// Skip refinement for alignments with too few sequences
-			if( (*my_g_iter)->Multiplicity() > 2 )
-			{
-				if( density == 0 )
-					mi.RefineFast( **my_g_iter );
-				else if( density == 1 )
-					mi.RefineFast( **my_g_iter, 500 );
-				else
-					mi.RefineFast( **my_g_iter, 200 );
-				cerr << "DEBUG: RefineFast completed" << endl;
-			}
+			// Refine the alignment
+			if( density == 0 )
+				mi.RefineFast( **my_g_iter );
+			else if( density == 1 )
+				mi.RefineFast( **my_g_iter, 500 );
 			else
-			{
-				cerr << "DEBUG: Skipping RefineFast - Multiplicity <= 2" << endl;
-			}
+				mi.RefineFast( **my_g_iter, 200 );
+			cerr << "DEBUG: RefineFast completed" << endl;
 		}
 
 		new_len += (*my_g_iter)->AlignmentLength();
@@ -1361,49 +1349,55 @@ void ProgressiveAligner::doGappedAlignment( node_id_t ancestor, bool profile_aln
 				cerr << "DEBUG:   seq" << seqI << ": " << aln_mat[seqI].substr(0, std::min((size_t)50, aln_mat[seqI].size())) << endl;
 			}
 			
-			// Check if this is actually an unaligned interval (all gaps in one sequence)
-			// This happens when we have a single large seed match with no internal anchors
+			// Check if this is actually an unaligned interval
+			// Count aligned columns (where both sequences have non-gap characters)
 			bool needs_initial_alignment = false;
-			if( gal.Multiplicity() > 1 )
+			if( gal.Multiplicity() > 1 && gal.SeqCount() == 2 )
 			{
-				// Check if any sequence is entirely gaps
-				for( uint seqI = 0; seqI < gal.SeqCount(); ++seqI )
+				size_t aligned_cols = 0;
+				size_t sample_size = std::min((size_t)1000, aln_mat[0].size());
+				for( size_t colI = 0; colI < sample_size; ++colI )
 				{
-					if( gal.LeftEnd(seqI) == NO_MATCH )
-						continue;
-					size_t gap_count = 0;
-					for( size_t colI = 0; colI < aln_mat[seqI].size(); ++colI )
-						if( aln_mat[seqI][colI] == '-' )
-							gap_count++;
-					if( gap_count == aln_mat[seqI].size() )
+					bool all_present = true;
+					for( uint seqI = 0; seqI < gal.SeqCount(); ++seqI )
 					{
-						needs_initial_alignment = true;
-						break;
+						if( gal.LeftEnd(seqI) != NO_MATCH && aln_mat[seqI][colI] == '-' )
+							all_present = false;
 					}
+					if( all_present )
+						aligned_cols++;
+				}
+				
+				// If less than 5% of columns are aligned, this needs initial alignment
+				double aligned_fraction = (double)aligned_cols / (double)sample_size;
+				cerr << "DEBUG: Aligned column fraction in first " << sample_size << " cols: " << aligned_fraction << endl;
+				if( aligned_fraction < 0.05 )
+				{
+					needs_initial_alignment = true;
+					cerr << "DEBUG: Alignment has very few aligned columns, needs initial MUSCLE alignment" << endl;
 				}
 			}
 			
 			if( needs_initial_alignment )
 			{
-				cerr << "DEBUG: Detected unaligned interval, performing initial MUSCLE alignment" << endl;
-				// Extract the sequences and create a proper alignment
+				cerr << "DEBUG: Performing initial MUSCLE alignment on unaligned interval" << endl;
+				// Extract the ungapped sequences
 				MuscleInterface& mi = MuscleInterface::getMuscleInterface();
 				vector<string> seq_strings;
 				for( uint seqI = 0; seqI < gal.SeqCount(); ++seqI )
 				{
 					if( gal.LeftEnd(seqI) != NO_MATCH )
 					{
-						// Get the actual sequence data
-						gnSeqI start = gal.LeftEnd(seqI);
-						gnSeqI len = gal.Length(seqI);
+						// Extract ungapped sequence
 						string seq_str;
-						seq_str.reserve(len);
-						for( gnSeqI pos = 0; pos < len; ++pos )
+						seq_str.reserve(gal.Length(seqI));
+						for( size_t colI = 0; colI < aln_mat[seqI].size(); ++colI )
 						{
-							if( aln_mat[seqI][pos] != '-' )
-								seq_str += aln_mat[seqI][pos];
+							if( aln_mat[seqI][colI] != '-' )
+								seq_str += aln_mat[seqI][colI];
 						}
 						seq_strings.push_back(seq_str);
+						cerr << "DEBUG: Extracted sequence " << seqI << " length: " << seq_str.length() << endl;
 					}
 					else
 					{
@@ -1412,9 +1406,13 @@ void ProgressiveAligner::doGappedAlignment( node_id_t ancestor, bool profile_aln
 				}
 				
 				vector<string> aligned_strings;
+				cerr << "DEBUG: Calling MUSCLE on " << seq_strings.size() << " sequences..." << endl;
 				if( mi.CallMuscleFast(aligned_strings, seq_strings) )
 				{
-					cerr << "DEBUG: Initial MUSCLE alignment succeeded, updating gal" << endl;
+					cerr << "DEBUG: Initial MUSCLE alignment succeeded" << endl;
+					cerr << "DEBUG: Aligned sequence 0 length: " << aligned_strings[0].length() << endl;
+					if( aligned_strings.size() > 1 )
+						cerr << "DEBUG: Aligned sequence 1 length: " << aligned_strings[1].length() << endl;
 					gal.SetAlignment(aligned_strings);
 				}
 				else
