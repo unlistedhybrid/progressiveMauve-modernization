@@ -371,8 +371,8 @@ void filterMatches_v2( std::vector< mems::LCB >& adjacencies, std::vector< Match
 		// search and update the union/find structure for the target
 		std::stack< uint > visited_lcbs;
 		visited_lcbs.push( lcbI );
-		uint cur_lcb = adjacencies[ lcbI ].lcb_id;
-		while( static_cast<uint>(adjacencies[ cur_lcb ].lcb_id) != cur_lcb ){
+		int cur_lcb = adjacencies[ lcbI ].lcb_id;
+		while( adjacencies[ cur_lcb ].lcb_id != cur_lcb ){
 			visited_lcbs.push( cur_lcb );
 			cur_lcb = adjacencies[ cur_lcb ].lcb_id;
 			if( cur_lcb == -1 || cur_lcb == -2 ){
@@ -446,7 +446,6 @@ double GetPairwiseAnchorScore( MatchVector& lcb,
 		size_t merI = 0;
 		size_t merJ = 0;
 		double uni_count = 0;
-		double uni_score = 0;
 		const size_t m_aln_length = m->AlignmentLength();
 		const int64 m_leftend_0 = m->LeftEnd(0);
 		const int64 m_leftend_1 = m->LeftEnd(1);

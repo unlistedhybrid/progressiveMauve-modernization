@@ -473,7 +473,7 @@ void addUnalignedIntervals_v2( MatchVectorType& iv_list, std::set< uint > seq_se
 			int rightI = lcbI < adjacencies.size() ? lcbI : -1;
 // right is always to the right!!
 			if( lcbI < adjacencies.size() )
-				if( adjacencies[ lcbI ].right_adjacency[ seqI ] == -1 )
+				if( adjacencies[ lcbI ].right_adjacency[ seqI ] == static_cast<uint>(-1) )
 					rightmost[ seqI ] = lcbI;
 			
 			int64 left_start, right_start;
