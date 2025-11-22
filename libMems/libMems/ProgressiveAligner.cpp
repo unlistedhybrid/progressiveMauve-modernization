@@ -136,14 +136,14 @@ breakpoint_penalty( -1 ),
 min_breakpoint_penalty( 4000 ),
 debug(false),
 refine(true),
+using_cache_db(true),
 scoring_scheme(ExtantSumOfPairsScoring),
 use_weight_scaling(true),
-using_cache_db(true),
+use_seed_families(false),
 bp_dist_scale(.9),
 conservation_dist_scale(1),
-max_gapped_alignment_length(20000),
 bp_dist_estimate_score(-1),
-use_seed_families(false)
+max_gapped_alignment_length(20000)
 {
 	gapped_alignment = true;
 	max_window_size = max_gapped_alignment_length;
