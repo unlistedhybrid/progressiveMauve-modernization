@@ -353,11 +353,15 @@ void GenericMatchList< MatchPtrType >::LoadSMLs( uint mer_size, std::ostream* lo
 
 template< typename MatchPtrType >
 uint GenericMatchList< MatchPtrType >::GetDefaultMerSize( const std::vector< genome::gnSequence* >& seq_table ){
-	gnSeqI total_len = 0;
-	for( uint seqI = 0; seqI < seq_table.size(); seqI++ )
-		total_len += seq_table[ seqI ]->length();
-	return getDefaultSeedWeight( total_len / seq_table.size() );
+    if (seq_table.empty()) {
+        throw std::invalid_argument("GetDefaultMerSize called with empty seq_table");
+    }
+    gnSeqI total_len = 0;
+    for (uint seqI = 0; seqI < seq_table.size(); seqI++)
+        total_len += seq_table[ seqI ]->length();
+    return getDefaultSeedWeight( total_len / seq_table.size() );
 }
+
 
 
 /**
@@ -667,3 +671,4 @@ void GenericMatchList< MatchPtrType >::LengthFilter( gnSeqI length ){
 }
 
 #endif	//_MatchList_h_
+
