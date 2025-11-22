@@ -15,8 +15,8 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt update
-        # Must have libicu-dev for Boost::regex
-        sudo apt install -y cmake g++ wget libzstd-dev libbz2-dev zlib1g-dev pkg-config libicu-dev
+        # Must have libicu-dev for Boost::regex and gdb for debugging!
+        sudo apt install -y cmake g++ wget libzstd-dev libbz2-dev zlib1g-dev pkg-config libicu-dev gdb
         
         # Install Boost 1.89 manually
         cd /tmp
