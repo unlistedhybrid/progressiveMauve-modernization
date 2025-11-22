@@ -19,7 +19,7 @@
 #include "libMems/GreedyBreakpointElimination.h"
 #include "libMems/CompactGappedAlignment.h"
 #include "libMems/Islands.h"
-#include <tuple>
+#include <boost/type_traits/remove_pointer.hpp>
 #include <boost/multi_array.hpp>
 #include "libMems/SeedOccurrenceList.h"
 #include "libMems/SubstitutionMatrix.h"
@@ -38,8 +38,8 @@ class AlignmentTreeNode : public TreeNode
 public:
 	AlignmentTreeNode() : TreeNode(), refined(false) {};
 	std::vector< SuperInterval > ordering;	/**< A total ordering on alignments of sequence contained by leafs below this node */
-	std::vector< bool > parents_aligned;		/**< have parents been aligned? */
-	std::vector< bool > children_aligned;	/**< have children been aligned? */
+	std::vector< boolean > parents_aligned;		/**< have parents been aligned? */
+	std::vector< boolean > children_aligned;	/**< have children been aligned? */
 	genome::gnSequence* sequence;	/**< The sequence associated with this node, NULL for ancestral nodes */
 	bool refined;	/**< true if iterative refinement has been applied to the alignment at this node */
 };
@@ -67,7 +67,7 @@ public:
 	/** sets the the minimum breakpoint penalty after scaling */
 	void setMinimumBreakpointPenalty( double min_bp_penalty ){ min_breakpoint_penalty = min_bp_penalty; }
 	/** assume all genomes are collinear when set to true */
-	void setCollinear( bool collinear ){ this->collinear_genomes = collinear; }
+	void setCollinear( boolean collinear ){ this->collinear_genomes = collinear; }
 	/** use a list of precomputed matches instead of computing them */
 	void setPairwiseMatches( mems::MatchList& pair_ml );
 	/** use a precomputed guide tree stored in the given file */
@@ -200,8 +200,8 @@ protected:
 	double min_breakpoint_penalty;
 	std::string input_guide_tree_fname;
 	std::string output_guide_tree_fname;
-	bool debug;
-	bool refine;
+	boolean debug;
+	boolean refine;
 	bool using_cache_db;
 
 	std::vector< SeedOccurrenceList > sol_list;
@@ -250,7 +250,7 @@ template<class T>
 class AbsolutComparator
 {
 public:
-	bool operator()(const T& a, const T& b) const
+	boolean operator()(const T& a, const T& b) const
 	{
 		return (genome::absolut(a) < genome::absolut(b));
 	}
@@ -302,13 +302,14 @@ template <class MatchVector>
 void EliminateOverlaps_v2( MatchVector& ml, const std::vector< uint >& seq_ids, bool eliminate_both = false ){
 	if( ml.size() < 2 )
 		return;
+	uint seq_count = ml[0]->SeqCount();
 	for( uint sidI = 0; sidI < seq_ids.size(); sidI++ ){
 		uint seqI = seq_ids[ sidI ];
 		mems::SingleStartComparator<mems::AbstractMatch> msc( seqI );
 		std::sort( ml.begin(), ml.end(), msc );
-		size_t matchI = 0;
-		size_t nextI = 0;
-		size_t deleted_count = 0;
+		int64 matchI = 0;
+		int64 nextI = 0;
+		int64 deleted_count = 0;
 		MatchVector new_matches;
 
 		// scan forward to first defined match
@@ -324,7 +325,7 @@ void EliminateOverlaps_v2( MatchVector& ml, const std::vector< uint >& seq_ids, 
 				if( ml[ nextI ] == NULL )
 					continue;
 
-				bool deleted_matchI = false;
+				boolean deleted_matchI = false;
 				// check for overlaps
 				int64 startI = ml[ matchI ]->Start( seqI );
 				int64 lenI = ml[ matchI ]->Length( seqI );
@@ -347,7 +348,7 @@ void EliminateOverlaps_v2( MatchVector& ml, const std::vector< uint >& seq_ids, 
 					// mem_iter is smaller
 					new_match = ml[matchI]->Copy();
 					// erase base pairs from new_match
-					if( diff >= static_cast<int64>(lenI) ){
+					if( diff >= lenI ){
 //							cerr << "Deleting " << **mem_iter << " at the hands of\n" << **next_iter << endl;
 						ml[ matchI ]->Free();
 						ml[ matchI ] = NULL;
@@ -365,7 +366,7 @@ void EliminateOverlaps_v2( MatchVector& ml, const std::vector< uint >& seq_ids, 
 					// match_iter is smaller
 					new_match = ml[nextI]->Copy();
 					// erase base pairs from new_match
-					if( diff >= static_cast<int64>(ml[ nextI ]->Length(seqI)) ){
+					if( diff >= ml[ nextI ]->Length(seqI) ){
 //							cerr << "Deleting " << **next_iter << " at the hands of\n" << **mem_iter << endl;
 						ml[ nextI ]->Free();
 						ml[ nextI ] = NULL;
