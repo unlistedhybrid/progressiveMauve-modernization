@@ -45,6 +45,17 @@ jobs:
         cmake --build . --parallel 2>&1 | tee build_log.txt
 
     # ----------------------------
+    # RUN UNDER GDB FOR BACKTRACE
+    # ----------------------------
+    - name: Run progressiveMauve under gdb
+      run: |
+        cd build
+        set +e
+        # Adjust the arguments below to match your usual run/test setup!
+        # Example input files are 1.fasta and 2.fasta—replace if needed.
+        gdb -q -batch -ex "run --backbone-output=bb.txt --output=seqs.xmfa 1.fasta 2.fasta" -ex "bt" ./progressiveMauve || true
+
+    # ----------------------------
     # SAVE ARTIFACTS
     # ----------------------------
     - name: Stage Binaries
