@@ -2370,7 +2370,11 @@ void ProgressiveAligner::alignProfileToProfile( node_id_t node1, node_id_t node2
 			seq_lengths[1] += alignment_tree[node2].ordering[aI].Length();
 
 		cout << "Adding unaligned intervals\n";
+		cerr << "DEBUG: pairwise_intervals.size()=" << pairwise_intervals.size() 
+		     << ", seq_lengths[0]=" << seq_lengths[0] << ", seq_lengths[1]=" << seq_lengths[1] << endl;
+		cerr << "DEBUG: Calling addUnalignedIntervals_v2" << endl;
 		addUnalignedIntervals_v2(pairwise_intervals, set<uint>(), seq_lengths);
+		cerr << "DEBUG: addUnalignedIntervals_v2 completed" << endl;
 
 		cout << "addUnalignedIntervals yields " << pairwise_intervals.size() << " intervals\n";
 
