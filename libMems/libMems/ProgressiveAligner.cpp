@@ -1295,6 +1295,7 @@ void ProgressiveAligner::doGappedAlignment( node_id_t ancestor, bool profile_aln
 	printProgress(-1, 0, cout);
 	apt.cur_leftend = 1;
 
+	cerr << "DEBUG: doGappedAlignment starting with " << alignment_tree[ancestor].ordering.size() << " intervals" << endl;
 	cerr << "DEBUG: doGappedAlignment processing " << alignment_tree[ancestor].ordering.size() << " intervals" << endl;
 	for( size_t aI = 0; aI < alignment_tree[ancestor].ordering.size(); aI++ )
 	{
@@ -1326,6 +1327,7 @@ void ProgressiveAligner::doGappedAlignment( node_id_t ancestor, bool profile_aln
 		cerr << "DEBUG: Calling ConstructSuperIntervalFromMSA for interval " << aI << endl;
 		ConstructSuperIntervalFromMSA(ancestor, aI, gal);
 		cerr << "DEBUG: ConstructSuperIntervalFromMSA completed" << endl;
+		cerr << "DEBUG: After processing interval " << aI << ", ancestor still has " << alignment_tree[ancestor].ordering.size() << " superintervals" << endl;
 //		printMemUsage();
 
 		// print a progress message
@@ -1335,16 +1337,21 @@ void ProgressiveAligner::doGappedAlignment( node_id_t ancestor, bool profile_aln
 	}
 	printMemUsage();
 	cout << "Fix left ends\n";
+	cerr << "DEBUG: Before FixLeftEnds, ancestor has " << alignment_tree[ancestor].ordering.size() << " superintervals" << endl;
 	FixLeftEnds(ancestor);
+	cerr << "DEBUG: After FixLeftEnds, ancestor has " << alignment_tree[ancestor].ordering.size() << " superintervals" << endl;
 	printMemUsage();
 
 	if( debug_aligner )
 		validateSuperIntervals(alignment_tree[ancestor].children[0], alignment_tree[ancestor].children[1], ancestor);
+	cerr << "DEBUG: refineAlignment completed" << endl;
 	cout << "\ndone.\n";
 }
 
 void ProgressiveAligner::FixLeftEnds( node_id_t ancestor )
 {
+	cerr << "DEBUG: FixLeftEnds called for ancestor " << ancestor << endl;
+	cerr << "DEBUG: Ancestor has " << alignment_tree[ancestor].ordering.size() << " superintervals at start" << endl;
 	// fixes all SuperInterval left-end coordinates for nodes below ancestor
 	stack< node_id_t > node_stack;
 	node_stack.push( ancestor );
@@ -1421,6 +1428,8 @@ void ProgressiveAligner::FixLeftEnds( node_id_t ancestor )
 
 		}
 	}
+	cerr << "DEBUG: FixLeftEnds completed for ancestor " << ancestor << endl;
+	cerr << "DEBUG: Ancestor has " << alignment_tree[ancestor].ordering.size() << " superintervals at end" << endl;
 }
 
 /**
@@ -3819,7 +3828,9 @@ void ProgressiveAligner::getAlignment( IntervalList& interval_list )
 	{
 		// perform iterative refinement
 		cout << "Performing final pass iterative refinement\n";
+		cerr << "DEBUG: Before final refinement, root has " << alignment_tree[alignment_tree.root].ordering.size() << " superintervals" << endl;
 		doGappedAlignment(alignment_tree.root, false);
+		cerr << "DEBUG: After final refinement, root has " << alignment_tree[alignment_tree.root].ordering.size() << " superintervals" << endl;
 	}
 
 	// peel off the alignment from the root node
