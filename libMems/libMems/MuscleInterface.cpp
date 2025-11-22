@@ -585,10 +585,10 @@ try{
 		}
 	}
 
-    //no seqs able to be aligned..
-    if( seqs.size() == 0)
-        create_ok = false;
-
+	//no seqs able to be aligned..
+	if( seqs.size() == 0 ) {
+		create_ok = false;
+	}
 
 	if( create_ok ){
 //		SetMuscleArguments( " -quiet -stable -seqtype DNA " );
@@ -1141,4 +1141,3 @@ void MuscleInterface::CreateTree( const NumericMatrix<double>& distances, const 
 
 
 }
-
