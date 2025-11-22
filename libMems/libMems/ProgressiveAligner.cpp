@@ -598,7 +598,7 @@ void ProgressiveAligner::pairwiseAnchorSearch( MatchList& r_list, Match* r_begin
 
 		starts.push_back( gap_start );
 		gnSequence* new_seq = NULL;
-		if(diff > 0 && gap_start + diff - 1 <= r_list.seq_table[ seqI ]->length())
+		if(diff > 0 && gap_start + diff - 1 <= static_cast<int64>(r_list.seq_table[ seqI ]->length()))
 			new_seq = new gnSequence( r_list.seq_table[ seqI ]->ToString( diff, gap_start ) );
 		else
 			new_seq = new gnSequence();
@@ -692,3 +692,4 @@ bool ProgressiveAligner::validateSuperIntervals(node_id_t node1, node_id_t node2
 }
 
 }  // namespace mems
+
