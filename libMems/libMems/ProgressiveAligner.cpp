@@ -1575,8 +1575,11 @@ void ProgressiveAligner::constructLcbTrackingMatches(
 	vector< LcbTrackingMatch< AbstractMatch* > >& tracking_matches 
 	)
 {
+	cerr << "DEBUG: constructLcbTrackingMatches START, ancestral_node=" << ancestral_node 
+	     << ", ancestral_matches.size()=" << ancestral_matches.size() << endl;
 	node_id_t child_0 = alignment_tree[ancestral_node].children[0];
 	node_id_t child_1 = alignment_tree[ancestral_node].children[1];
+	cerr << "DEBUG: child_0=" << child_0 << ", child_1=" << child_1 << endl;
 	// split up matches at descendant's breakpoints
 	propagateDescendantBreakpoints( child_0, 0, ancestral_matches );
 	propagateDescendantBreakpoints( child_1, 1, ancestral_matches );
@@ -1718,11 +1721,15 @@ void ProgressiveAligner::constructLcbTrackingMatches(
 		}
 	}
 	tracking_matches.resize( cga_list.size() );
+	cerr << "DEBUG: Building tracking_matches, cga_list.size()=" << cga_list.size() << endl;
 	// finally, construct CompactGappedAlignments out of the bitsets
 	for( size_t bsI = 0; bsI < cga_list.size(); ++bsI )
 	{
+		cerr << "DEBUG: Processing tracking_match " << bsI << endl;
 		std::get<0>(cga_list[bsI])->SetAlignment(*std::get<1>(cga_list[bsI]));
+		cerr << "DEBUG: SetAlignment completed for tracking_match " << bsI << endl;
 		std::get<0>(cga_list[bsI])->validate();
+		cerr << "DEBUG: validate() completed for tracking_match " << bsI << endl;
 		TrackingMatch& ltm = tracking_matches[bsI];
 		ltm.node_match = std::get<0>(cga_list[bsI]);
 		ltm.original_match = std::get<2>(cga_list[bsI]);
@@ -1749,6 +1756,7 @@ void ProgressiveAligner::constructLcbTrackingMatches(
 			genome::breakHere();
 		}
 	}
+	cerr << "DEBUG: constructLcbTrackingMatches COMPLETED successfully" << endl;
 }
 
 size_t countUnrefined( PhyloTree< AlignmentTreeNode >& alignment_tree, node_id_t ancestor )
@@ -2136,10 +2144,13 @@ void ProgressiveAligner::alignProfileToProfile( node_id_t node1, node_id_t node2
 			// translate the matches into LcbTrackingMatches
 			printMemUsage();
 			cout << "construct LCB tracking matches\n";
+			cout << "DEBUG: ancestral_matches.size() = " << ancestral_matches.size() << endl;
 			vector< TrackingMatch > tracking_matches;
 			boost::multi_array< size_t, 3 > tm_lcb_id_array;
 			boost::multi_array< double, 3 > tm_score_array;
+			cout << "DEBUG: Calling constructLcbTrackingMatches with ancestor=" << ancestor << endl;
 			constructLcbTrackingMatches( ancestor, ancestral_matches, tracking_matches );
+			cout << "DEBUG: constructLcbTrackingMatches completed successfully" << endl;
 
 			cout << "There are " << tracking_matches.size() << " tracking matches\n";
 			size_t used_components = 0;
