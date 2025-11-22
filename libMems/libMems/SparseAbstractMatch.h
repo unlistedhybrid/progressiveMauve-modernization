@@ -56,7 +56,7 @@ public:
 	virtual void MoveStart(int64 move_amount);
 	virtual void MoveEnd(int64 move_amount);
 
-	virtual boolean operator==( const SparseAbstractMatch& sam ) const;
+	virtual boolean operator==( const SparseAbstractMatch& sam ) const override;
 
 	virtual uint UsedSeq( uint seqI ) const;
 protected:
@@ -221,7 +221,7 @@ void SparseAbstractMatch< gnSeqIAlloc, uintAlloc >::MoveEnd(int64 move_amount)
 }
 
 template< class gnSeqIAlloc, class uintAlloc >
-boolean SparseAbstractMatch< gnSeqIAlloc, uintAlloc >::operator==( const SparseAbstractMatch< gnSeqIAlloc, uintAlloc >& sam ) const
+boolean SparseAbstractMatch< gnSeqIAlloc, uintAlloc >::operator==( const SparseAbstractMatch< gnSeqIAlloc, uintAlloc >& sam ) const override
 {
 	for( uint i=0; i < leftend.size(); ++i ){
 		if( leftend[i] != sam.leftend[i] ||
