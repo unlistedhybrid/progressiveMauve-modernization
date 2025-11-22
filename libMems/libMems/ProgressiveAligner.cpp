@@ -1596,18 +1596,29 @@ void ProgressiveAligner::constructLcbTrackingMatches(
 	cerr << "DEBUG: propagateDescendantBreakpoints child_1 completed" << endl;
 
 	// store alignment bitvectors for each match...
+	cerr << "DEBUG: Creating bitset vectors, alignment_tree.size()=" << alignment_tree.size() << endl;
 	vector< bitset_t > bs_tmp(alignment_tree.size());
+	cerr << "DEBUG: bs_tmp created" << endl;
 	vector< vector< bitset_t > > bs(ancestral_matches.size(), bs_tmp);
+	cerr << "DEBUG: bs vector created with size=" << ancestral_matches.size() << endl;
 	vector< _sort_tracker_type > cga_list;
+	cerr << "DEBUG: cga_list created, about to initialize alignment bitvectors" << endl;
 	// initialize alignment bitvectors
 	for( size_t mI = 0; mI < ancestral_matches.size(); mI++ )
 	{
+		cerr << "DEBUG: Processing match " << mI << ", AlignmentLength=" << ancestral_matches[mI]->AlignmentLength() << endl;
 		vector< bitset_t > aln( alignment_tree.size(), bitset_t(ancestral_matches[mI]->AlignmentLength() ) );
+		cerr << "DEBUG: aln vector created" << endl;
 		swap( bs[mI], aln );
+		cerr << "DEBUG: Calling GetAlignment for match " << mI << endl;
 		ancestral_matches[mI]->GetAlignment(aln);
+		cerr << "DEBUG: GetAlignment completed, aln.size()=" << aln.size() << endl;
 		swap( bs[mI][child_0], aln[0] );
+		cerr << "DEBUG: Swapped bs[" << mI << "][child_0]" << endl;
 		swap( bs[mI][child_1], aln[1] );
+		cerr << "DEBUG: Swapped bs[" << mI << "][child_1]" << endl;
 		CompactGappedAlignment<> c(alignment_tree.size(),0);
+		cerr << "DEBUG: CompactGappedAlignment created for match " << mI << endl;
 		c.SetLeftEnd(child_0, ancestral_matches[mI]->LeftEnd(0));
 		c.SetOrientation(child_0, ancestral_matches[mI]->Orientation(0));
 		c.SetLength(ancestral_matches[mI]->Length(0), child_0);
