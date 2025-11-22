@@ -25,7 +25,7 @@ class Matrix
 public:
 	Matrix();
 	Matrix(unsigned nrows, unsigned ncols);
-	// Throws a BadSize object if either size is zero
+	// Throws a BadSize object if either size is zero
 	class BadSize : public std::range_error{
 	public:
 		BadSize() : std::range_error( "Bad matrix size" ){}
@@ -109,12 +109,19 @@ inline Matrix<T>::Matrix(const Matrix<T>& m){
 template<class T>
 inline Matrix<T>& Matrix<T>::operator=( const Matrix<T>& m )
 {
+	if( this == &m )
+		return *this;  // Handle self-assignment
+	
 	if( data_ != NULL )
 		delete[] data_;
 	data_ = new T[m.nrows_ * m.ncols_];
 	nrows_ = m.nrows_;
 	ncols_ = m.ncols_;
-	memcpy( data_, m.data_, nrows_ * ncols_ * sizeof( T ) );
+	
+	// Use element-wise copy instead of memcpy for non-trivial types
+	for( unsigned i = 0; i < nrows_ * ncols_; ++i )
+		data_[i] = m.data_[i];
+	
 	return *this;
 }
 
