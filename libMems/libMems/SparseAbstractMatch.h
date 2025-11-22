@@ -56,7 +56,7 @@ public:
 	virtual void MoveStart(int64 move_amount);
 	virtual void MoveEnd(int64 move_amount);
 
-	virtual boolean operator==( const SparseAbstractMatch& sam ) const;
+	boolean operator==( const SparseAbstractMatch& sam ) const;
 
 	virtual uint UsedSeq( uint seqI ) const;
 protected:
