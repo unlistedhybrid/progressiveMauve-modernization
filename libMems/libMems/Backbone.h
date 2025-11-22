@@ -89,6 +89,7 @@ class HssDetector
 {
 public:
 	typedef std::vector< CompactGappedAlignment<>* > MatchListType;
+	virtual ~HssDetector() = default;
 	virtual void operator() ( 
 		const MatchListType& iv_list, 
 		std::vector< genome::gnSequence* >& seq_table,  
@@ -237,4 +238,5 @@ void mergePairwiseHomologyPredictions( 	std::vector< CompactGappedAlignment<>* >
 }
 
 #endif	// __Backbone_h__
+
 
