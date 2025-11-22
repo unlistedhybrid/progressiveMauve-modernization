@@ -139,14 +139,14 @@ breakpoint_penalty( -1 ),
 min_breakpoint_penalty( 4000 ),
 debug(false),
 refine(true),
+using_cache_db(true),
 scoring_scheme(ExtantSumOfPairsScoring),
 use_weight_scaling(true),
-conservation_dist_scale(1),
-bp_dist_scale(.9),
-max_gapped_alignment_length(20000),
-bp_dist_estimate_score(-1),
 use_seed_families(false),
-using_cache_db(true)
+bp_dist_scale(.9),
+conservation_dist_scale(1),
+bp_dist_estimate_score(-1),
+max_gapped_alignment_length(20000)
 {
 	gapped_alignment = true;
 	max_window_size = max_gapped_alignment_length;
@@ -1039,7 +1039,7 @@ int IsDenseEnough( GappedAlignment* gal_iter )
 
 void splitGappedAlignment( const GappedAlignment& ga, GappedAlignment& ga1, GappedAlignment& ga2, std::vector<size_t>& seqs1, std::vector<size_t>& seqs2 )
 {
-	const vector< string >& aln = GetAlignment( ga, std::vector<gnSequence*>(ga.SeqCount()) );
+	const vector< string > aln = GetAlignment( ga, std::vector<gnSequence*>(ga.SeqCount()) );
 	ga1 = ga;
 	ga2 = ga;
 	for( size_t seqI = 0; seqI < seqs1.size(); seqI++ )
@@ -1054,7 +1054,7 @@ void removeLargeGapsPP( GappedAlignment& gal, list< GappedAlignment* >& gal_list
 	// for more than some number of nucleotides
 	gap_iv.clear();
 	gal_list.clear();
-	const vector< string >& aln_matrix = GetAlignment(gal, vector<gnSequence*>(gal.SeqCount(),NULL));
+	const vector< string > aln_matrix = GetAlignment(gal, vector<gnSequence*>(gal.SeqCount(),NULL));
 	size_t gap_cols = 0;
 	size_t last_aln_col = (std::numeric_limits<size_t>::max)();
 	size_t col_base = 0;
@@ -1225,7 +1225,7 @@ void ProgressiveAligner::refineAlignment( GappedAlignment& gal, node_id_t ancest
 	vector< string::size_type > pos( gal.SeqCount(), 0 );
 	for( gal_iter = gal_list.begin(); gal_iter != gal_list.end(); ++gal_iter )
 	{
-		const vector< string >& tmp_mat = GetAlignment(**gal_iter, vector<gnSequence*>( gal.SeqCount() ) );
+		const vector< string > tmp_mat = GetAlignment(**gal_iter, vector<gnSequence*>( gal.SeqCount() ) );
 		for( uint seqI = 0; seqI < tmp_mat.size(); seqI++ )
 		{
 			if( gal.LeftEnd(seqI) == 0 )
@@ -1418,7 +1418,7 @@ void propagateInvert( PhyloTree< AlignmentTreeNode >& alignment_tree, node_id_t 
 
 void ProgressiveAligner::ConstructSuperIntervalFromMSA( node_id_t ancestor, size_t ans_siv, GappedAlignment& gal )
 {
-	const vector< string >& aln_matrix = GetAlignment( gal, vector< gnSequence* >() );
+	const vector< string > aln_matrix = GetAlignment( gal, vector< gnSequence* >() );
 	stack< pair< node_id_t, size_t > > node_siv_stack;
 	node_siv_stack.push( make_pair(ancestor, ans_siv) );
 	vector<bool> visited( alignment_tree.size(), false );
@@ -1958,7 +1958,7 @@ void ProgressiveAligner::computeInternalNodeDistances(
 
 double computeID( GappedAlignment& gal, size_t seqI, size_t seqJ )
 {
-	const vector< string >& aln_mat = GetAlignment( gal, vector< gnSequence* >(gal.SeqCount(), NULL ));
+	const vector< string > aln_mat = GetAlignment( gal, vector< gnSequence* >(gal.SeqCount(), NULL ));
 	double id = 0;
 	double possible = 0;
 	for( size_t colI = 0; colI < gal.AlignmentLength(); colI++ )
