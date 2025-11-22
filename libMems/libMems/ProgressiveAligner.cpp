@@ -1235,14 +1235,24 @@ void ProgressiveAligner::refineAlignment( GappedAlignment& gal, node_id_t ancest
 		}else if(!(*my_b_iter))
 		{
 			int density = IsDenseEnough( *my_g_iter );
+			cerr << "DEBUG: Regular RefineFast path - Multiplicity=" << (*my_g_iter)->Multiplicity() 
+			     << ", AlignmentLength=" << (*my_g_iter)->AlignmentLength() << endl;
 			cerr << "DEBUG: Calling RefineFast with density=" << density << endl;
-			if( density == 0 )
-				mi.RefineFast( **my_g_iter );
-			else if( density == 1 )
-				mi.RefineFast( **my_g_iter, 500 );
+			// Skip refinement for alignments with too few sequences
+			if( (*my_g_iter)->Multiplicity() > 2 )
+			{
+				if( density == 0 )
+					mi.RefineFast( **my_g_iter );
+				else if( density == 1 )
+					mi.RefineFast( **my_g_iter, 500 );
+				else
+					mi.RefineFast( **my_g_iter, 200 );
+				cerr << "DEBUG: RefineFast completed" << endl;
+			}
 			else
-				mi.RefineFast( **my_g_iter, 200 );
-			cerr << "DEBUG: RefineFast completed" << endl;
+			{
+				cerr << "DEBUG: Skipping RefineFast - Multiplicity <= 2" << endl;
+			}
 		}
 
 		new_len += (*my_g_iter)->AlignmentLength();
