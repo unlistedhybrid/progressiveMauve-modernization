@@ -83,7 +83,7 @@ public:
 	 * Set whether the default character is inserted upon translation failure.
 	 * @param use True if the default character should be used.
 	 */
-	void UseDefaultChar( const boolean use = true);
+	void UseDefaultChar( const bool use = true);
 	/**
 	 * Set the expected number of characters in each unit of translation.  For DNA to
 	 * Protein, for instance, this is 3 because each codon is 3 characters of input.
@@ -130,7 +130,7 @@ private:
 
 	const gnCompare* compare;
 	
-	boolean use_default;
+	bool use_default;
 	gnSeqC m_defaultChar;
 	uint32 m_defaultInputWidth;
 };//class gnTranslator
@@ -154,7 +154,7 @@ gnSeqC gnTranslator::GetDefaultChar() const
 }
 
 inline
-void gnTranslator::UseDefaultChar(const boolean use)
+void gnTranslator::UseDefaultChar(const bool use)
 {
 	use_default = use;
 }
