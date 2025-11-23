@@ -20,8 +20,6 @@
 #include "libMems/GappedAligner.h"
 
 // attempt to auto-link the MUSCLE library on windows
-// DISABLED for CMake build compatibility. CMake handles linking explicitly.
-/*
 #if defined(WIN64)&&defined(NDEBUG)&&!defined(FASTDEBUG)&&defined(_OPENMP)
 #pragma comment(lib, "MUSCLE64omp.lib")
 #endif
@@ -46,7 +44,6 @@
 #if defined(WIN32)&&!defined(WIN64)&&defined(FASTDEBUG)&&!defined(_OPENMP)
 #pragma comment(lib, "MUSCLEfd.lib")
 #endif
-*/
 
 namespace mems {
 
@@ -70,15 +67,18 @@ public:
 	 */
 	void ParseMusclePath( const char* argv0 );
 
-	/** * Set the path to the muscle executable
+	/** 
+	 * Set the path to the muscle executable
 	 * Defaults to "muscle"
 	 */
 	void SetMusclePath( const std::string& path );
 
-	/** * Set the arguments to use when executing muscle 
+	/** 
+	 * Set the arguments to use when executing muscle 
 	 */
 	void SetExtraMuscleArguments( const std::string& extra_args );
-	/** * Get the arguments to use when executing muscle 
+	/** 
+	 * Get the arguments to use when executing muscle 
 	 */
 	std::string GetExtraMuscleArguments(){ return this->extra_muscle_arguments; };
 
@@ -92,9 +92,9 @@ public:
 	//     Such a change would involve changes to GappedAligner, and would require some additional care taken
 	//     with SeqCount & Multiplicity, as well as seq_table[ seqI ]->length()/seq_table[ 0 ]->length(i),
 	//     for now, leave like this. hopefully sooner than later, make pretty!
-	[[nodiscard]] bool Align( GappedAlignment& cr, Match* r_begin, Match* r_end, std::vector< genome::gnSequence* >& seq_table);
+	boolean Align( GappedAlignment& cr, Match* r_begin, Match* r_end, std::vector< genome::gnSequence* >& seq_table);
     
-	[[nodiscard]] bool Align( GappedAlignment& cr, AbstractMatch* r_begin, AbstractMatch* r_end, std::vector< genome::gnSequence* >& seq_table);
+	boolean Align( GappedAlignment& cr, AbstractMatch* r_begin, AbstractMatch* r_end, std::vector< genome::gnSequence* >& seq_table);
 
 	bool Refine( GappedAlignment& ga, size_t windowsize = 0 );
 
@@ -104,8 +104,8 @@ public:
 	 * seqI, if ga1.LeftEnd(seqI) != NO_MATCH, then ga2.LeftEnd(seqI) == NO_MATCH 
 	 */
 	bool ProfileAlign( const GappedAlignment& ga1, const GappedAlignment& ga2, GappedAlignment& aln, bool anchored = true );
-	bool CallMuscle( std::vector< std::string >& aln_matrix, const std::vector< std::string >& seq_table );
-	bool CallMuscleFast( std::vector< std::string >& aln_matrix, const std::vector< std::string >& seq_table, int gap_open = 0, int gap_extend = 0);
+	boolean CallMuscle( std::vector< std::string >& aln_matrix, const std::vector< std::string >& seq_table );
+	boolean CallMuscleFast( std::vector< std::string >& aln_matrix, const std::vector< std::string >& seq_table, int gap_open = 0, int gap_extend = 0);
 	bool RefineFast( GappedAlignment& ga, size_t windowsize = 0 );
 	bool ProfileAlignFast( const GappedAlignment& ga1, const GappedAlignment& ga2, GappedAlignment& aln, bool anchored = true );
 

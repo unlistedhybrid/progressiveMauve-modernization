@@ -32,8 +32,6 @@
 
 #include <sstream>
 #include <fstream>
-#include <vector>
-#include <string>
 
 using namespace std;
 using namespace genome;
@@ -59,7 +57,8 @@ char** parseCommand( const string& cmd ){
 	// tokenize on "
 	stringstream qs( cmd );
 	string cur_str;
-	bool in_quote = true;
+	boolean in_quote = true;
+	int token_count = 0;
 	vector< string > cmd_tokens;
 	while( getline( qs, cur_str, '"' ) ){
 		// never start out in a quote
@@ -76,7 +75,7 @@ char** parseCommand( const string& cmd ){
 		}
 	}
 	char ** cmd_array = new char*[ cmd_tokens.size() + 1 ];
-	for( size_t tokI = 0; tokI < cmd_tokens.size(); tokI++ ){
+	for( int tokI = 0; tokI < cmd_tokens.size(); tokI++ ){
 		cmd_array[ tokI ] = new char[ cmd_tokens[ tokI ].length() + 1 ];
 		strcpy( cmd_array[ tokI ], cmd_tokens[ tokI ].c_str() );
 	}
@@ -92,9 +91,9 @@ char** parseCommand( const string& cmd ){
 #include <sys/wait.h>
 
 // unix pipelined execution code
-bool pipeExec( char** cmd_argv, [[maybe_unused]] const string& command, const string& input, string& output, [[maybe_unused]] string& error ){
-	int stdin_pipe[2], stdout_pipe[2];
-	bool success = false;
+bool pipeExec( char** cmd_argv, const string& command, const string& input, string& output, string& error ){
+	int stdin_pipe[2], stdout_pipe[2], stderr_pipe[2];
+	boolean success = false;
 	pid_t sid;
 	pid_t pid1;
 	const char* fail;
@@ -107,6 +106,7 @@ bool pipeExec( char** cmd_argv, [[maybe_unused]] const string& command, const st
 	if((sid < 0 && (fail = "sid"))
 	 || (pipe(stdin_pipe) < 0 && (fail = "stdin"))
 	 || (pipe(stdout_pipe) < 0 && (fail = "stdout"))
+//	 || (pipe(stderr_pipe) < 0 && (fail = "stderr"))
 	)
     {
 		fprintf(stderr, "Ouch, the world just collapsed (%s).\n", fail);
@@ -118,7 +118,9 @@ bool pipeExec( char** cmd_argv, [[maybe_unused]] const string& command, const st
 	fcntl(stdin_pipe[1], F_SETFL, fcntl(stdin_pipe[1], F_GETFL) & ~O_NONBLOCK);
 	fcntl(stdout_pipe[0], F_SETFL, fcntl(stdout_pipe[0], F_GETFL) & ~O_NONBLOCK);
 	fcntl(stdout_pipe[1], F_SETFL, fcntl(stdout_pipe[1], F_GETFL) & ~O_NONBLOCK);
-
+/*	fcntl(stderr_pipe[0], F_SETFL, fcntl(stderr_pipe[0], F_GETFL) & ~O_NONBLOCK);
+	fcntl(stderr_pipe[1], F_SETFL, fcntl(stderr_pipe[1], F_GETFL) & ~O_NONBLOCK);
+*/	
 	if((pid1 = fork()) < 0)goto cleanup;	
 	if(pid1)
 		setpgid(pid1, sid);
@@ -126,10 +128,13 @@ bool pipeExec( char** cmd_argv, [[maybe_unused]] const string& command, const st
 	{
 		dup2(stdin_pipe[0], 0);
 		dup2(stdout_pipe[1], 1);
+//		dup2(stderr_pipe[1], 2);
 		close( stdin_pipe[0] );
 		close( stdin_pipe[1] );
 		close( stdout_pipe[0] );
 		close( stdout_pipe[1] );
+//		close( stderr_pipe[0] );
+//		close( stderr_pipe[1] );
 		execvp(cmd_argv[0], cmd_argv);
 		_exit(errno);
 	}
@@ -161,6 +166,8 @@ cleanup:
 	close(stdin_pipe[1]);
 	close(stdout_pipe[0]);
 	close(stdout_pipe[1]);
+//	close(stderr_pipe[0]);
+//	close(stderr_pipe[1]);
 	return success;
 };
 
@@ -205,7 +212,7 @@ bool pipeExec( char** cmd_argv, const string& command, const string& input, stri
 	PROCESS_INFORMATION pi;
 	HANDLE newstdin_w,newstdout_w,newstderr_w,newstdin_r,newstdout_r,newstderr_r;
 	HANDLE read_stdout,read_stderr,write_stdin;  //pipe handles
-	bool success = false;
+	boolean success = false;
 
 	if (IsWinNT())        //initialize security descriptor (Windows NT)
 	{
@@ -234,7 +241,7 @@ bool pipeExec( char** cmd_argv, const string& command, const string& input, stri
 		goto finito;
 	}
 	// Duplicate the write handle to the pipe so it is not inherited. 
-	bool fSuccess = DuplicateHandle(GetCurrentProcess(), newstdin_w, 
+	boolean fSuccess = DuplicateHandle(GetCurrentProcess(), newstdin_w, 
 		GetCurrentProcess(), &write_stdin, 0, 
 		FALSE,                  // not inherited 
 		DUPLICATE_SAME_ACCESS); 
@@ -418,10 +425,13 @@ MuscleInterface& MuscleInterface::operator=( const MuscleInterface& ci ){
 	//     Such a change would involve changes to GappedAligner, and would require some additional care taken
 	//     with SeqCount & Multiplicity, as well as seq_table[ seqI ]->length()/seq_table[ 0 ]->length(i),
 	//     for now, leave like this. hopefully sooner than later, make pretty!
-bool MuscleInterface::Align( GappedAlignment& cr, Match* r_begin, Match* r_end, vector< gnSequence* >& seq_table ){
-	bool create_ok = true;
+boolean MuscleInterface::Align( GappedAlignment& cr, Match* r_begin, Match* r_end, vector< gnSequence* >& seq_table ){
+	gnSeqI gap_size = 0;
+	boolean create_ok = true;
 	uint seq_count = seq_table.size();
 	//seq_count = r_begin->Multiplicity();
+	uint seqI;
+	uint align_seqs = 0;
 	vector< string > tmp_mat = vector< string >( seq_count );
 try{
 
@@ -433,7 +443,7 @@ try{
 	vector< uint > seqs;
 	const gnFilter* rc_filter = gnFilter::DNAComplementFilter();
 	
-	for( uint seqI = 0; seqI < seq_count; seqI++ ){
+	for( seqI = 0; seqI < seq_count; seqI++ ){
 
 		// skip this sequence if it's undefined
 		if( (r_end != NULL && r_end->Start( seqI ) == NO_MATCH ) ||
@@ -448,7 +458,7 @@ try{
 		getInterveningCoordinates( seq_table, r_begin, r_end, seqI, gap_start, gap_end );
 
 		int64 diff = gap_end - gap_start;
-		if( diff <= 0 || diff > static_cast<int64>(max_alignment_length) ){
+		if( diff <= 0 || diff > max_alignment_length ){
 			starts.push_back( NO_MATCH );
 			continue;	// skip this sequence if it's either too big or too small
 		}
@@ -510,8 +520,9 @@ try{
 
 static int failure_count = 0;
 
-bool MuscleInterface::Align( GappedAlignment& cr, AbstractMatch* r_begin, AbstractMatch* r_end, vector< gnSequence* >& seq_table){
-	bool create_ok = true;
+boolean MuscleInterface::Align( GappedAlignment& cr, AbstractMatch* r_begin, AbstractMatch* r_end, vector< gnSequence* >& seq_table){
+	gnSeqI gap_size = 0;
+	boolean create_ok = true;
 	//tjt: set the seq_count to a match m's multiplicity
 	//     even though all components n of match m could be 
 	//     less than the k sequences
@@ -519,6 +530,8 @@ bool MuscleInterface::Align( GappedAlignment& cr, AbstractMatch* r_begin, Abstra
 	//     if k = 1, n == repeat match multiplicity, where n >= 2
 	//     
 	uint seq_count = r_begin->Multiplicity();
+	uint seqI;
+	uint align_seqs = 0;
 	vector< string > tmp_mat = vector< string >( seq_count );
 try{
 
@@ -531,7 +544,7 @@ try{
 	const gnFilter* rc_filter = gnFilter::DNAComplementFilter();
 	
 	//std::cout << "getting regions between match components to align" << std::endl;
-	for( uint seqI = 0; seqI < seq_count; seqI++ ){
+	for( seqI = 0; seqI < seq_count; seqI++ ){
 
 		// skip this sequence if it's undefined
 		if( (r_end != NULL && r_end->Start( seqI ) == NO_MATCH ) ||
@@ -559,14 +572,22 @@ try{
 		int64 diff = gap_end - gap_start;
 		
 		//diff <= 0 ||
-		if( diff <= 0 || diff > static_cast<int64>(max_alignment_length) ){
+		if( diff <= 0 || diff > max_alignment_length ){
 			starts.push_back( NO_MATCH );
 			continue;	// skip this sequence if it's either too big or too small
 		}
 
 		seqs.push_back( seqI );
 
-		// the gnSequence pointers are shared across threads and have a common ifstream
+		// extract sequence data
+		if (0 )
+		{
+			starts.push_back( gap_start );
+			seq_data.push_back( "A" );
+			std::cout << "A" << std::endl;
+			diff = 1;
+		}
+// the gnSequence pointers are shared across threads and have a common ifstream
 		if( r_end == NULL || r_end->Start( seqI ) > 0 ){
 			starts.push_back( gap_start );
 			//std::cout << seq_table[ 0 ]->ToString( diff , gap_start ) << std::endl;
@@ -585,10 +606,10 @@ try{
 		}
 	}
 
-	//no seqs able to be aligned..
-	if( seqs.size() == 0 ) {
-		create_ok = false;
-	}
+    //no seqs able to be aligned..
+    if( seqs.size() == 0)
+        create_ok = false;
+
 
 	if( create_ok ){
 //		SetMuscleArguments( " -quiet -stable -seqtype DNA " );
@@ -597,7 +618,33 @@ try{
 			cout << "Muscle was unable to align:\n";
 			return false;
 		}
-
+        
+        //fill in regions between adjacent seeds with gaps
+        //if aln_matrix is smaller than multiplicity, then we know 
+        //that there are some regions between seeds that have len == 0
+        if (aln_matrix.size() != r_begin->Multiplicity() && 0)
+        {
+            for( uint seqI = 0; seqI < starts.size(); seqI++ )
+            {
+                //if this a position between two adjacent matches..
+                if (starts.at(seqI) == NO_MATCH)
+                {
+                    //calculate the number of gaps to fill in
+                    int64 gap_end = r_end != NULL ? r_end->Start( seqI ) : seq_table[ seqI ]->length() + 1;
+		            int64 gap_start = r_begin != NULL ? r_begin->End( seqI ) + 1 : 1;
+                    if( r_end == NULL || r_end->Start( seqI ) > 0 ){
+			            starts[seqI] = 0;//gap_start;
+			            seq_data.insert(seq_data.begin()+(seqI),"");
+		            }else{
+			            starts[seqI] = 0;//-gap_start;
+			            seq_data.insert(seq_data.begin()+(seqI),"");
+		            }
+                    string tmp(aln_matrix[0].length(), '-');
+                    aln_matrix.insert(aln_matrix.begin()+(seqI), tmp);
+                    seqs.insert(seqs.begin()+(seqI),seqI);
+                }
+            }
+        }
 		gnSeqI aln_length = aln_matrix.size() == 0 ? 0 : aln_matrix[0].length();
 		cr = GappedAlignment( seq_count, aln_length );
 		vector< string > aln_mat = vector< string >( seq_count );
@@ -614,16 +661,17 @@ try{
 		}
 
 		cr.SetAlignment( aln_mat );
+
 		return true;
 	}
 }catch(exception& e){
 	cerr << "At: " << __FILE__ << ":" << __LINE__ << endl;
 	cerr << e.what();
 }
-return false;
+	return false;
 }
 
-bool MuscleInterface::CallMuscle( vector< string >& aln_matrix, const vector< string >& seq_table )
+boolean MuscleInterface::CallMuscle( vector< string >& aln_matrix, const vector< string >& seq_table )
 {
 	gnSequence seq;
 
@@ -639,7 +687,7 @@ bool MuscleInterface::CallMuscle( vector< string >& aln_matrix, const vector< st
 		string muscle_cmd = muscle_path + " " + muscle_arguments;
 		string output;
 		string error;
-		bool success = pipeExec( muscle_cmdline, muscle_cmd, input_seq_stream.str(), output, error );
+		boolean success = pipeExec( muscle_cmdline, muscle_cmd, input_seq_stream.str(), output, error );
 		if( !success || output.size() == 0 )
 		{
 			throw "b0rk3d";
@@ -670,13 +718,13 @@ bool MuscleInterface::CallMuscle( vector< string >& aln_matrix, const vector< st
 	stringstream debug_fname;
 	debug_fname << "muscle_failure_" << failure_count++ << ".txt";
 	ofstream debug_file( debug_fname.str().c_str() );
-	gnFASSource::Write( seq, debug_file, false );
+	gnFASSource::Write(seq, debug_file, false);
 	debug_file.close();
 	return false;
 }
 
 // version 2 of this code: attempt to call muscle without performing costly disk I/O!!
-bool MuscleInterface::CallMuscleFast( vector< string >& aln_matrix, const vector< string >& seq_table, int gap_open, int gap_extend )
+boolean MuscleInterface::CallMuscleFast( vector< string >& aln_matrix, const vector< string >& seq_table, int gap_open, int gap_extend )
 {
 	if (gap_open != 0)
 		g_scoreGapOpen.get() = gap_open;
@@ -722,7 +770,7 @@ bool MuscleInterface::CallMuscleFast( vector< string >& aln_matrix, const vector
 
 bool MuscleInterface::Refine( GappedAlignment& ga, size_t windowsize )
 {
-	vector< string > seq_table = GetAlignment( ga, vector< gnSequence* >() );
+	const vector< string >& seq_table = GetAlignment( ga, vector< gnSequence* >() );
 	vector< string > aln_table;
 	for( uint seqI = 0; seqI < ga.SeqCount(); seqI++ )
 	{
@@ -774,7 +822,7 @@ void msaFromSeqTable(MSA& msa, const vector< string >& seq_table, unsigned id_ba
 
 bool MuscleInterface::RefineFast( GappedAlignment& ga, size_t windowsize )
 {
-	vector< string > seq_table = GetAlignment( ga, vector< gnSequence* >() );
+	const vector< string >& seq_table = GetAlignment( ga, vector< gnSequence* >() );
 	vector< string > aln_table;
 	for( uint seqI = 0; seqI < ga.SeqCount(); seqI++ )
 	{
@@ -796,12 +844,11 @@ bool MuscleInterface::RefineFast( GappedAlignment& ga, size_t windowsize )
 	SetMaxIters(g_uMaxIters.get());
 	SetSeqWeightMethod(g_SeqWeight1.get());
 
-	// Use aln_table (filtered) instead of seq_table (unfiltered)
-	MSA::SetIdCount(aln_table.size());
+	MSA::SetIdCount(seq_table.size());
 
 	// create an MSA
 	MSA msa;
-	msaFromSeqTable(msa, aln_table);
+	msaFromSeqTable(msa, seq_table);
 
 	SetAlpha(ALPHA_DNA);
 	msa.FixAlpha();
@@ -877,8 +924,8 @@ void stripGaps( std::string& str )
 bool MuscleInterface::ProfileAlign( const GappedAlignment& ga1, const GappedAlignment& ga2, GappedAlignment& aln, bool anchored )
 {
 	try{
-		vector< string > aln1 = GetAlignment( ga1, vector< gnSequence* >() );
-		vector< string > aln2 = GetAlignment( ga2, vector< gnSequence* >() );
+		const vector< string >& aln1 = GetAlignment( ga1, vector< gnSequence* >() );
+		const vector< string >& aln2 = GetAlignment( ga2, vector< gnSequence* >() );
 		vector< uint > order;
 		ostringstream input_seq_stream;
 		gnSequence seq;
@@ -949,7 +996,7 @@ bool MuscleInterface::ProfileAlign( const GappedAlignment& ga1, const GappedAlig
 		{
 			cerr << "Running " << muscle_cmd << endl;
 		}
-		bool success = pipeExec( muscle_cmdline, muscle_cmd, input_seq_stream.str(), output, error );
+		boolean success = pipeExec( muscle_cmdline, muscle_cmd, input_seq_stream.str(), output, error );
 		if( !success || output.size() == 0 )
 		{
 			if( output.size() == 0 )
@@ -972,6 +1019,7 @@ bool MuscleInterface::ProfileAlign( const GappedAlignment& ga1, const GappedAlig
 			}
 			gnSeqI len = cur_line.size();
 			len = cur_line[ len - 1 ] == '\r' ? len - 1 : len;
+			uint seqI = aln_matrix.size() - 1;
 			aln_matrix[ order[ordI] ] += cur_line.substr( 0, len );
 		}
 		for( size_t i = 0; i < aln_matrix.size(); i++ )
@@ -1005,8 +1053,8 @@ bool MuscleInterface::ProfileAlign( const GappedAlignment& ga1, const GappedAlig
 bool MuscleInterface::ProfileAlignFast( const GappedAlignment& ga1, const GappedAlignment& ga2, GappedAlignment& aln, bool anchored )
 {
 	try{
-		vector< string > aln1 = GetAlignment( ga1, vector< gnSequence* >() );
-		vector< string > aln2 = GetAlignment( ga2, vector< gnSequence* >() );
+		const vector< string >& aln1 = GetAlignment( ga1, vector< gnSequence* >() );
+		const vector< string >& aln2 = GetAlignment( ga2, vector< gnSequence* >() );
 		vector< uint > order;
 		vector< string > aln11( ga1.Multiplicity() );
 		vector< string > aln22( ga2.Multiplicity() );
