@@ -21,6 +21,8 @@
 
 #define NELEMS(o)	sizeof(o)/sizeof(o[0])
 
+#include <type_traits>
+
 template<typename T>
 class TLS
 {
@@ -37,11 +39,13 @@ public:
 		return t[OMP_GET_THREAD_NUM];
 	}
 
+	template<typename U = T, typename = typename std::enable_if<std::is_pointer<U>::value>::type>
 	T operator->()
 	{
 		return t[OMP_GET_THREAD_NUM];
 	}
 
+	template<typename U = T, typename = typename std::enable_if<std::is_pointer<U>::value>::type>
 	T operator*()
 	{
 		return t[OMP_GET_THREAD_NUM];
