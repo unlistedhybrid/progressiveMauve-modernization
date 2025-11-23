@@ -861,11 +861,15 @@ bool MuscleInterface::RefineFast( GappedAlignment& ga, size_t windowsize )
 	std::cerr << "DEBUG RefineFast: Calling TreeFromMSA" << std::endl;
 	TreeFromMSA(msa, GuideTree, g_Cluster2.get(), g_Distance2.get(), g_Root2.get(), NULL);
 	std::cerr << "DEBUG RefineFast: TreeFromMSA completed" << std::endl;
+	std::cerr << "DEBUG RefineFast: Calling SetMuscleTree" << std::endl;
 	SetMuscleTree(GuideTree);
+	std::cerr << "DEBUG RefineFast: SetMuscleTree completed" << std::endl;
 
+	std::cerr << "DEBUG RefineFast: Creating msaOut" << std::endl;
 	MSA msaOut;
 	MSA* finalMsa;
 
+	std::cerr << "DEBUG RefineFast: windowsize=" << windowsize << std::endl;
 	if(windowsize == 0)
 	{
 		if (g_bAnchors.get())
@@ -873,6 +877,8 @@ bool MuscleInterface::RefineFast( GappedAlignment& ga, size_t windowsize )
 		else
 			RefineHoriz(msa, GuideTree, g_uMaxIters.get(), false, false);
 		finalMsa = &msa;
+		std::cerr << "DEBUG RefineFast: windowsize>0 path" << std::endl;
+		std::cerr << "DEBUG RefineFast: msa.GetSeqCount()=" << msa.GetSeqCount() << ", msa.GetColCount()=" << msa.GetColCount() << std::endl;
 	}else{
 		std::cerr << "DEBUG RefineFast: Calling RefineW" << std::endl;
 		RefineW(msa, msaOut);
