@@ -158,16 +158,6 @@ void CalcClustalWWeights(const Tree &tree, WEIGHT Weights[])
 	Normalize(Weights, uLeafCount);
 	std::cerr << "DEBUG CalcClustalWWeights: Completed successfully" << std::endl;
 	}
-#if	TRACE
-		Log(" = %g\n", dWeight);
-#endif
-		}
-
-	delete[] Strengths;
-	delete[] LeavesUnderNode;
-
-	Normalize(Weights, uLeafCount);
-	}
 
 void MSA::SetClustalWWeights(const Tree &tree)
 	{
@@ -194,4 +184,4 @@ void MSA::SetClustalWWeights(const Tree &tree)
 
 	delete[] Weights;
 	}
-} 
+}
