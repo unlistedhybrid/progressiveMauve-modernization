@@ -39,7 +39,7 @@ public:
 
     gnFragmentSpec* Clone() const override;
     void Clear() override;
-    void SetReverseComplement(const boolean value) override;
+    void SetReverseComplement(const bool value) override;
 
     void CropStart(gnSeqI cropLen) override;
     void CropEnd(gnSeqI cropLen) override;
