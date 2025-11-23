@@ -37,7 +37,7 @@ void gnFileContig::Clear() noexcept {
     m_repeatSeqGapSize = {0, 0};
 }
 
-boolean gnFileContig::SetRepeatSeqSize(const uint64 seqSize) noexcept {
+bool gnFileContig::SetRepeatSeqSize(const uint64 seqSize) noexcept {
     if (!m_repeatSeqGap)
         return false;
     if (m_repeatSeqGapSize.first == seqSize)
@@ -50,7 +50,7 @@ boolean gnFileContig::SetRepeatSeqSize(const uint64 seqSize) noexcept {
     return false;
 }
 
-boolean gnFileContig::SetRepeatGapSize(const uint64 gapSize) noexcept {
+bool gnFileContig::SetRepeatGapSize(const uint64 gapSize) noexcept {
     if (!m_repeatSeqGap)
         return false;
     if (m_repeatSeqGapSize.second == gapSize)
