@@ -5,15 +5,14 @@
 #include <vector>
 #include <memory>
 #include <cstdint>
+#include <iosfwd>
+
+#include "libGenome/gnFileSource.h"
+#include "libGenome/gnFileContig.h"
+#include "libGenome/gnGenomeSpec.h"
+#include "libGenome/gnFilter.h"
 
 namespace genome {
-
-// Forward declarations
-class gnFileSource;
-class gnFileContig;
-class gnGenomeSpec;
-class gnFilter;
-class gnSequence;
 
 using uint32 = std::uint32_t;
 using gnSeqI = std::int64_t;
