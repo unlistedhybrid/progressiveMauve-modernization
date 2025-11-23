@@ -180,7 +180,7 @@ void GenericIntervalList<MatchType>::ReadList(std::istream& match_file)
 	// read the matches
 	std::string cur_line;
 	Interval* cur_iv = NULL;
-	boolean clustal_match;
+	bool clustal_match;
 	std::vector< AbstractMatch* > iv_matches;
 	bool parsing = false;
 	
@@ -309,7 +309,7 @@ void GenericIntervalList<MatchType>::WriteXMLAlignment( std::ostream& out_file )
 		return;
     // write source sequence filenames and formats
 	// to make Paul happy
-	boolean single_input = true;
+	bool single_input = true;
     uint seqI = 0;
 	for( seqI = 1; seqI < seq_filename.size(); seqI++ ){
 		if( seq_filename[ 0 ] != seq_filename[ seqI ] ){
@@ -363,7 +363,7 @@ void GenericIntervalList<MatchType>::WriteStandardAlignment( std::ostream& out_f
 	
 	// write source sequence filenames and formats
 	// to make Paul happy
-	boolean single_input = true;
+	bool single_input = true;
 	for( seqI = 1; seqI < seq_filename.size(); seqI++ ){
 		if( seq_filename[ 0 ] != seq_filename[ seqI ] ){
 			single_input = false;
@@ -840,3 +840,4 @@ void GenericIntervalList<MatchType>::WriteAlignedSequences(std::ostream& match_f
 }
 
 #endif	//_IntervalList_h_
+
