@@ -46,7 +46,7 @@ public:
 	 * @param endI The index to stop reading base pairs from the source.
 	 * @param revComp True if the sequence is read reverse complement.
 	 */
-	gnSourceSpec( gnBaseSource* m_pSource, const uint32 m_ContigIndex=ALL_CONTIGS, const gnSeqI startI=0, const gnSeqI endI=GNSEQI_END, const boolean revComp = false);
+	gnSourceSpec( gnBaseSource* m_pSource, const uint32 m_ContigIndex=ALL_CONTIGS, const gnSeqI startI=0, const gnSeqI endI=GNSEQI_END, const bool revComp = false);
 	/**
 	 * Copy constructor.
 	 * @param s the gnSourceSpec to copy.
@@ -71,7 +71,7 @@ public:
 	virtual gnSourceSpec* CloneRange( const gnSeqI startI, const gnSeqI len ) const;
 
 protected:
-	virtual boolean Read(const gnSeqI start, gnSeqC* buf, gnSeqI& bufLen ) const;
+	virtual bool Read(const gnSeqI start, gnSeqC* buf, gnSeqI& bufLen ) const;
 	gnBaseSource* m_pSource;
 	
 }; // class gnSourceSpec
@@ -92,7 +92,7 @@ gnBaseSource* gnSourceSpec::GetSource() const
 }
 
 inline
-boolean gnSourceSpec::Read(const gnSeqI start, gnSeqC* buf, gnSeqI& bufLen) const{
+bool gnSourceSpec::Read(const gnSeqI start, gnSeqC* buf, gnSeqI& bufLen) const{
 	return m_pSource->SeqRead(start, buf, bufLen, m_SourceContigIndex);
 }
 
