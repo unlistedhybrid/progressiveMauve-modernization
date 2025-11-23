@@ -165,24 +165,26 @@ void Clust::CreateCluster()
 
 void Clust::ChooseJoin(unsigned *ptruLeftIndex, unsigned *ptruRightIndex,
   float *ptrdLeftLength, float *ptrdRightLength)
-{
-    switch (m_JoinStyle)
-    {
-    case JOIN_NearestNeighbor:
-        ChooseJoinNearestNeighbor(ptruLeftIndex, ptruRightIndex, ptrdLeftLength, ptrdRightLength);
-        return;
-    case JOIN_NeighborJoining:
-        ChooseJoinNeighborJoining(ptruLeftIndex, ptruRightIndex, ptrdLeftLength, ptrdRightLength);
-        return;
-    case JOIN_Undefined:
-    default:
-        Quit("Clust::ChooseJoin, Invalid join style %u", m_JoinStyle);
-    }
-}
+	{
+	switch (m_JoinStyle)
+		{
+	case JOIN_NearestNeighbor:
+		ChooseJoinNearestNeighbor(ptruLeftIndex, ptruRightIndex, ptrdLeftLength,
+		  ptrdRightLength);
+		return;
+	case JOIN_NeighborJoining:
+		ChooseJoinNeighborJoining(ptruLeftIndex, ptruRightIndex, ptrdLeftLength,
+		  ptrdRightLength);
+		return;
+		}
+	Quit("Clust::ChooseJoin, Invalid join style %u", m_JoinStyle);
+	}
 
 void Clust::ChooseJoinNearestNeighbor(unsigned *ptruLeftIndex,
   unsigned *ptruRightIndex, float *ptrdLeftLength, float *ptrdRightLength)
 	{
+	const unsigned uClusterCount = GetClusterCount();
+
 	unsigned uMinLeftNodeIndex;
 	unsigned uMinRightNodeIndex;
 	GetMinMetric(&uMinLeftNodeIndex, &uMinRightNodeIndex);
@@ -201,6 +203,28 @@ void Clust::ChooseJoinNearestNeighbor(unsigned *ptruLeftIndex,
 void Clust::ChooseJoinNeighborJoining(unsigned *ptruLeftIndex,
   unsigned *ptruRightIndex, float *ptrdLeftLength, float *ptrdRightLength)
 	{
+	const unsigned uClusterCount = GetClusterCount();
+
+	//unsigned uMinLeftNodeIndex = uInsane;
+	//unsigned uMinRightNodeIndex = uInsane;
+	//float dMinD = PLUS_INFINITY;
+	//for (unsigned i = GetFirstCluster(); i != uInsane; i = GetNextCluster(i))
+	//	{
+	//	const float ri = Calc_r(i);
+	//	for (unsigned j = GetNextCluster(i); j != uInsane; j = GetNextCluster(j))
+	//		{
+	//		const float rj = Calc_r(j);
+	//		const float dij = GetDist(i, j);
+	//		const float Dij = dij - (ri + rj);
+	//		if (Dij < dMinD)
+	//			{
+	//			dMinD = Dij;
+	//			uMinLeftNodeIndex = i;
+	//			uMinRightNodeIndex = j;
+	//			}
+	//		}
+	//	}
+
 	unsigned uMinLeftNodeIndex;
 	unsigned uMinRightNodeIndex;
 	GetMinMetric(&uMinLeftNodeIndex, &uMinRightNodeIndex);
@@ -269,30 +293,27 @@ float Clust::Calc_r(unsigned uNodeIndex) const
 	}
 
 float Clust::ComputeDist(unsigned uNewNodeIndex, unsigned uNodeIndex)
-{
-    switch (m_CentroidStyle)
-    {
-    case LINKAGE_Avg:
-        return ComputeDistAverageLinkage(uNewNodeIndex, uNodeIndex);
+	{
+	switch (m_CentroidStyle)
+		{
+	case LINKAGE_Avg:
+		return ComputeDistAverageLinkage(uNewNodeIndex, uNodeIndex);
 
-    case LINKAGE_Min:
-        return ComputeDistMinLinkage(uNewNodeIndex, uNodeIndex);
+	case LINKAGE_Min:
+		return ComputeDistMinLinkage(uNewNodeIndex, uNodeIndex);
 
-    case LINKAGE_Max:
-        return ComputeDistMaxLinkage(uNewNodeIndex, uNodeIndex);
+	case LINKAGE_Max:
+		return ComputeDistMaxLinkage(uNewNodeIndex, uNodeIndex);
 
-    case LINKAGE_Biased:
-        return ComputeDistMAFFT(uNewNodeIndex, uNodeIndex);
+	case LINKAGE_Biased:
+		return ComputeDistMAFFT(uNewNodeIndex, uNodeIndex);
 
-    case LINKAGE_NeighborJoining:
-        return ComputeDistNeighborJoining(uNewNodeIndex, uNodeIndex);
-
-    case LINKAGE_Undefined:
-    default:
-        Quit("Clust::ComputeDist, invalid centroid style %u", m_CentroidStyle);
-        return (float) g_dNAN.get();
-    }
-}
+	case LINKAGE_NeighborJoining:
+		return ComputeDistNeighborJoining(uNewNodeIndex, uNodeIndex);
+		}
+	Quit("Clust::ComputeDist, invalid centroid style %u", m_CentroidStyle);
+	return (float) g_dNAN.get();
+	}
 
 float Clust::ComputeDistMinLinkage(unsigned uNewNodeIndex, unsigned uNodeIndex)
 	{
@@ -338,6 +359,7 @@ float Clust::ComputeDistMAFFT(unsigned uNewNodeIndex, unsigned uNodeIndex)
 	const unsigned uLeftNodeIndex = GetLeftIndex(uNewNodeIndex);
 	const unsigned uRightNodeIndex = GetRightIndex(uNewNodeIndex);
 
+	const float dDistLR = GetDist(uLeftNodeIndex, uRightNodeIndex);
 	const float dDistL = GetDist(uLeftNodeIndex, uNodeIndex);
 	const float dDistR = GetDist(uRightNodeIndex, uNodeIndex);
 	const float dMinDistLR = (dDistL < dDistR ? dDistL : dDistR);
@@ -587,21 +609,18 @@ void Clust::AddToClusterList(unsigned uNodeIndex)
 	}
 
 float Clust::ComputeMetric(unsigned uIndex1, unsigned uIndex2) const
-{
-    switch (m_JoinStyle)
-    {
-    case JOIN_NearestNeighbor:
-        return ComputeMetricNearestNeighbor(uIndex1, uIndex2);
+	{
+	switch (m_JoinStyle)
+		{
+	case JOIN_NearestNeighbor:
+		return ComputeMetricNearestNeighbor(uIndex1, uIndex2);
 
-    case JOIN_NeighborJoining:
-        return ComputeMetricNeighborJoining(uIndex1, uIndex2);
-
-    case JOIN_Undefined:
-    default:
-        Quit("Clust::ComputeMetric, Invalid join style %u", m_JoinStyle);
-        return 0;
-    }
-}
+	case JOIN_NeighborJoining:
+		return ComputeMetricNeighborJoining(uIndex1, uIndex2);
+		}
+	Quit("Clust::ComputeMetric");
+	return 0;
+	}
 
 float Clust::ComputeMetricNeighborJoining(unsigned i, unsigned j) const
 	{
@@ -647,4 +666,4 @@ float Clust::GetMinMetric(unsigned *ptruIndex1, unsigned *ptruIndex2) const
 	{
 	return GetMinMetricBruteForce(ptruIndex1, ptruIndex2);
 	}
-}
+} 

@@ -185,6 +185,8 @@ static void AppendTplInserts(const MSA &msaA, unsigned &uColIndexA, unsigned uCo
 	Log("AppendTplInserts ColIxA=%u ColIxB=%u ColIxCmb=%u\n",
 	  uColIndexA, uColIndexB, uColIndexCombined);
 #endif
+	const unsigned uLengthA = msaA.GetColCount();
+	const unsigned uLengthB = msaB.GetColCount();
 
 	unsigned uNewColCount = uColCountA;
 	if (uColCountB > uNewColCount)
@@ -332,8 +334,10 @@ void AlignTwoMSAsGivenPath(const PWPath &Path, const MSA &msaA, const MSA &msaB,
 			{
 			assert(uPrefixLengthA > 0);
 			assert(uPrefixLengthB > 0);
-			assert(uColIndexA == uPrefixLengthA - 1);
-			assert(uColIndexB == uPrefixLengthB - 1);
+			const unsigned uColA = uPrefixLengthA - 1;
+			const unsigned uColB = uPrefixLengthB - 1;
+			assert(uColIndexA == uColA);
+			assert(uColIndexB == uColB);
 			AppendMatch(msaA, uColIndexA, msaB, uColIndexB, uSeqCountA, uSeqCountB,
 			  msaCombined, uColIndexCombined);
 			break;
@@ -341,14 +345,16 @@ void AlignTwoMSAsGivenPath(const PWPath &Path, const MSA &msaA, const MSA &msaB,
 		case 'D':
 			{
 			assert(uPrefixLengthA > 0);
-			assert(uColIndexA == uPrefixLengthA - 1);
+			const unsigned uColA = uPrefixLengthA - 1;
+			assert(uColIndexA == uColA);
 			AppendDelete(msaA, uColIndexA, uSeqCountA, uSeqCountB, msaCombined, uColIndexCombined);
 			break;
 			}
 		case 'I':
 			{
 			assert(uPrefixLengthB > 0);
-			assert(uColIndexB == uPrefixLengthB - 1);
+			const unsigned uColB = uPrefixLengthB - 1;
+			assert(uColIndexB == uColB);
 			AppendInsert(msaB, uColIndexB, uSeqCountA, uSeqCountB, msaCombined, uColIndexCombined);
 			break;
 			}
@@ -387,13 +393,13 @@ static const ProfPos PPStart =
 	};
 
 // MM
-//  Aiï¿½1	Ai		Out
+//  Ai–1	Ai		Out
 //  X		X	LL	LL
 //  X		-	LG	LG
 //  -		X	GL	GL
 //  -		-	GG	GG
 //  
-//  Bjï¿½1	Bj
+//  Bj–1	Bj
 //  X		X	LL	LL
 //  X		-	LG	LG
 //  -		X	GL	GL
@@ -414,7 +420,7 @@ static void SetGapsMM(
 	}
 
 // MD
-//  Aiï¿½1	Ai		Out
+//  Ai–1	Ai		Out
 //  X		X	LL	LL
 //  X		-	LG	LG
 //  -		X	GL	GL
@@ -439,7 +445,7 @@ static void SetGapsMD(
 	}
 
 // DD
-//  Aiï¿½1	Ai		Out
+//  Ai–1	Ai		Out
 //  X		X	LL	LL
 //  X		-	LG	LG
 //  -		X	GL	GL
@@ -466,7 +472,7 @@ static void SetGapsDD(
 //  X		-	?L	LG
 //  -		-	?G	GG
 
-//  Bjï¿½1	Bj
+//  Bj–1	Bj
 //  X		X	LL	LL
 //  X		-	LG	LG
 //  -		X	GL	GL
@@ -487,7 +493,7 @@ static void SetGapsMI(
 	}
 
 // DM
-//  Aiï¿½1	Ai		Out
+//  Ai–1	Ai		Out
 //  X		X	LL	LL
 //  X		-	LG	LG
 //  -		X	GL	GL
@@ -516,7 +522,7 @@ static void SetGapsDM(
 //  -		X	?L	GL
 //  -		-	?G	GG
 
-//  Bjï¿½1	Bj
+//  Bj–1	Bj
 //  X		X	LL	LL
 //  X		-	LG	LG
 //  -		X	GL	GL
@@ -586,7 +592,7 @@ static void SetGapsDI(
 //  (-)		(-)		Out
 //  -		-	??	GG
 
-//  Bjï¿½1	Bj
+//  Bj–1	Bj
 //  X		X	LL	LL
 //  X		-	LG	LG
 //  -		X	GL	GL
@@ -797,4 +803,4 @@ void AlignTwoProfsGivenPath(const PWPath &Path,
 	ListProfile(POut, uEdgeCount, 0);
 #endif
 	}
-}
+} 
