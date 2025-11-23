@@ -70,7 +70,7 @@ gnSourceFactory* gnSourceFactory::GetSourceFactory()
 }
 
 
-boolean gnSourceFactory::DelSourceClass( const string& ext ){
+bool gnSourceFactory::DelSourceClass( const string& ext ){
 	map< string, gnBaseSource* >::iterator iter = m_sourceClassList.find( ext );
 	if( iter != m_sourceClassList.end() ){
 		m_sourceClassList.erase( iter );
@@ -93,13 +93,13 @@ gnBaseSource* gnSourceFactory::MatchSourceClass( const string& sourceStr ) const
 	}
 	return m_pDefaultSourceClass;
 }
-boolean gnSourceFactory::HasSourceClass( const string& ext ) const{
+bool gnSourceFactory::HasSourceClass( const string& ext ) const{
 	if( m_sourceClassList.find(ext) != m_sourceClassList.end() ){
 		return true;
 	}
 	return false;
 }
-boolean gnSourceFactory::SetSourceClass( const string& ext, const gnBaseSource& source ){
+bool gnSourceFactory::SetSourceClass( const string& ext, const gnBaseSource& source ){
 	map< string, gnBaseSource* >::iterator iter = m_sourceClassList.find( ext );
 	if( iter == m_sourceClassList.end() ){
 		m_sourceClassList.insert( 
@@ -109,7 +109,7 @@ boolean gnSourceFactory::SetSourceClass( const string& ext, const gnBaseSource& 
 	}
 	return true;
 }
-boolean gnSourceFactory::AddPath( const string& path ){
+bool gnSourceFactory::AddPath( const string& path ){
 	if( PathExists( path ) && !HasPath(path) )
 	{
 		m_pathList.push_back( path );	
@@ -117,7 +117,7 @@ boolean gnSourceFactory::AddPath( const string& path ){
 	}
 	return false;
 }
-boolean gnSourceFactory::DelPath( uint32 i ){
+bool gnSourceFactory::DelPath( uint32 i ){
 	if( i < m_pathList.size() ){
 		vector<string>::iterator iter = m_pathList.begin() + i;
 		m_pathList.erase( iter );
@@ -125,7 +125,7 @@ boolean gnSourceFactory::DelPath( uint32 i ){
 	}
 	return false;
 }
-boolean gnSourceFactory::InsPath( const string& path, uint32 i ){
+bool gnSourceFactory::InsPath( const string& path, uint32 i ){
 	if( (i < m_pathList.size()) && PathExists( path ) )
 	{
 		vector<string>::iterator iter = m_pathList.begin() + i;
@@ -140,7 +140,7 @@ string gnSourceFactory::GetPath( uint32 i ) const{
 	}
 	return "";
 }
-boolean gnSourceFactory::HasPath( string path ) const{
+bool gnSourceFactory::HasPath( string path ) const{
 	standardizePathString( path );
 	for( uint32 i = 0; i < m_pathList.size(); ++i ){
 		if( m_pathList[i] == path )
@@ -149,11 +149,11 @@ boolean gnSourceFactory::HasPath( string path ) const{
 	return false;
 }
 
-boolean gnSourceFactory::GetURL( const string& urlStr, string& localFile ){
+bool gnSourceFactory::GetURL( const string& urlStr, string& localFile ){
 	return false;
 }
   // Sources
-gnBaseSource* gnSourceFactory::AddSource( const string& sourceStr, boolean searchPaths )
+gnBaseSource* gnSourceFactory::AddSource( const string& sourceStr, bool searchPaths )
 {
 	string openStr = sourceStr;
 	// Check if Exists
@@ -242,7 +242,7 @@ void gnSourceFactory::DelSource( uint32 i ){
 	}
 }
 
-boolean gnSourceFactory::DelSource( const gnBaseSource* source ){
+bool gnSourceFactory::DelSource( const gnBaseSource* source ){
 	vector< gnBaseSource* >::iterator iter = m_sourceList.begin();
 	for( ; iter != m_sourceList.end(); ++iter ){
 		if( *iter == source ){
@@ -260,7 +260,7 @@ boolean gnSourceFactory::DelSource( const gnBaseSource* source ){
 	}
 	return false;
 }
-gnBaseSource* gnSourceFactory::HasSource( string sourceStr, boolean searchPaths ) const{
+gnBaseSource* gnSourceFactory::HasSource( string sourceStr, bool searchPaths ) const{
 	standardizePathString( sourceStr );
 	vector< gnBaseSource* >::const_iterator iter1 = m_sourceList.begin();
 	for( ; iter1 != m_sourceList.end(); ++iter1 )
@@ -287,7 +287,7 @@ gnBaseSource* gnSourceFactory::HasSource( string sourceStr, boolean searchPaths 
 }
 	
 // private:
-boolean gnSourceFactory::PathExists( string path ) const{
+bool gnSourceFactory::PathExists( string path ) const{
 #ifdef HAVE_UNISTD_H
 	standardizePathString( path );
 	char folder[FILENAME_MAX], *f2;
