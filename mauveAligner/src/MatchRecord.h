@@ -302,7 +302,7 @@ void GappedMatchRecord::finalize( std::vector<genome::gnSequence *> seq_table)
 	for( uint i = 0; i < chainsize; i++ )
 	{
 		mems::GappedAlignment* cr = NULL;
-		boolean align_success = false;
+		bool align_success = false;
 		// attempt a muscle alignment
 		cr = new mems::GappedAlignment();
 		mems::AbstractMatch* m1 = chain.at(i);
@@ -367,3 +367,4 @@ std::ostream& operator<<(std::ostream& os, const GappedMatchRecord& ula){ //writ
 }
 
 #endif // __MatchRecord_h__
+
