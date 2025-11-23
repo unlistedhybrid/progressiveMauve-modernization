@@ -57,7 +57,7 @@ char** parseCommand( const string& cmd ){
 	// tokenize on "
 	stringstream qs( cmd );
 	string cur_str;
-	boolean in_quote = true;
+	bool in_quote = true;
 	int token_count = 0;
 	vector< string > cmd_tokens;
 	while( getline( qs, cur_str, '"' ) ){
@@ -93,7 +93,7 @@ char** parseCommand( const string& cmd ){
 // unix pipelined execution code
 bool pipeExec( char** cmd_argv, const string& command, const string& input, string& output, string& error ){
 	int stdin_pipe[2], stdout_pipe[2], stderr_pipe[2];
-	boolean success = false;
+	bool success = false;
 	pid_t sid;
 	pid_t pid1;
 	const char* fail;
@@ -212,7 +212,7 @@ bool pipeExec( char** cmd_argv, const string& command, const string& input, stri
 	PROCESS_INFORMATION pi;
 	HANDLE newstdin_w,newstdout_w,newstderr_w,newstdin_r,newstdout_r,newstderr_r;
 	HANDLE read_stdout,read_stderr,write_stdin;  //pipe handles
-	boolean success = false;
+	bool success = false;
 
 	if (IsWinNT())        //initialize security descriptor (Windows NT)
 	{
@@ -241,7 +241,7 @@ bool pipeExec( char** cmd_argv, const string& command, const string& input, stri
 		goto finito;
 	}
 	// Duplicate the write handle to the pipe so it is not inherited. 
-	boolean fSuccess = DuplicateHandle(GetCurrentProcess(), newstdin_w, 
+	bool fSuccess = DuplicateHandle(GetCurrentProcess(), newstdin_w, 
 		GetCurrentProcess(), &write_stdin, 0, 
 		FALSE,                  // not inherited 
 		DUPLICATE_SAME_ACCESS); 
@@ -425,9 +425,9 @@ MuscleInterface& MuscleInterface::operator=( const MuscleInterface& ci ){
 	//     Such a change would involve changes to GappedAligner, and would require some additional care taken
 	//     with SeqCount & Multiplicity, as well as seq_table[ seqI ]->length()/seq_table[ 0 ]->length(i),
 	//     for now, leave like this. hopefully sooner than later, make pretty!
-boolean MuscleInterface::Align( GappedAlignment& cr, Match* r_begin, Match* r_end, vector< gnSequence* >& seq_table ){
+bool MuscleInterface::Align( GappedAlignment& cr, Match* r_begin, Match* r_end, vector< gnSequence* >& seq_table ){
 	gnSeqI gap_size = 0;
-	boolean create_ok = true;
+	bool create_ok = true;
 	uint seq_count = seq_table.size();
 	//seq_count = r_begin->Multiplicity();
 	uint seqI;
@@ -520,9 +520,9 @@ try{
 
 static int failure_count = 0;
 
-boolean MuscleInterface::Align( GappedAlignment& cr, AbstractMatch* r_begin, AbstractMatch* r_end, vector< gnSequence* >& seq_table){
+bool MuscleInterface::Align( GappedAlignment& cr, AbstractMatch* r_begin, AbstractMatch* r_end, vector< gnSequence* >& seq_table){
 	gnSeqI gap_size = 0;
-	boolean create_ok = true;
+	bool create_ok = true;
 	//tjt: set the seq_count to a match m's multiplicity
 	//     even though all components n of match m could be 
 	//     less than the k sequences
@@ -671,7 +671,7 @@ try{
 	return false;
 }
 
-boolean MuscleInterface::CallMuscle( vector< string >& aln_matrix, const vector< string >& seq_table )
+bool MuscleInterface::CallMuscle( vector< string >& aln_matrix, const vector< string >& seq_table )
 {
 	gnSequence seq;
 
@@ -687,7 +687,7 @@ boolean MuscleInterface::CallMuscle( vector< string >& aln_matrix, const vector<
 		string muscle_cmd = muscle_path + " " + muscle_arguments;
 		string output;
 		string error;
-		boolean success = pipeExec( muscle_cmdline, muscle_cmd, input_seq_stream.str(), output, error );
+		bool success = pipeExec( muscle_cmdline, muscle_cmd, input_seq_stream.str(), output, error );
 		if( !success || output.size() == 0 )
 		{
 			throw "b0rk3d";
@@ -724,7 +724,7 @@ boolean MuscleInterface::CallMuscle( vector< string >& aln_matrix, const vector<
 }
 
 // version 2 of this code: attempt to call muscle without performing costly disk I/O!!
-boolean MuscleInterface::CallMuscleFast( vector< string >& aln_matrix, const vector< string >& seq_table, int gap_open, int gap_extend )
+bool MuscleInterface::CallMuscleFast( vector< string >& aln_matrix, const vector< string >& seq_table, int gap_open, int gap_extend )
 {
 	if (gap_open != 0)
 		g_scoreGapOpen.get() = gap_open;
@@ -996,7 +996,7 @@ bool MuscleInterface::ProfileAlign( const GappedAlignment& ga1, const GappedAlig
 		{
 			cerr << "Running " << muscle_cmd << endl;
 		}
-		boolean success = pipeExec( muscle_cmdline, muscle_cmd, input_seq_stream.str(), output, error );
+		bool success = pipeExec( muscle_cmdline, muscle_cmd, input_seq_stream.str(), output, error );
 		if( !success || output.size() == 0 )
 		{
 			if( output.size() == 0 )
