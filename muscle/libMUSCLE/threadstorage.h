@@ -1,7 +1,6 @@
 #ifndef _threadstorage_h_
 #define _threadstorage_h_
 
-// Use standard thread_local, supported on MSVC, GCC, Clang (C++11+)
 #define TLS_THREAD_LOCAL thread_local
 
 // =========================
@@ -13,6 +12,8 @@ class TLS
 public:
     TLS() {}
     explicit TLS(const T& t_val) { value = t_val; }
+
+    TLS& operator=(const T& v) { value = v; return *this; }
 
     void set(const T& v) { value = v; }
     T get() const { return value; }
@@ -44,6 +45,8 @@ public:
     TLS() { value = nullptr; }
     explicit TLS(T* t_val) { value = t_val; }
 
+    TLS& operator=(T* v) { value = v; return *this; }
+
     void set(T* v) { value = v; }
     T* get() const { return value; }
 
@@ -66,7 +69,7 @@ template <typename T, size_t N>
 class TLS<T[N]>
 {
 public:
-    TLS() { for (size_t i = 0; i < N; ++i) value[i] = T(); }
+    TLS() { for (size_t i = 0; i < N; ++i) value[i] = T{}; }
     explicit TLS(const T& t_val) { for (size_t i = 0; i < N; ++i) value[i] = t_val; }
 
     T* get() { return value; }
