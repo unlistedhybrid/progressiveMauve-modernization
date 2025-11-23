@@ -31,9 +31,7 @@ jobs:
     - name: Install dependencies (macOS)
       if: runner.os == 'macOS'
       run: |
-        brew install boost@1.89 cmake
-        # Homebrew does not install static libs by default. To force static linking,
-        # you may need to build Boost from source manually if linker errors appear.
+        brew install boost@1.89 cmake libomp
 
     # --- Windows Dependencies ---
     - name: Install dependencies (Windows)
@@ -46,14 +44,33 @@ jobs:
         .\vcpkg install boost-filesystem:x64-windows-static boost-iostreams:x64-windows-static boost-program-options:x64-windows-static boost-regex:x64-windows-static
         echo "CMAKE_TOOLCHAIN_FILE=${{ github.workspace }}\\vcpkg\\scripts\\buildsystems\\vcpkg.cmake" >> $env:GITHUB_ENV
 
-    # --- Build (Linux/macOS) ---
-    - name: Build (Linux/macOS)
-      if: runner.os != 'Windows'
+    # --- Build (Linux) ---
+    - name: Build (Linux)
+      if: runner.os == 'Linux'
       run: |
         mkdir build
         cd build
         export CXXFLAGS="-Wall -Wextra -Wno-unused-parameter"
         cmake .. -DCMAKE_BUILD_TYPE=Debug -DBoost_USE_STATIC_LIBS=ON -DBUILD_SHARED_LIBS=OFF
+        cmake --build . --parallel 2>&1 | tee build_log.txt
+
+    # --- Build (macOS) ---
+    - name: Build (macOS)
+      if: runner.os == 'macOS'
+      run: |
+        export LDFLAGS="-L/opt/homebrew/opt/libomp/lib"
+        export CPPFLAGS="-I/opt/homebrew/opt/libomp/include"
+        export PATH="/opt/homebrew/opt/libomp/bin:$PATH"
+        mkdir build
+        cd build
+        export CXXFLAGS="-Wall -Wextra -Wno-unused-parameter"
+        cmake .. \
+          -DCMAKE_BUILD_TYPE=Debug \
+          -DBoost_USE_STATIC_LIBS=ON \
+          -DBUILD_SHARED_LIBS=OFF \
+          -DCMAKE_C_FLAGS="-Xpreprocessor -fopenmp -I/opt/homebrew/opt/libomp/include" \
+          -DCMAKE_CXX_FLAGS="-Xpreprocessor -fopenmp -I/opt/homebrew/opt/libomp/include" \
+          -DCMAKE_EXE_LINKER_FLAGS="-L/opt/homebrew/opt/libomp/lib -lomp"
         cmake --build . --parallel 2>&1 | tee build_log.txt
 
     # --- Build (Windows) ---
@@ -65,7 +82,7 @@ jobs:
         cmake .. -DCMAKE_BUILD_TYPE=Debug -DBoost_USE_STATIC_LIBS=ON -DCMAKE_TOOLCHAIN_FILE="${{ env.CMAKE_TOOLCHAIN_FILE }}" -DVCPKG_LIBRARY_LINKAGE=static -DBUILD_SHARED_LIBS=OFF
         cmake --build . --config Debug --parallel > build_log.txt
 
-    # --- Stage Binaries ---
+    # --- Stage Binaries (Linux/macOS) ---
     - name: Stage Binaries (Linux/macOS)
       if: runner.os != 'Windows'
       run: |
@@ -73,6 +90,7 @@ jobs:
         cp build/progressiveMauve dist/ || true
         cp build/build_log.txt dist/ || true
 
+    # --- Stage Binaries (Windows) ---
     - name: Stage Binaries (Windows)
       if: runner.os == 'Windows'
       run: |
