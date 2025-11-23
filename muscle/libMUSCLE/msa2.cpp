@@ -387,7 +387,7 @@ void SetMSAWeightsMuscle(MSA &msa)
 	Quit("SetMSAWeightsMuscle, Invalid method=%d", Method);
 	}
 
-static TLS<WEIGHT *> g_MuscleWeights;
+static TLS<WEIGHT *> g_MuscleWeights(NULL);
 static TLS<unsigned> g_uMuscleIdCount;
 
 WEIGHT GetMuscleSeqWeightById(unsigned uId)
@@ -419,16 +419,18 @@ void SetMuscleTree(const Tree &tree)
 
 	std::cerr << "DEBUG SetMuscleTree: Deleting old weights" << std::endl;
 	std::cerr << "DEBUG SetMuscleTree: g_MuscleWeights.get()=" << (void*)g_MuscleWeights.get() << std::endl;
-	if (g_MuscleWeights.get() != NULL)
+	
+	// Check if pointer is valid (not NULL and not uninitialized garbage)
+	WEIGHT* pWeights = g_MuscleWeights.get();
+	if (pWeights != NULL && pWeights != (WEIGHT*)0xffffffffffffffff && pWeights != (WEIGHT*)0xffffffffffffffffULL)
 		{
-		std::cerr << "DEBUG SetMuscleTree: Deleting non-null weights" << std::endl;
-		delete[] g_MuscleWeights.get();
+		std::cerr << "DEBUG SetMuscleTree: Deleting valid weights pointer" << std::endl;
+		delete[] pWeights;
 		}
 	else
 		{
-		std::cerr << "DEBUG SetMuscleTree: Weights pointer is NULL, skipping delete" << std::endl;
+		std::cerr << "DEBUG SetMuscleTree: Weights pointer is NULL or invalid (" << (void*)pWeights << "), skipping delete" << std::endl;
 		}
-	g_MuscleWeights.get() = NULL;
 
 	const unsigned uLeafCount = tree.GetLeafCount();
 	std::cerr << "DEBUG SetMuscleTree: uLeafCount=" << uLeafCount << std::endl;
