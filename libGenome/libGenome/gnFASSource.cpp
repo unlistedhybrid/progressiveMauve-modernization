@@ -43,7 +43,7 @@ gnFASSource::~gnFASSource() {
     m_contigList.clear();
 }
 
-boolean gnFASSource::HasContig(const std::string& nameStr) const {
+bool gnFASSource::HasContig(const std::string& nameStr) const {
     for (const auto* contig : m_contigList) {
         if (nameStr == contig->GetName())
             return true;
@@ -85,11 +85,11 @@ gnFileContig* gnFASSource::GetContig(const uint32 i) const {
     return nullptr;
 }
 
-boolean gnFASSource::SeqRead(const gnSeqI start, char* buf, gnSeqI& bufLen, const uint32 contigI) {
+bool gnFASSource::SeqRead(const gnSeqI start, char* buf, gnSeqI& bufLen, const uint32 contigI) {
     return SeqReadImpl(start, buf, bufLen, contigI);
 }
 
-boolean gnFASSource::SeqReadImpl(const gnSeqI start, char* buf, gnSeqI& bufLen, const uint32 contigI) {
+bool gnFASSource::SeqReadImpl(const gnSeqI start, char* buf, gnSeqI& bufLen, const uint32 contigI) {
     m_ifstream.clear();
     uint32 contigIndex = contigI;
     uint64 startPos = 0;
@@ -160,7 +160,7 @@ boolean gnFASSource::SeqReadImpl(const gnSeqI start, char* buf, gnSeqI& bufLen, 
     return true;
 }
 
-boolean gnFASSource::SeqSeek(const gnSeqI start, const uint32 contigI, uint64& startPos, uint64& readableBytes) {
+bool gnFASSource::SeqSeek(const gnSeqI start, const uint32 contigI, uint64& startPos, uint64& readableBytes) {
     if (contigI == ALL_CONTIGS) {
         gnSeqI curIndex = 0;
         auto iter = m_contigList.begin();
@@ -180,7 +180,7 @@ boolean gnFASSource::SeqSeek(const gnSeqI start, const uint32 contigI, uint64& s
     return false;
 }
 
-boolean gnFASSource::SeqStartPos(const gnSeqI start, gnFileContig& contig, uint64& startPos, uint64& readableBytes) {
+bool gnFASSource::SeqStartPos(const gnSeqI start, gnFileContig& contig, uint64& startPos, uint64& readableBytes) {
     readableBytes = 0;
     uint32 curLen = 0;
     startPos = contig.GetSectStartEnd(gnContigSequence).first;
@@ -230,7 +230,7 @@ boolean gnFASSource::SeqStartPos(const gnSeqI start, gnFileContig& contig, uint6
 }
 
 // Deprecated write
-boolean gnFASSource::Write(gnBaseSource* source, const std::string& filename) {
+bool gnFASSource::Write(gnBaseSource* source, const std::string& filename) {
     std::ofstream m_ofstream(filename, std::ios::out | std::ios::binary);
     if (!m_ofstream.is_open())
         return false;
@@ -243,7 +243,7 @@ boolean gnFASSource::Write(gnBaseSource* source, const std::string& filename) {
             gnSeqI writeLen = std::min(seqLength, static_cast<gnSeqI>(BUFFER_SIZE));
             Array<gnSeqC> array_buf(writeLen + 1);
             gnSeqC* bases = array_buf.data;
-            boolean success = source->SeqRead(0, bases, writeLen, contigI);
+            bool success = source->SeqRead(0, bases, writeLen, contigI);
             if (!success)
                 return false;
             bases[writeLen] = 0;
@@ -255,7 +255,7 @@ boolean gnFASSource::Write(gnBaseSource* source, const std::string& filename) {
     return true;
 }
 
-void gnFASSource::Write(gnSequence& seq, const std::string& filename, boolean write_coords, boolean enforce_unique_names) {
+void gnFASSource::Write(gnSequence& seq, const std::string& filename, bool write_coords, bool enforce_unique_names) {
     std::ofstream m_ofstream(filename, std::ios::out | std::ios::binary);
     if (!m_ofstream.is_open())
         Throw_gnEx(FileNotOpened());
@@ -263,7 +263,7 @@ void gnFASSource::Write(gnSequence& seq, const std::string& filename, boolean wr
     m_ofstream.close();
 }
 
-void gnFASSource::Write(gnSequence& seq, std::ostream& m_ostream, boolean write_coords, boolean enforce_unique_names) {
+void gnFASSource::Write(gnSequence& seq, std::ostream& m_ostream, bool write_coords, bool enforce_unique_names) {
     std::vector<std::string> contigNameList;
     Array<gnSeqC> array_buf(BUFFER_SIZE);
     gnSeqC* bases = array_buf.data;
@@ -351,7 +351,7 @@ gnFileContig* gnFASSource::GetFileContig(const uint32 contigI) const {
     return nullptr;
 }
 
-boolean gnFASSource::ParseStream(std::istream& fin) {
+bool gnFASSource::ParseStream(std::istream& fin) {
     uint32 readState = 0;
     gnFileContig* currentContig = nullptr;
     std::string nameFStr;
@@ -360,9 +360,9 @@ boolean gnFASSource::ParseStream(std::istream& fin) {
     uint64 bufReadLen = 0;
     Array<gnSeqC> array_buf(BUFFER_SIZE);
     char* buf = array_buf.data;
-    boolean paren_hit = false;
+    bool paren_hit = false;
     uint32 repeatSeqSize = 0;
-    boolean corrupt_msg = false;
+    bool corrupt_msg = false;
 
     DetermineNewlineType();
 
