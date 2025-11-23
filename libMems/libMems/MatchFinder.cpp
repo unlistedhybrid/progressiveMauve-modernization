@@ -243,7 +243,7 @@ bool MatchFinder::SearchRange(vector<gnSeqI>& start_points, vector<gnSeqI>& sear
 			if(mer_iter->mer > cur_match.begin()->mer){
 				//we are done with this matching.  hash it.
 				if(cur_match.size() > 1)
-					EnumerateMatches(cur_match);
+					(void)EnumerateMatches(cur_match);
 				cur_match.clear();
 			}else if(mer_iter->mer < cur_match.begin()->mer){
 				//error checking stuff.
@@ -335,7 +335,7 @@ bool MatchFinder::SearchRange(vector<gnSeqI>& start_points, vector<gnSeqI>& sear
 	}
 	//very last match in the dataset wasn't getting hashed.
     if(cur_match.size() > 1)
-       EnumerateMatches(cur_match);
+       (void)EnumerateMatches(cur_match);
 
 	return true;
 }
@@ -373,7 +373,7 @@ bool MatchFinder::EnumerateMatches( IdmerList& match_list ){
 		for(uint32_t k = 0; k < id_pos.size(); ++k){
 			cur_match.push_back(*id_pos[k]);
 		}
-		HashMatch(cur_match);
+		(void)HashMatch(cur_match);
 		cur_match.clear();
 
 		//increment the iterators (like an odometer)
