@@ -45,7 +45,7 @@ public:
     [[nodiscard]] virtual const gnFilter* GetFilter() const noexcept;
     virtual void SetFilter(gnFilter* filter);
 
-    virtual boolean Read(uint64 pos, char* buf, gnSeqI& bufLen);
+    virtual bool Read(uint64 pos, char* buf, gnSeqI& bufLen);
 
     /**
      * Returns a pointer to the file contig for contigI, or nullptr if not found.
@@ -62,7 +62,7 @@ protected:
     uint32 m_newlineSize{0};
 
 private:
-    virtual boolean ParseStream(std::istream& fin) = 0;
+    virtual bool ParseStream(std::istream& fin) = 0;
 }; // class gnFileSource
 
 // ---- Inline implementations ----
