@@ -128,27 +128,27 @@ try{
 	vector<DNAFileSML*> sml_table;
 	uint seed_size = 0;	// Use default settings
 	int seed_rank = 0;
-	boolean recursive = true;
-	boolean lcb_extension = true;
-	boolean gapped_alignment = true;
-	boolean create_LCBs = true;
-	boolean calculate_coverage = false;
+	bool recursive = true;
+	bool lcb_extension = true;
+	bool gapped_alignment = true;
+	bool create_LCBs = true;
+	bool calculate_coverage = false;
 	int64 LCB_size = -1;
 	string output_file = "";
-	boolean read_matches = false;
-	boolean read_lcbs = false;
-	boolean find_repeats = false;
-	boolean print_stats = false;
-	boolean eliminate_overlaps = false;
-	boolean nway_filter = false;
-	boolean collinear_genomes = false;
+	bool read_matches = false;
+	bool read_lcbs = false;
+	bool find_repeats = false;
+	bool print_stats = false;
+	bool eliminate_overlaps = false;
+	bool nway_filter = false;
+	bool collinear_genomes = false;
 	string match_input_file = "";
 	string lcb_stats_file = "";
 	string island_file = "";
 	string lcb_file = "";
 	string tree_filename = "";
 	string coverage_list_file = "";
-	boolean output_alignment = false;
+	bool output_alignment = false;
 	string alignment_output_dir = "";
 	string alignment_output_format = "";
 	string alignment_output_file = "";
@@ -163,7 +163,7 @@ try{
 	uint max_backbone_gap = 0;
 	int64 min_r_gap_length = -1;
 	string backbone_file = "";
-	boolean output_backbone = false;
+	bool output_backbone = false;
 	// for parallelization of LCB alignment
 	vector< int > realign_lcbs;
 	string muscle_args = "";
@@ -172,11 +172,11 @@ try{
 	string permutation_filename;
 	int64 permutation_weight = -1;
 
-	boolean lcb_match_input_format = false;
+	bool lcb_match_input_format = false;
 	int opt_max_extension_iters = -1;
 
 	uint seqI;
-	boolean print_version = false;
+	bool print_version = false;
 	int max_gapped_alignment_length = -1;
 	
 	ostream* detail_list_out = NULL;	/**< output stream for detail list */
@@ -435,7 +435,7 @@ try{
 		}
 	}
 	// now read in the seq and sml file names from av
-	boolean seq_name_arg = true;
+	bool seq_name_arg = true;
 	for( int optI = optind; optI < argc; optI++ ){
 		if( seq_name_arg )
 			seq_files.push_back( av[ optI ] );
@@ -953,3 +953,4 @@ void print_usage( const char* pname ){
 	cerr << endl;
 	cerr << endl;
 }
+
