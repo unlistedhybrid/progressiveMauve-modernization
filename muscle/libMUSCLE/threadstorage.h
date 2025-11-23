@@ -1,6 +1,8 @@
 #ifndef _threadstorage_h_
 #define _threadstorage_h_
 
+// Portable thread-local storage for MUSCLE, supporting MSVC, GCC, Clang
+
 #if defined(_MSC_VER)
     #define TLS_DECL __declspec(thread)
 #elif defined(__GNUC__) || defined(__clang__)
@@ -9,14 +11,49 @@
     #define TLS_DECL
 #endif
 
-// Default TLS: for pointer types
+// =========================
+// Generic scalar or enum type
+// =========================
 template <typename T>
 class TLS
 {
 public:
     TLS() {}
+    explicit TLS(const T& t_val) { value = t_val; }
+
+    void set(const T& v) { value = v; }
+    T get() const { return value; }
+    T& ref() { return value; }
+    const T& ref() const { return value; }
+
+    // For pointer types (works for T = pointer)
+    T* operator->() { return &value; }
+    const T* operator->() const { return &value; }
+    T& operator*() { return value; }
+    const T& operator*() const { return value; }
+
+private:
+    TLS(const TLS&) = delete;
+    TLS& operator=(const TLS&) = delete;
+    TLS_DECL static T value;
+};
+
+template <typename T>
+TLS_DECL T TLS<T>::value = T();
+
+// =========================
+// Specialization for pointers (so set/get work as expected)
+// =========================
+template <typename T>
+class TLS<T*>
+{
+public:
+    TLS() { value = nullptr; }
+    explicit TLS(T* t_val) { value = t_val; }
+
     void set(T* v) { value = v; }
     T* get() const { return value; }
+
     T* operator->() const { return value; }
     T& operator*()  const { return *value; }
 
@@ -27,20 +64,24 @@ private:
 };
 
 template <typename T>
-TLS_DECL T* TLS<T>::value = nullptr;
+TLS_DECL T* TLS<T*>::value = nullptr;
 
-// Partial specialization for arrays
+// =========================
+// Specialization for C arrays (e.g. unsigned int[256])
+// =========================
 template <typename T, size_t N>
 class TLS<T[N]>
 {
 public:
-    TLS() {}
+    TLS() { for (size_t i = 0; i < N; ++i) value[i] = T(); }
+    explicit TLS(const T& t_val) { for (size_t i = 0; i < N; ++i) value[i] = t_val; }
+
     T* get() { return value; }
     const T* get() const { return value; }
     T& operator[](size_t idx) { return value[idx]; }
     const T& operator[](size_t idx) const { return value[idx]; }
-    // Assignment from array or pointer
     void set(const T* v) { for (size_t i = 0; i < N; ++i) value[i] = v[i]; }
+
 private:
     TLS(const TLS&) = delete;
     TLS& operator=(const TLS&) = delete;
