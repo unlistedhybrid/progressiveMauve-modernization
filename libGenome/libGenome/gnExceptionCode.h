@@ -14,8 +14,8 @@ namespace genome {
 class GNDLLEXPORT gnExceptionCode{
 public:
 	gnExceptionCode(uint32 code, const char* name);
-	boolean operator==(gnExceptionCode& gnec);
-	boolean operator!=(gnExceptionCode& gnec);
+	bool operator==(gnExceptionCode& gnec);
+	bool operator!=(gnExceptionCode& gnec);
 	uint32 GetInt(){ return m_code; }
 	std::string GetName(){ return m_name; }
 private:
@@ -33,12 +33,12 @@ m_code(code), m_name(name)
 {}
 
 inline
-boolean gnExceptionCode::operator==(gnExceptionCode& gnec){
+bool gnExceptionCode::operator==(gnExceptionCode& gnec){
 	return m_code == gnec.m_code;
 }
 
 inline
-boolean gnExceptionCode::operator!=(gnExceptionCode& gnec){
+bool gnExceptionCode::operator!=(gnExceptionCode& gnec){
 	return m_code != gnec.m_code;
 }
 
