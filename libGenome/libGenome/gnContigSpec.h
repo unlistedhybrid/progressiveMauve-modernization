@@ -55,12 +55,12 @@ public:
     virtual void SetStart(gnSeqI start) noexcept;
     virtual void SetLength(gnSeqI len) noexcept;
     virtual void SetSourceContigIndex(uint32 contigI) noexcept;
-    virtual void SetReverseComplement(boolean value);
+    virtual void SetReverseComplement(bool value);
 
     virtual void CropStart(gnSeqI cropLen);
     virtual void CropEnd(gnSeqI cropLen);
 
-    virtual boolean SeqRead(gnSeqI start, gnSeqC* buf, gnSeqI& bufLen, uint32 contigI) const;
+    virtual bool SeqRead(gnSeqI start, gnSeqC* buf, gnSeqI& bufLen, uint32 contigI) const;
     virtual void Clear();
 
 protected:
@@ -73,7 +73,7 @@ protected:
      * All derived classes must implement this!
      * Reads the specified bases into buf, disregarding circularity and reverse complement.
      */
-    virtual boolean Read(gnSeqI start, gnSeqC* buf, gnSeqI& bufLen) const = 0;
+    virtual bool Read(gnSeqI start, gnSeqC* buf, gnSeqI& bufLen) const = 0;
 
 private:
     // (No private fields or methods)
