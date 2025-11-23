@@ -1,23 +1,19 @@
 #include "libGenome/gnABISource.h"
-#include <memory>
 #include <algorithm>
 
 namespace genome {
 
 gnABISource::gnABISource()
-    : gnFileSource()
+    : gnFileSource(), m_spec(nullptr), m_openString("")
 {
-    m_openString = "";
     m_pFilter = gnFilter::fullDNASeqFilter();
-    m_spec = nullptr;
 }
 
 gnABISource::gnABISource(const gnABISource& s)
-    : gnFileSource(s)
+    : gnFileSource(s), m_spec(nullptr), m_openString(s.m_openString), m_pFilter(s.m_pFilter)
 {
-    m_openString = s.m_openString;
-    m_pFilter = s.m_pFilter;
-    m_spec = s.m_spec ? s.m_spec->Clone() : nullptr;
+    if (s.m_spec)
+        m_spec = s.m_spec->Clone();
     m_contigList.reserve(s.m_contigList.size());
     for (auto* contig : s.m_contigList) {
         m_contigList.push_back(contig ? contig->Clone() : nullptr);
@@ -26,16 +22,13 @@ gnABISource::gnABISource(const gnABISource& s)
 
 gnABISource::~gnABISource()
 {
-    m_ifstream.close();
     for (auto* contig : m_contigList) {
         delete contig;
     }
     m_contigList.clear();
     delete m_spec;
-    m_spec = nullptr;
 }
 
-// Contig Access methods
 bool gnABISource::HasContig(const std::string& name) const
 {
     return std::any_of(m_contigList.begin(), m_contigList.end(),
@@ -75,7 +68,6 @@ gnSeqI gnABISource::GetContigSeqLength(uint32 i) const
 
 bool gnABISource::SeqRead(const gnSeqI /*start*/, char* /*buf*/, gnSeqI& /*bufLen*/, const uint32 /*contigI*/)
 {
-    // Not implemented
     return false;
 }
 
@@ -88,7 +80,6 @@ bool gnABISource::SeqSeek(const gnSeqI start, const uint32& contigI, uint64& sta
 
 bool gnABISource::SeqStartPos(const gnSeqI /*start*/, gnFileContig& /*contig*/, uint64& /*startPos*/, uint64& /*readableBytes*/)
 {
-    // Not implemented
     return false;
 }
 
@@ -99,9 +90,18 @@ gnFileContig* gnABISource::GetFileContig(const uint32 contigI) const
     return nullptr;
 }
 
+gnGenomeSpec* gnABISource::GetSpec() const
+{
+    return m_spec ? m_spec->Clone() : nullptr;
+}
+
 bool gnABISource::ParseStream(std::istream& /*fin*/)
 {
-    // Not implemented
+    return false;
+}
+
+bool gnABISource::Write(gnSequence& /*seq*/, const std::string& /*filename*/)
+{
     return false;
 }
 
