@@ -170,7 +170,7 @@ uint32 SortedMerList::CalculateMaxMerSize() const{
 	return (sizeof(tmp.mer) * 8) / header.alphabet_bits;
 }
 
-boolean SortedMerList::FindMer(const uint64 query_mer, gnSeqI& result){
+bool SortedMerList::FindMer(const uint64 query_mer, gnSeqI& result){
 	bmer merle;
 	merle.mer = query_mer;
 	gnSeqI last_pos = Length();
@@ -181,7 +181,7 @@ boolean SortedMerList::FindMer(const uint64 query_mer, gnSeqI& result){
 	return ((*this)[result].mer == merle.mer);
 }
 
-boolean SortedMerList::Find(const string& query_seq, gnSeqI& result) {
+bool SortedMerList::Find(const string& query_seq, gnSeqI& result) {
 	struct bmer merle;
 	merle.mer = 0;
 
@@ -255,7 +255,7 @@ uint64 SortedMerList::Seed() const{
 	return header.seed;
 }
 
-boolean SortedMerList::IsCircular() const{
+bool SortedMerList::IsCircular() const{
 	return header.circular;
 }
 
@@ -532,7 +532,7 @@ void SortedMerList::ShiftWords(unsigned int* data, uint32 length, int32 bits)
 	}
 }
 
-void SortedMerList::FillSML(gnSeqC* seq_buf, gnSeqI seq_len, boolean circular, vector<bmer>& sml_array){
+void SortedMerList::FillSML(gnSeqC* seq_buf, gnSeqI seq_len, bool circular, vector<bmer>& sml_array){
 	const uint32 alpha_bits = OPT_HEADER_ALPHABET_BITS;
 	const uint32 mer_size = header.seed_length;
 	gnSeqI sar_len = seq_len;
@@ -837,3 +837,4 @@ void SortedMerList::Create(const gnSequence& seq, const uint64 seed){
 }
 
 } // namespace mems
+
