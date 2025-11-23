@@ -68,7 +68,7 @@ public:
 	// Default gnSeqC
 	void SetDefaultChar( const gnSeqC ch1 );
 	gnSeqC GetDefaultChar() const;
-	void UseDefaultChar( const boolean use = true);
+	void UseDefaultChar( const bool use = true);
 	// fill map
 	void SetPair( const std::string& ch1, const std::string& ch2 );
 	void RemovePair( const std::string& ch );
@@ -82,7 +82,7 @@ private:
 	std::map<std::string, std::string> m_transCache;
 	const gnTranslator * m_translator;
 	
-	boolean use_default;
+	bool use_default;
 	gnSeqC m_defaultChar;
 };//class gnFastTranslator
 
@@ -105,7 +105,7 @@ gnSeqC gnFastTranslator::GetDefaultChar() const
 }
 
 inline
-void gnFastTranslator::UseDefaultChar(const boolean use)
+void gnFastTranslator::UseDefaultChar(const bool use)
 {
 	use_default = use;
 }
