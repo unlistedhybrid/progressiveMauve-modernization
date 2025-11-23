@@ -12,7 +12,7 @@ TICKS g_ticksObjScore = 0;
 
 SCORE ObjScore(const MSA &msa, const unsigned SeqIndexes1[],
   unsigned uSeqCount1, const unsigned SeqIndexes2[], unsigned uSeqCount2)
-{
+	{
 #if	TIMING
 	TICKS t1 = GetClockTicks();
 #endif
@@ -20,18 +20,18 @@ SCORE ObjScore(const MSA &msa, const unsigned SeqIndexes1[],
 
 	OBJSCORE OS = g_ObjScore.get();
 	if (g_ObjScore.get() == OBJSCORE_SPM)
-	{
+		{
         if (uSeqCount <= 100)
 			OS = OBJSCORE_XP;
 		else
 			OS = OBJSCORE_SPF;
-	}
+		}
 
 	MSA msa1;
 	MSA msa2;
 
 	switch (OS)
-	{
+		{
 	case OBJSCORE_DP:
 	case OBJSCORE_XP:
 		MSAFromSeqSubset(msa, SeqIndexes1, uSeqCount1, msa1);
@@ -44,17 +44,14 @@ SCORE ObjScore(const MSA &msa, const unsigned SeqIndexes1[],
 	case OBJSCORE_SP:
 	case OBJSCORE_SPF:
 	case OBJSCORE_PS:
+	// Yuck -- casting away const (design flaw)
 		SetMSAWeightsMuscle((MSA &) msa);
 		break;
-    case OBJSCORE_Undefined:
-    default:
-        Quit("Invalid g_ObjScore.get()=%d", g_ObjScore.get());
-        break;
-	}
+		}
 
 	SCORE Score = 0;
 	switch (OS)
-	{
+		{
 	case OBJSCORE_SP:
 		Score = ObjScoreSP(msa);
 		break;
@@ -74,22 +71,20 @@ SCORE ObjScore(const MSA &msa, const unsigned SeqIndexes1[],
 	case OBJSCORE_SPF:
 		Score = ObjScoreSPDimer(msa);
 		break;
-
-    case OBJSCORE_Undefined:
+	
 	default:
 		Quit("Invalid g_ObjScore.get()=%d", g_ObjScore.get());
-		break;
-	}
+		}
 #if	TIMING
 	TICKS t2 = GetClockTicks();
 	g_ticksObjScore += (t2 - t1);
 #endif
 	return Score;
-}
+	}
 
 SCORE ObjScoreIds(const MSA &msa, const unsigned Ids1[],
   unsigned uCount1, const unsigned Ids2[], unsigned uCount2)
-{
+	{
 #if	TIMING
 	TICKS t1 = GetClockTicks();
 #endif
@@ -119,5 +114,5 @@ SCORE ObjScoreIds(const MSA &msa, const unsigned Ids1[],
 	g_ticksObjScore += (t2 - t1);
 #endif
 	return dObjScore;
-}
-}
+	}
+} 

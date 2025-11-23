@@ -664,6 +664,8 @@ void Tree::RootUnrootedTree(ROOT Method)
 		ExpandCache();
 	m_uRootNodeIndex = m_uNodeCount++;
 
+	double dEdgeLength = GetEdgeLength(uNode1, uNode2);
+
 	m_uNeighbor1[m_uRootNodeIndex] = NULL_NEIGHBOR;
 	m_uNeighbor2[m_uRootNodeIndex] = uNode1;
 	m_uNeighbor3[m_uRootNodeIndex] = uNode2;
@@ -1128,5 +1130,4 @@ void Tree::Create(unsigned uLeafCount, unsigned uRoot, const unsigned Left[],
 
 	Validate();
 	}
-}
-
+} 

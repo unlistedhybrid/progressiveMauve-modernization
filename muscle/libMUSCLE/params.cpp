@@ -3,14 +3,6 @@
 #include "libMUSCLE/objscore.h"
 #include "libMUSCLE/profile.h"
 #include "libMUSCLE/enumopts.h"
-#include <cstring>
-#include <cstdlib>
-
-#if defined(_MSC_VER)
-#define stricmp _stricmp
-#else
-#include <strings.h>
-#endif
 
 namespace muscle {
 
@@ -387,9 +379,9 @@ static void EnumParam(const char *OptName, EnumOpt *Opts, int *Param)
 	}
 
 static void SetPPDefaultParams()
-{
-	switch (g_PPScore.get())
 	{
+	switch (g_PPScore.get())
+		{
 	case PPSCORE_SP:
 		SetDefaultsSP();
 		break;
@@ -404,24 +396,22 @@ static void SetPPDefaultParams()
 
 	case PPSCORE_SPN:
 		switch (g_Alpha.get())
-		{
+			{
 		case ALPHA_DNA:
 			SetDefaultsSPN_DNA();
 			break;
 		case ALPHA_RNA:
 			SetDefaultsSPN_RNA();
 			break;
-		case ALPHA_Undefined:
 		default:
 			Quit("Invalid alpha %d", g_Alpha.get());
-		}
+			}
 		break;
 
-	case PPSCORE_Undefined:
 	default:
 		Quit("Invalid g_PPScore.get()");
+		}
 	}
-}
 
 static void SetPPCommandLineParams()
 	{
@@ -457,7 +447,7 @@ void SetPPScore(bool bRespectFlagOpts)
 		}
 
 	switch (g_PPScore.get())
-	{
+		{
 	case PPSCORE_LE:
 	case PPSCORE_SP:
 	case PPSCORE_SV:
@@ -468,11 +458,7 @@ void SetPPScore(bool bRespectFlagOpts)
 		if (ALPHA_Amino == g_Alpha.get())
 			g_PPScore.get() = PPSCORE_LE;
 		break;
-	case PPSCORE_Undefined:
-	default:
-		break;
-	}
-
+		}
 
 	SetPPDefaultParams();
 	SetPPCommandLineParams();
@@ -486,7 +472,7 @@ void SetPPScore(bool bRespectFlagOpts)
 			{
 			size_t n = strlen(Path) + 1 + strlen(FileName) + 1;
 			char *NewFileName = new char[n];
-			snprintf(NewFileName, n, "%s/%s", Path, FileName);
+			sprintf(NewFileName, "%s/%s", Path, FileName);
 			FileName = NewFileName;
 			}
 		TextFile File(FileName);
@@ -683,4 +669,4 @@ void SetParams()
 	if (0 == ValueOpt("MaxMB"))
 		g_uMaxMB.get() = (unsigned) (GetRAMSizeMB()*DEFAULT_MAX_MB_FRACT);
 	}
-}
+} 
