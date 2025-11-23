@@ -42,7 +42,10 @@ jobs:
         cd vcpkg
         .\bootstrap-vcpkg.bat
         .\vcpkg install boost-filesystem:x64-windows-static boost-iostreams:x64-windows-static boost-program-options:x64-windows-static boost-regex:x64-windows-static
+        echo "VCPKG_ROOT=${{ github.workspace }}\\vcpkg" >> $env:GITHUB_ENV
         echo "CMAKE_TOOLCHAIN_FILE=${{ github.workspace }}\\vcpkg\\scripts\\buildsystems\\vcpkg.cmake" >> $env:GITHUB_ENV
+        echo "BOOST_ROOT=${{ github.workspace }}\\vcpkg\\installed\\x64-windows-static" >> $env:GITHUB_ENV
+        echo "BOOST_INCLUDEDIR=${{ github.workspace }}\\vcpkg\\installed\\x64-windows-static\\include" >> $env:GITHUB_ENV
 
     # --- Build (Linux) ---
     - name: Build (Linux)
@@ -76,10 +79,13 @@ jobs:
     # --- Build (Windows) ---
     - name: Build (Windows)
       if: runner.os == 'Windows'
+      env:
+        BOOST_ROOT: ${{ env.BOOST_ROOT }}
+        BOOST_INCLUDEDIR: ${{ env.BOOST_INCLUDEDIR }}
       run: |
         mkdir build
         cd build
-        cmake .. -DCMAKE_BUILD_TYPE=Debug -DBoost_USE_STATIC_LIBS=ON -DCMAKE_TOOLCHAIN_FILE="${{ env.CMAKE_TOOLCHAIN_FILE }}" -DVCPKG_LIBRARY_LINKAGE=static -DBUILD_SHARED_LIBS=OFF
+        cmake .. -DCMAKE_BUILD_TYPE=Debug -DBoost_USE_STATIC_LIBS=ON -DCMAKE_TOOLCHAIN_FILE="${{ env.CMAKE_TOOLCHAIN_FILE }}" -DVCPKG_LIBRARY_LINKAGE=static -DBUILD_SHARED_LIBS=OFF -DBOOST_ROOT="${{ env.BOOST_ROOT }}" -DBOOST_INCLUDEDIR="${{ env.BOOST_INCLUDEDIR }}"
         cmake --build . --config Debug --parallel > build_log.txt
 
     # --- Stage Binaries (Linux/macOS) ---
