@@ -31,7 +31,7 @@ class GNDLLEXPORT gnStringSpec : public gnContigSpec
 {
 public:
     gnStringSpec();
-    gnStringSpec(const std::string& m_string, gnSeqI startI = 0, gnSeqI endI = GNSEQI_END, boolean revComp = false);
+    gnStringSpec(const std::string& m_string, gnSeqI startI = 0, gnSeqI endI = GNSEQI_END, bool revComp = false);
     gnStringSpec(const gnStringSpec& s);
     ~gnStringSpec() override;
 
@@ -48,7 +48,7 @@ public:
     gnStringSpec* CloneRange(gnSeqI startI, gnSeqI len) const override;
 
 protected:
-    boolean Read(gnSeqI start, gnSeqC* buf, gnSeqI& bufLen) const override;
+    bool Read(gnSeqI start, gnSeqC* buf, gnSeqI& bufLen) const override;
 
     std::string m_seqString;
 }; // class gnStringSpec
@@ -64,7 +64,7 @@ inline gnSeqI gnStringSpec::GetSourceLength() const noexcept {
 inline gnBaseSource* gnStringSpec::GetSource() const {
     return nullptr;
 }
-inline boolean gnStringSpec::Read(gnSeqI start, gnSeqC* buf, gnSeqI& bufLen) const {
+inline bool gnStringSpec::Read(gnSeqI start, gnSeqC* buf, gnSeqI& bufLen) const {
     std::memcpy(buf, m_seqString.data() + start, bufLen);
     return true;
 }
