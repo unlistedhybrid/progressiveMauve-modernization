@@ -62,6 +62,7 @@ bool RefineSubfams(MSA &msa, const Tree &tree, unsigned uIters)
 
 	const double dMaxHeight = 0.6;
 	const unsigned uMaxSubfamCount = 16;
+	const unsigned uNodeCount = tree.GetNodeCount();
 
 	unsigned *Subfams;
 	unsigned uSubfamCount;
@@ -212,4 +213,3 @@ static void ProgressiveAlignSubfams(const Tree &tree, const unsigned Subfams[],
 #endif
 	}
 } 
-

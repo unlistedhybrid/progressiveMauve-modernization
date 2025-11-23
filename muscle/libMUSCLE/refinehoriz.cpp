@@ -170,8 +170,8 @@ static void RefineHeightParts(MSA &msaIn, const Tree &tree,
 		else
 			uNeighborNodeIndex = tree.GetLeft(uInternalNodeIndex);
 
-		g_uTreeSplitNode1.get() = uInternalNodeIndex;
-		g_uTreeSplitNode2.get() = uNeighborNodeIndex;
+		g_uTreeSplitNode1 = uInternalNodeIndex;
+		g_uTreeSplitNode2 = uNeighborNodeIndex;
 
 		unsigned uCount1;
 		unsigned uCount2;
@@ -312,4 +312,4 @@ Osc:
 
 	return bAnyChangesAnyIter;
 	}
-}
+} 
