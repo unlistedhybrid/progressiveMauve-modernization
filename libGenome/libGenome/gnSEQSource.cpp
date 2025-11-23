@@ -57,7 +57,7 @@ gnSEQSource::~gnSEQSource()
 		delete fg;
 	}
 }
-boolean gnSEQSource::HasContig( const string& name ) const
+bool gnSEQSource::HasContig( const string& name ) const
 {
 	for(uint32 i = 0 ; i <= m_contigList.size(); i++ )
 	{
@@ -94,7 +94,7 @@ gnSeqI gnSEQSource::GetContigSeqLength( const uint32 i ) const
 	return GNSEQI_ERROR;
 }
 
-boolean gnSEQSource::SeqRead( const gnSeqI start, char* buf, gnSeqI& bufLen, const uint32 contigI ){
+bool gnSEQSource::SeqRead( const gnSeqI start, char* buf, gnSeqI& bufLen, const uint32 contigI ){
 	uint64 startPos = 0;
 	uint64 readableBytes = 0;
 	if( !SeqSeek( start, contigI, startPos, readableBytes ) )
@@ -177,7 +177,7 @@ boolean gnSEQSource::SeqRead( const gnSeqI start, char* buf, gnSeqI& bufLen, con
 // figures out which contig the sequence starts at then calls SeqStartPos to get the offset within that contig
 // returns startPos, the file offset where the sequence starts
 // returns true if successful, false otherwise
-boolean gnSEQSource::SeqSeek( const gnSeqI start, const uint32& contigI, uint64& startPos, uint64& readableBytes )
+bool gnSEQSource::SeqSeek( const gnSeqI start, const uint32& contigI, uint64& startPos, uint64& readableBytes )
 {
 	if( contigI == ALL_CONTIGS )
 	{
@@ -204,7 +204,7 @@ boolean gnSEQSource::SeqSeek( const gnSeqI start, const uint32& contigI, uint64&
 	return false;
 }
 //Returns startPos, the file offset where the sequence starts.
-boolean gnSEQSource::SeqStartPos( const gnSeqI start, gnFileContig& contig, uint64& startPos, uint64& readableBytes )
+bool gnSEQSource::SeqStartPos( const gnSeqI start, gnFileContig& contig, uint64& startPos, uint64& readableBytes )
 {
 	readableBytes = 0;
 	uint32 curLen = 0;
@@ -330,7 +330,7 @@ void gnSEQSource::FormatString(string& data, uint32 offset, uint32 width){
 	data = output_string;
 }
 
-boolean gnSEQSource::Write(gnGenomeSpec *spec, const string& filename){
+bool gnSEQSource::Write(gnGenomeSpec *spec, const string& filename){
 	ErrorMsg("Writing DNAStar SEQ files is not supported at this time.  Try again next week.\n");
 	return false;
 }
@@ -342,7 +342,7 @@ gnFileContig* gnSEQSource::GetFileContig( const uint32 contigI ) const{
 }
 
 //File parsing access routine
-boolean gnSEQSource::ParseStream( istream& fin )
+bool gnSEQSource::ParseStream( istream& fin )
 {
 	// INIT temp varables
 	uint32 readState = 0;
