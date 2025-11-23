@@ -2,10 +2,8 @@
 // File:            gnContigSpec.h
 // Purpose:         Abstract Contig Spec class
 // Description:     Defines an interface for contig specs
-// Changes:        
 // Version:         libGenome 0.5.1 
 // Author:          Aaron Darling 
-// Modified by:     
 // Copyright:       (c) Aaron Darling 
 // Licenses:        See COPYING file for details 
 /////////////////////////////////////////////////////////////////////////////
@@ -20,6 +18,7 @@
 
 #include <vector>
 #include <string>
+#include <utility>  // For std::move if needed
 
 #include "libGenome/gnBaseSpec.h"
 #include "libGenome/gnBaseFeature.h"
@@ -31,138 +30,83 @@ namespace genome {
  * gnContigSpec is an interface for classes which store contigs, or reads,
  * of DNA or protein sequence
  */
-class GNDLLEXPORT gnContigSpec : public gnBaseSpec
-{
+class GNDLLEXPORT gnContigSpec : public gnBaseSpec {
 public:
-	gnContigSpec(){}
-	/**
-	 * Destructor, frees memory.
-	 */
-	virtual ~gnContigSpec(){}
-	virtual gnContigSpec* Clone() const = 0;
-	virtual gnContigSpec* CloneRange( const gnSeqI startI, const gnSeqI len ) const = 0;
-	/**
-	 * Get the name of the source associated with this spec.
-	 * @return The source name or an empty std::string if none exists.
-	 */
-	virtual std::string GetSourceName() const;
-	/**
-	 * Get the base pair index where this contig starts inside of the sequence data.
-	 * @return The starting base pair.
-	 */
-	virtual gnSeqI GetStart() const;
-	/**
-	 * Get the length of this contig inside of the sequence data.
-	 * @return This contigs length.
-	 */
-	virtual gnSeqI GetLength() const;
-	/**
-	 * Get the length of the source for this spec.
-	 * @return The source length.
-	 */
-	virtual gnSeqI GetSourceLength() const = 0;
-	/**
-	 * Returns this contig's index in its source sequence.
-	 * @return This contig's index in the source sequence.
-	 */
-	virtual uint32 GetSourceContigIndex() const;
-	/**
-	 * Sets the name of the source associated with this contig.
-	 * @param sourceName The new name.
-	 * @return True if successful.
-	 */
-	virtual void SetSourceName( const std::string& sourceName );
-	/**
-	 * Sets the starting base pair to read from in the contig's sequence.
-	 * This does not affect the actual sequence data but only where to begin
-	 * using it in this contig.
-	 * @param start The new starting base pair.
-	 * @return True if successful.
-	 */
-	virtual void SetStart( const gnSeqI start );
-	/**
-	 * Sets the length of reads into this sequence.
-	 * This does not affect the actual sequence data but only how much of it
-	 * is used in this contig.
-	 * @param len The new sequence length.
-	 * @return True if successful.
-	 */
-	virtual void SetLength( const gnSeqI len );
-	/**
-	 * Sets this contig's index in its source sequence.
-	 * @param contigI This contig's index in the source sequence.
-	 */
-	virtual void SetSourceContigIndex( const uint32 contigI );
-	/**
-	 * Sets the reverse complement bit for this contig.
-	 * This routine will translate the start index to the reverse base pair.
-	 * @param value True for reverse complement, false otherwise.
-	 * @return True if successful.
-	 */
-	virtual void SetReverseComplement( const boolean value );
+    gnContigSpec() = default;
+    virtual ~gnContigSpec() = default;
 
-	virtual void CropStart( gnSeqI cropLen );
-	virtual void CropEnd( gnSeqI cropLen );
+    // Rule of 5: Default copy/move, can be deleted or defaulted as needed
+    gnContigSpec(const gnContigSpec&) = default;
+    gnContigSpec(gnContigSpec&&) noexcept = default;
+    gnContigSpec& operator=(const gnContigSpec&) = default;
+    gnContigSpec& operator=(gnContigSpec&&) noexcept = default;
 
-	virtual boolean SeqRead(const gnSeqI start, gnSeqC* buf, gnSeqI& bufLen, const uint32 contigI ) const;
-	virtual void Clear();
+    // Polymorphic interface
+    [[nodiscard]] virtual gnContigSpec* Clone() const = 0;
+    [[nodiscard]] virtual gnContigSpec* CloneRange(gnSeqI startI, gnSeqI len) const = 0;
+
+    [[nodiscard]] virtual std::string GetSourceName() const;
+    [[nodiscard]] virtual gnSeqI GetStart() const noexcept;
+    [[nodiscard]] virtual gnSeqI GetLength() const noexcept;
+    [[nodiscard]] virtual gnSeqI GetSourceLength() const = 0;
+    [[nodiscard]] virtual uint32 GetSourceContigIndex() const noexcept;
+
+    virtual void SetSourceName(const std::string& sourceName);
+    virtual void SetStart(gnSeqI start) noexcept;
+    virtual void SetLength(gnSeqI len) noexcept;
+    virtual void SetSourceContigIndex(uint32 contigI) noexcept;
+    virtual void SetReverseComplement(boolean value);
+
+    virtual void CropStart(gnSeqI cropLen);
+    virtual void CropEnd(gnSeqI cropLen);
+
+    virtual boolean SeqRead(gnSeqI start, gnSeqC* buf, gnSeqI& bufLen, uint32 contigI) const;
+    virtual void Clear();
+
 protected:
-	gnSeqI m_start;  //start within the genome.
-	gnSeqI m_length;
-	uint32 m_SourceContigIndex;
+    gnSeqI m_start{};                // start within the genome.
+    gnSeqI m_length{};
+    uint32 m_SourceContigIndex{};
+    std::string m_sourceName;        // Source name for this contig.
 
-	/**
-	 * all derived classes must implement this!
-	 * it simply reads the specified bases into buf, disregarding circularity and reverse complement.
-	 */
-	virtual boolean Read(const gnSeqI start, gnSeqC* buf, gnSeqI& bufLen ) const = 0;
+    /**
+     * All derived classes must implement this!
+     * Reads the specified bases into buf, disregarding circularity and reverse complement.
+     */
+    virtual boolean Read(gnSeqI start, gnSeqC* buf, gnSeqI& bufLen) const = 0;
 
 private:
+    // (No private fields or methods)
+};
 
-}; // class gnContigSpec
+// Inline methods
 
-
-inline
-std::string gnContigSpec::GetSourceName() const{
-	return m_sourceName;
+inline std::string gnContigSpec::GetSourceName() const {
+    return m_sourceName;
 }
-inline
-void gnContigSpec::SetSourceName(const std::string& sourceName){
-	m_sourceName = sourceName;
-}
-
-inline
-gnSeqI gnContigSpec::GetStart() const
-{
-	return m_start;
-}
-inline
-gnSeqI gnContigSpec::GetLength() const
-{
-	return m_length;
-}
-// SET
-inline
-void gnContigSpec::SetStart( const gnSeqI start )
-{
-	m_start = start;
-}
-inline
-void gnContigSpec::SetLength( const gnSeqI len )
-{
-	m_length = len;
-}
-inline
-uint32 gnContigSpec::GetSourceContigIndex() const{
-	return m_SourceContigIndex;
-}
-inline
-void gnContigSpec::SetSourceContigIndex( const uint32 contigI ){
-	m_SourceContigIndex = contigI;
+inline void gnContigSpec::SetSourceName(const std::string& sourceName) {
+    m_sourceName = sourceName;
 }
 
+inline gnSeqI gnContigSpec::GetStart() const noexcept {
+    return m_start;
+}
+inline gnSeqI gnContigSpec::GetLength() const noexcept {
+    return m_length;
+}
+inline void gnContigSpec::SetStart(gnSeqI start) noexcept {
+    m_start = start;
+}
+inline void gnContigSpec::SetLength(gnSeqI len) noexcept {
+    m_length = len;
+}
+inline uint32 gnContigSpec::GetSourceContigIndex() const noexcept {
+    return m_SourceContigIndex;
+}
+inline void gnContigSpec::SetSourceContigIndex(uint32 contigI) noexcept {
+    m_SourceContigIndex = contigI;
+}
 
-}	// end namespace genome
+}   // namespace genome
 
-#endif
-	// _gnContigSpec_h_
+#endif  // _gnContigSpec_h_
