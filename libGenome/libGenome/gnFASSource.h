@@ -37,34 +37,34 @@ public:
     gnFASSource* Clone() const override;
 
     [[nodiscard]] uint32 GetContigListLength() const noexcept;
-    [[nodiscard]] boolean HasContig(const std::string& name) const;
+    [[nodiscard]] bool HasContig(const std::string& name) const;
     [[nodiscard]] uint32 GetContigID(const std::string& name) const;
     [[nodiscard]] std::string GetContigName(uint32 i) const;
     [[nodiscard]] gnSeqI GetContigSeqLength(uint32 i) const;
     [[nodiscard]] gnFileContig* GetContig(uint32 i) const;
 
-    boolean SeqRead(gnSeqI start, char* buf, gnSeqI& bufLen, uint32 contigI = ALL_CONTIGS);
+    bool SeqRead(gnSeqI start, char* buf, gnSeqI& bufLen, uint32 contigI = ALL_CONTIGS);
 
     // Write sequence to FastA file
     static void Write(gnSequence& sequence, const std::string& filename,
-                      boolean write_coords = true, boolean enforce_unique_names = true);
+                      bool write_coords = true, bool enforce_unique_names = true);
 
     // Write sequence to an output stream
     static void Write(gnSequence& sequence, std::ostream& m_ostream,
-                      boolean write_coords = true, boolean enforce_unique_names = true);
+                      bool write_coords = true, bool enforce_unique_names = true);
 
     // Deprecated: Write a gnBaseSource to FastA file
     [[deprecated("Use Write(gnSequence&, ...) instead.")]]
-    static boolean Write(gnBaseSource* source, const std::string& filename);
+    static bool Write(gnBaseSource* source, const std::string& filename);
 
     [[nodiscard]] gnGenomeSpec* GetSpec() const;
     gnFileContig* GetFileContig(uint32 contigI) const override;
 
 private:
-    boolean SeqReadImpl(gnSeqI start, char* buf, gnSeqI& bufLen, uint32 contigI = ALL_CONTIGS);
-    boolean SeqSeek(gnSeqI start, uint32 contigI, uint64& startPos, uint64& readableBytes);
-    boolean SeqStartPos(gnSeqI start, gnFileContig& contig, uint64& startPos, uint64& readableBytes);
-    boolean ParseStream(std::istream& fin) override;
+    bool SeqReadImpl(gnSeqI start, char* buf, gnSeqI& bufLen, uint32 contigI = ALL_CONTIGS);
+    bool SeqSeek(gnSeqI start, uint32 contigI, uint64& startPos, uint64& readableBytes);
+    bool SeqStartPos(gnSeqI start, gnFileContig& contig, uint64& startPos, uint64& readableBytes);
+    bool ParseStream(std::istream& fin) override;
 
     std::vector<gnFileContig*> m_contigList;
 }; // class gnFASSource
