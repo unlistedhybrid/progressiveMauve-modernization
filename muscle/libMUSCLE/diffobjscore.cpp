@@ -12,10 +12,10 @@ namespace muscle {
 static SCORE ScoreColLetters(const MSA &msa, unsigned uColIndex)
 	{
 	const SCOREMATRIX &Mx = *g_ptrScoreMatrix.get();
+	const unsigned uSeqCount = msa.GetSeqCount();
 
 #if	BRUTE_LETTERS
 	SCORE BruteScore = 0;
-	const unsigned uSeqCount = msa.GetSeqCount();
 	for (unsigned uSeqIndex1 = 0; uSeqIndex1 < uSeqCount; ++uSeqIndex1)
 		{
 		unsigned uLetter1 = msa.GetLetterEx(uSeqIndex1, uColIndex);
@@ -34,7 +34,6 @@ static SCORE ScoreColLetters(const MSA &msa, unsigned uColIndex)
 #endif
 	
 	double N = 0;
-	const unsigned uSeqCount = msa.GetSeqCount();
 	for (unsigned uSeqIndex1 = 0; uSeqIndex1 < uSeqCount; ++uSeqIndex1)
 		{
 		WEIGHT w = msa.GetSeqWeight(uSeqIndex1);
@@ -76,12 +75,15 @@ static SCORE ScoreColLetters(const MSA &msa, unsigned uColIndex)
 static SCORE ScoreLetters(const MSA &msa, const unsigned Edges[],
   unsigned uEdgeCount)
 	{
+	const unsigned uSeqCount = msa.GetSeqCount();
+	const unsigned uColCount = msa.GetColCount();
+
 // Letters
 	SCORE Score = 0;
 	for (unsigned uEdgeIndex = 0; uEdgeIndex < uEdgeCount; ++uEdgeIndex)
 		{
 		const unsigned uColIndex = Edges[uEdgeIndex];
-		assert(uColIndex < msa.GetColCount());
+		assert(uColIndex < uColCount);
 		Score += ScoreColLetters(msa, uColIndex);
 		}
 	return Score;
@@ -160,4 +162,4 @@ SCORE DiffObjScore(
 
 	return Diff;
 	}
-}
+} 
