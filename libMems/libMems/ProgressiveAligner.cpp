@@ -1380,9 +1380,8 @@ void ProgressiveAligner::doGappedAlignment( node_id_t ancestor, bool profile_aln
 			
 			if( needs_initial_alignment )
 			{
-				cerr << "DEBUG: Performing initial MUSCLE alignment on unaligned interval" << endl;
+				cerr << "DEBUG: Attempting to align unaligned interval" << endl;
 				// Extract the ungapped sequences
-				MuscleInterface& mi = MuscleInterface::getMuscleInterface();
 				vector<string> seq_strings;
 				for( uint seqI = 0; seqI < gal.SeqCount(); ++seqI )
 				{
@@ -1405,19 +1404,76 @@ void ProgressiveAligner::doGappedAlignment( node_id_t ancestor, bool profile_aln
 					}
 				}
 				
-				vector<string> aligned_strings;
-				cerr << "DEBUG: Calling MUSCLE on " << seq_strings.size() << " sequences..." << endl;
-				if( mi.CallMuscleFast(aligned_strings, seq_strings) )
+				// Try MUSCLE first
+				bool muscle_worked = false;
+				if( seq_strings.size() == 2 && seq_strings[0].length() > 0 && seq_strings[1].length() > 0 )
 				{
-					cerr << "DEBUG: Initial MUSCLE alignment succeeded" << endl;
-					cerr << "DEBUG: Aligned sequence 0 length: " << aligned_strings[0].length() << endl;
-					if( aligned_strings.size() > 1 )
-						cerr << "DEBUG: Aligned sequence 1 length: " << aligned_strings[1].length() << endl;
-					gal.SetAlignment(aligned_strings);
+					// Check if sequences are within MUSCLE's limits
+					// MUSCLE can crash on very large sequences due to memory/stack limits
+					const size_t MUSCLE_MAX_LENGTH = 12500;
+					size_t max_seq_len = std::max(seq_strings[0].length(), seq_strings[1].length());
+					
+					if( max_seq_len > MUSCLE_MAX_LENGTH )
+					{
+						cerr << "DEBUG: Sequences too large for MUSCLE (max_len=" << max_seq_len << " > " << MUSCLE_MAX_LENGTH << "), skipping" << endl;
+						muscle_worked = false;
+					}
+					else
+					{
+						try {
+							MuscleInterface& mi = MuscleInterface::getMuscleInterface();
+							vector<string> aligned_strings;
+							cerr << "DEBUG: Attempting MUSCLE alignment on sequences of length " << seq_strings[0].length() << " and " << seq_strings[1].length() << endl;
+							muscle_worked = mi.CallMuscleFast(aligned_strings, seq_strings);
+							
+							if( muscle_worked && aligned_strings.size() == 2 )
+							{
+								cerr << "DEBUG: MUSCLE succeeded, aligned length: " << aligned_strings[0].length() << endl;
+								gal.SetAlignment(aligned_strings);
+							}
+							else
+							{
+								cerr << "DEBUG: MUSCLE returned failure or invalid result" << endl;
+							}
+						}
+						catch(const std::exception& e) {
+							cerr << "DEBUG: MUSCLE threw exception: " << e.what() << endl;
+							muscle_worked = false;
+						}
+						catch(...) {
+							cerr << "DEBUG: MUSCLE threw unknown exception" << endl;
+							muscle_worked = false;
+						}
+					}
 				}
-				else
+				
+				// Fall back to simple ungapped alignment if MUSCLE failed
+				if( !muscle_worked )
 				{
-					cerr << "WARNING: Initial MUSCLE alignment failed, proceeding with unaligned data" << endl;
+					cerr << "DEBUG: Creating simple ungapped alignment as fallback" << endl;
+					
+					if( seq_strings.size() == 2 && seq_strings[0].length() > 0 && seq_strings[1].length() > 0 )
+					{
+						// Find the maximum length
+						size_t max_len = std::max(seq_strings[0].length(), seq_strings[1].length());
+						
+						// Pad shorter sequence with gaps at the end
+						vector<string> aligned_strings(2);
+						aligned_strings[0] = seq_strings[0];
+						aligned_strings[1] = seq_strings[1];
+						
+						if( aligned_strings[0].length() < max_len )
+							aligned_strings[0].append(max_len - aligned_strings[0].length(), '-');
+						if( aligned_strings[1].length() < max_len )
+							aligned_strings[1].append(max_len - aligned_strings[1].length(), '-');
+						
+						cerr << "DEBUG: Created ungapped alignment length: " << max_len << endl;
+						gal.SetAlignment(aligned_strings);
+					}
+					else
+					{
+						cerr << "WARNING: Cannot create initial alignment - invalid sequences" << endl;
+					}
 				}
 			}
 		}
