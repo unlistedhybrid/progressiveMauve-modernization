@@ -807,9 +807,23 @@ bool MuscleInterface::Refine( GappedAlignment& ga, size_t windowsize )
 
 void msaFromSeqTable(MSA& msa, const vector< string >& seq_table, unsigned id_base = 0)
 {
+	std::cerr << "DEBUG msaFromSeqTable: seq_table.size()=" << seq_table.size() << std::endl;
+	if(seq_table.size() == 0)
+	{
+		std::cerr << "ERROR msaFromSeqTable: seq_table is empty!" << std::endl;
+		return;
+	}
+	std::cerr << "DEBUG msaFromSeqTable: seq_table[0].size()=" << seq_table[0].size() << std::endl;
+	
 	msa.SetSize(seq_table.size(), seq_table[0].size());
 	for( uint seqI = 0; seqI < seq_table.size(); seqI++ )
 	{
+		std::cerr << "DEBUG msaFromSeqTable: Processing seq " << seqI << ", length=" << seq_table[seqI].size() << std::endl;
+		if(seq_table[seqI].size() != seq_table[0].size())
+		{
+			std::cerr << "WARNING msaFromSeqTable: seq " << seqI << " has different length than seq 0: " 
+			          << seq_table[seqI].size() << " vs " << seq_table[0].size() << std::endl;
+		}
 		stringstream ss;
 		ss << "seq" << seqI;
 		msa.SetSeqName(seqI, ss.str().c_str());
@@ -817,6 +831,7 @@ void msaFromSeqTable(MSA& msa, const vector< string >& seq_table, unsigned id_ba
 		for(size_t i = 0; i < seq_table[seqI].size(); i++)
 			msa.SetChar(seqI, i, seq_table[seqI][i]);
 	}
+	std::cerr << "DEBUG msaFromSeqTable: Completed successfully" << std::endl;
 }
 
 
