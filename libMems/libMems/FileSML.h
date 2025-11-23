@@ -57,7 +57,7 @@ public:
 	 */
 	virtual void BigCreate(const genome::gnSequence& seq, const uint32 split_levels, const uint32 mersize = DNA_MER_SIZE);
 	virtual void Create(const genome::gnSequence& seq, const uint64 seed );
-	virtual boolean Read(std::vector<bmer>& readVector, gnSeqI size, gnSeqI offset = 0);
+	virtual bool Read(std::vector<bmer>& readVector, gnSeqI size, gnSeqI offset = 0);
 	virtual void Merge(SortedMerList& sa, SortedMerList& sa2);
 
 	virtual bmer operator[]( gnSeqI index );
@@ -84,13 +84,13 @@ protected:
 	 * Reopens the sarfile fstream in read/write mode
 	 * @throws FileNotOpened thrown if the file could not be opened for writing
 	 */
-	virtual void OpenForWriting( boolean truncate = false );
+	virtual void OpenForWriting( bool truncate = false );
 	/**
 	 * Writes the SML header to disk
 	 * @throws FileNotOpened thrown if the file could not be opened for writing
 	 * @throws IOStreamFailed thrown if an error occurred writing the data
 	 */
-	virtual boolean WriteHeader();
+	virtual bool WriteHeader();
 	/**
 	 * Calculates and returns the amount of memory needed to create a sorted
 	 * mer list for a sequence of the specified length.
@@ -129,4 +129,3 @@ void maskNNNNN( const genome::gnSequence& in_seq, genome::gnSequence& out_seq, s
 }
 
 #endif   //_FileSML_h_
-
