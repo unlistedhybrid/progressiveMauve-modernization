@@ -1,111 +1,61 @@
-// gnABISource.cpp
-#include "libGenome/gnABISource.h"
+#ifndef GN_ABI_SOURCE_H
+#define GN_ABI_SOURCE_H
+
+#include <string>
+#include <vector>
 #include <memory>
+#include <cstdint>
 
 namespace genome {
 
-gnABISource::gnABISource()
-    : gnFileSource(), m_spec(nullptr)
-{
-}
+// Forward declarations
+class gnFileSource;
+class gnFileContig;
+class gnGenomeSpec;
+class gnFilter;
+class gnSequence;
 
-gnABISource::gnABISource(const gnABISource& s)
-    : gnFileSource(s), m_spec(nullptr)
-{
-    if (s.m_spec)
-        m_spec = s.m_spec->Clone();
-    m_contigList.reserve(s.m_contigList.size());
-    for (auto* contig : s.m_contigList)
-        m_contigList.push_back(contig ? contig->Clone() : nullptr);
-}
+using uint32 = std::uint32_t;
+using gnSeqI = std::int64_t;
+using uint64 = std::uint64_t;
 
-gnABISource::~gnABISource()
-{
-    delete m_spec;
-    for (auto* contig : m_contigList)
-        delete contig;
-}
+constexpr uint32 ALL_CONTIGS = static_cast<uint32>(-1);
+constexpr gnSeqI GNSEQI_ERROR = -1;
 
-uint32 gnABISource::GetContigListLength() const
-{
-    return static_cast<uint32>(m_contigList.size());
-}
+class gnABISource : public gnFileSource {
+public:
+    gnABISource();
+    gnABISource(const gnABISource& s);
+    ~gnABISource();
 
-bool gnABISource::HasContig(const std::string& name) const
-{
-    for (const auto* contig : m_contigList) {
-        if (contig && contig->GetName() == name)
-            return true;
-    }
-    return false;
-}
+    // Contig access methods
+    bool HasContig(const std::string& name) const;
+    uint32 GetContigID(const std::string& name) const;
+    std::string GetContigName(uint32 i) const;
+    gnSeqI GetContigSeqLength(uint32 i) const;
+    
+    gnFileContig* GetFileContig(const uint32 contigI) const;
+    gnGenomeSpec* GetSpec() const;
 
-uint32 gnABISource::GetContigID(const std::string& name) const
-{
-    for (uint32 i = 0; i < m_contigList.size(); ++i) {
-        if (m_contigList[i] && m_contigList[i]->GetName() == name)
-            return i;
-    }
-    return static_cast<uint32>(-1);
-}
+    // Sequence reading
+    bool SeqRead(const gnSeqI start, char* buf, gnSeqI& bufLen, const uint32 contigI);
+    bool SeqSeek(const gnSeqI start, const uint32& contigI, uint64& startPos, uint64& readableBytes);
+    bool SeqStartPos(const gnSeqI start, gnFileContig& contig, uint64& startPos, uint64& readableBytes);
 
-std::string gnABISource::GetContigName(const uint32 i) const
-{
-    if (i < m_contigList.size() && m_contigList[i])
-        return m_contigList[i]->GetName();
-    return {};
-}
+    // Stream parsing
+    bool ParseStream(std::istream& fin);
 
-gnSeqI gnABISource::GetContigSeqLength(const uint32 i) const
-{
-    if (i < m_contigList.size() && m_contigList[i])
-        return m_contigList[i]->GetSeqLength();
-    return 0;
-}
+protected:
+    std::vector<gnFileContig*> m_contigList;
+    gnGenomeSpec* m_spec;
+    std::string m_openString;
+    std::shared_ptr<gnFilter> m_pFilter;
 
-gnFileContig* gnABISource::GetContig(const uint32 i) const
-{
-    if (i < m_contigList.size())
-        return m_contigList[i];
-    return nullptr;
-}
-
-bool gnABISource::SeqRead(const gnSeqI, char*, gnSeqI&, const uint32)
-{
+private:
     // Not implemented
-    return false;
-}
-
-bool gnABISource::Write(gnSequence&, const std::string&)
-{
-    // Not implemented
-    return false;
-}
-
-gnGenomeSpec* gnABISource::GetSpec() const
-{
-    return m_spec ? m_spec->Clone() : nullptr;
-}
-
-gnFileContig* gnABISource::GetFileContig(const uint32 contigI) const
-{
-    return GetContig(contigI);
-}
-
-// Private methods - not implemented
-bool gnABISource::SeqSeek(const gnSeqI, const uint32&, uint64&, uint64&)
-{
-    return false;
-}
-
-bool gnABISource::SeqStartPos(const gnSeqI, gnFileContig&, uint64&, uint64&)
-{
-    return false;
-}
-
-bool gnABISource::ParseStream(std::istream&)
-{
-    return false;
-}
+    bool Write(gnSequence& seq, const std::string& filename);
+};
 
 } // namespace genome
+
+#endif // GN_ABI_SOURCE_H
