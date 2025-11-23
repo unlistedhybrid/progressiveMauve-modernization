@@ -770,6 +770,7 @@ bool MuscleInterface::CallMuscleFast( vector< string >& aln_matrix, const vector
 
 bool MuscleInterface::Refine( GappedAlignment& ga, size_t windowsize )
 {
+	std::cerr << "DEBUG Refine: Starting, ga.SeqCount()=" << ga.SeqCount() << ", windowsize=" << windowsize << std::endl;
 	const vector< string >& seq_table = GetAlignment( ga, vector< gnSequence* >() );
 	vector< string > aln_table;
 	for( uint seqI = 0; seqI < ga.SeqCount(); seqI++ )
@@ -833,8 +834,6 @@ void msaFromSeqTable(MSA& msa, const vector< string >& seq_table, unsigned id_ba
 	}
 	std::cerr << "DEBUG msaFromSeqTable: Completed successfully" << std::endl;
 }
-
-
 bool MuscleInterface::RefineFast( GappedAlignment& ga, size_t windowsize )
 {
 	std::cerr << "DEBUG RefineFast: Starting, ga.SeqCount()=" << ga.SeqCount() << ", windowsize=" << windowsize << std::endl;
@@ -887,7 +886,7 @@ bool MuscleInterface::RefineFast( GappedAlignment& ga, size_t windowsize )
 	std::cerr << "DEBUG RefineFast: Creating GuideTree" << std::endl;
 	Tree GuideTree;
 	std::cerr << "DEBUG RefineFast: Calling TreeFromMSA" << std::endl;
-	TreeFromMSA(msa, GuideTree, g_Cluster2.get(), g_Distance2.get(), g_Root2.get());
+	TreeFromMSA(msa, GuideTree, g_Cluster2.get(), g_Distance2.get(), g_Root2.get(), NULL);
 	std::cerr << "DEBUG RefineFast: Setting MuscleTree" << std::endl;
 	SetMuscleTree(GuideTree);
 
@@ -929,6 +928,13 @@ bool MuscleInterface::RefineFast( GappedAlignment& ga, size_t windowsize )
 		const char* buf = finalMsa->GetSeqBuffer(indie);
 		string curseq(buf, finalMsa->GetColCount());
 		swap(aln_matrix[seqI],curseq);
+	}
+
+	std::cerr << "DEBUG RefineFast: Setting alignment on ga" << std::endl;
+	ga.SetAlignment( aln_matrix );
+	std::cerr << "DEBUG RefineFast: Completed successfully" << std::endl;
+	return true;
+}
 	}
 
 	std::cerr << "DEBUG RefineFast: Setting alignment on ga" << std::endl;
@@ -1095,6 +1101,7 @@ bool MuscleInterface::ProfileAlign( const GappedAlignment& ga1, const GappedAlig
 
 
 bool MuscleInterface::ProfileAlignFast( const GappedAlignment& ga1, const GappedAlignment& ga2, GappedAlignment& aln, bool anchored )
+	std::cerr << "DEBUG ProfileAlignFast: Starting" << std::endl;
 {
 	try{
 		const vector< string >& aln1 = GetAlignment( ga1, vector< gnSequence* >() );
@@ -1141,7 +1148,9 @@ bool MuscleInterface::ProfileAlignFast( const GappedAlignment& ga1, const Gapped
 		MSA msa1;
 		MSA msa2;
 		MSA msaOut;
+		std::cerr << "DEBUG ProfileAlignFast: Creating msa1, aln11.size()=" << aln11.size() << std::endl;
 		msaFromSeqTable(msa1, aln11);
+		std::cerr << "DEBUG ProfileAlignFast: Creating msa2, aln22.size()=" << aln22.size() << std::endl;
 		msaFromSeqTable(msa2, aln22, msa1.GetSeqCount());
 
 		SetAlpha(ALPHA_DNA);
@@ -1151,8 +1160,10 @@ bool MuscleInterface::ProfileAlignFast( const GappedAlignment& ga1, const Gapped
 
 		if(anchored)
 		{
+			std::cerr << "DEBUG ProfileAlignFast: Calling AnchoredProfileProfile" << std::endl;
 			AnchoredProfileProfile(msa1, msa2, msaOut);
 		}else{
+			std::cerr << "DEBUG ProfileAlignFast: Calling ProfileProfile" << std::endl;
 			ProfileProfile(msa1, msa2, msaOut);
 		}
 
@@ -1183,6 +1194,7 @@ bool MuscleInterface::ProfileAlignFast( const GappedAlignment& ga1, const Gapped
 			if(aln_matrix[seqI].size() == 0)
 				aln_matrix[seqI].resize(msaOut.GetColCount(), '-');
 
+		std::cerr << "DEBUG ProfileAlignFast: Setting alignment, aln_matrix.size()=" << aln_matrix.size() << std::endl;
 		aln.SetAlignment( aln_matrix );
 		for( uint seqI = 0; seqI < ga1.SeqCount(); seqI++ )
 			if( ga1.LeftEnd(seqI) != NO_MATCH )
@@ -1196,6 +1208,7 @@ bool MuscleInterface::ProfileAlignFast( const GappedAlignment& ga1, const Gapped
 				aln.SetLeftEnd(seqI, ga2.LeftEnd(seqI));
 				aln.SetLength(ga2.Length(seqI), seqI);
 			}
+		std::cerr << "DEBUG ProfileAlignFast: Completed successfully" << std::endl;
 		return true;
 
 	}catch( gnException& gne ){
