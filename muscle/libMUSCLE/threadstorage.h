@@ -36,6 +36,17 @@ public:
 	{
 		return t[OMP_GET_THREAD_NUM];
 	}
+
+	T operator->()
+	{
+		return t[OMP_GET_THREAD_NUM];
+	}
+
+	T operator*()
+	{
+		return t[OMP_GET_THREAD_NUM];
+	}
+
 private:
 	TLS( const TLS& tls );	// disallow copying
 	T t[MAX_THREAD_COUNT];
@@ -68,4 +79,3 @@ private:
 
 
 #endif	// _threadstorage_h_
-
