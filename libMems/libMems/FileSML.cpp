@@ -1,679 +1,680 @@
-/*******************************************************************************
- * $Id: FileSML.cpp,v 1.22 2004/04/26 21:13:58 darling Exp $
- * This file is copyright 2002-2007 Aaron Darling and authors listed in the AUTHORS file.
- * Please see the file called COPYING for licensing, copying, and modification
- * Please see the file called COPYING for licensing details.
- * **************
- ******************************************************************************/
+#include "libMUSCLE/muscle.h"
+#include "libMUSCLE/clust.h"
+#include "libMUSCLE/clustset.h"
+#include <stdio.h>
 
-#include "libMems/FileSML.h"
-// for CreateTempFileName():
-#include "libMems/Aligner.h"
-#include "libGenome/gnFilter.h"
-#include "libGenome/gnRAWSource.h"
-#include <algorithm>
-#include <cmath>
-#include <cstring>
-#include "boost/filesystem/operations.hpp"
+namespace muscle {
 
-using namespace std;
-using namespace genome;
-namespace mems {
+#define TRACE		0
 
-FileSML& FileSML::operator=(const FileSML& sa)
-{
- 	SortedMerList::operator=( sa );
- 	filename = sa.filename;
-	sarray_start_offset = sa.sarray_start_offset;
-	seq_coords = sa.seq_coords;
-	sarfile.open(filename.c_str(), ios::binary | ios::in );
-	if(!sarfile.is_open()){
-		DebugMsg("FileSML::=: Unable to open suffix array file.\n");
-		sarfile.clear();
-		return *this;
-	}
-	return *this;
-}
-
-void FileSML::Clear() {
-	SortedMerList::Clear();
-	filename = "";
-	sarfile.close();
-	sarray_start_offset = 0;
-	seq_coords.clear();
-}
-
-void FileSML::LoadFile(const string& fname){
-	filename = fname;
-	sarfile.open(fname.c_str(), ios::binary | ios::in );
-	if(!sarfile.is_open()){
-		sarfile.clear();
-		Throw_gnExMsg( FileNotOpened(), "Unable to open file.\n");
-	}
-	// read the header into a temporary header struct just
-	// in case it's bogus
-	SMLHeader tmp_header;
-	sarfile.read((char*)&tmp_header, sizeof(struct SMLHeader));
-	if(static_cast<size_t>(sarfile.gcount()) < sizeof(struct SMLHeader)){
-		sarfile.clear();
-		Throw_gnExMsg( FileUnreadable(), "Unable to read file.");
-	}
-	if(tmp_header.version != FormatVersion()){
-		Throw_gnExMsg( FileUnreadable(), "Unsupported file format.");
-	}
-	header = tmp_header;
-	
-	SetMerMaskSize( header.seed_weight );
-	seed_mask = mer_mask;
-	SetMerMaskSize( header.seed_length );
-
-	//header is ok.  read the sequence.
-	gnSeqI seq_len = header.length;
-	if(header.circular)
-		seq_len += header.seed_length - 1;
-	binary_seq_len = ((uint64)seq_len * (uint64)header.alphabet_bits) / 32;
-	if(((uint64)seq_len * (uint64)header.alphabet_bits) % 32 != 0)
-		binary_seq_len++;
-	binary_seq_len+=2;	//fix for access violations.
-
-	if(sequence != NULL)
-		delete[] sequence;
-	sequence = new uint32[binary_seq_len];
-
-	sarfile.read((char*)sequence, binary_seq_len*sizeof(uint32));
-	if(static_cast<size_t>(sarfile.gcount()) < binary_seq_len*sizeof(uint32)){
-		sarfile.clear();
-		Throw_gnExMsg( FileUnreadable(), "Error reading sequence data.");
+Clust::Clust()
+	{
+	m_Nodes = 0;
+	m_uNodeCount = 0;
+	m_uLeafCount = 0;
+	m_uClusterCount = 0;
+	m_JoinStyle = JOIN_Undefined;
+	m_dDist = 0;
+	m_uLeafCount = 0;
+	m_ptrSet = 0;
 	}
 
-	sarray_start_offset = sarfile.tellg();
-	sarfile.seekg(sarray_start_offset + sizeof(gnSeqI) * header.length);
-	if(!sarfile.good()){
-		sarfile.clear();
-		Throw_gnExMsg( FileUnreadable(), "Premature end of file.");
+Clust::~Clust()
+	{
+	delete[] m_Nodes;
+	delete[] m_dDist;
+	delete[] m_ClusterIndexToNodeIndex;
 	}
-	filename = fname;
 
-	// create a memory-map to the data of interest
-	sardata.open(fname);
-	
-	// check whether there is a .coords mask file to read
-	string coordfile = filename + ".coords";
-	ifstream coord_in( coordfile.c_str() );
-	if( coord_in.is_open() ){
-		seq_coords.clear();
-		int64 cur_coord;
-		while( coord_in >> cur_coord ){
-			seq_coords.push_back( cur_coord );
+void Clust::Create(ClustSet &Set, CLUSTER Method)
+	{
+	m_ptrSet = &Set;
+
+	SetLeafCount(Set.GetLeafCount());
+
+	switch (Method)
+		{
+	case CLUSTER_UPGMA:
+		m_JoinStyle = JOIN_NearestNeighbor;
+		m_CentroidStyle = LINKAGE_Avg;
+		break;
+
+	case CLUSTER_UPGMAMax:
+		m_JoinStyle = JOIN_NearestNeighbor;
+		m_CentroidStyle = LINKAGE_Max;
+		break;
+
+	case CLUSTER_UPGMAMin:
+		m_JoinStyle = JOIN_NearestNeighbor;
+		m_CentroidStyle = LINKAGE_Min;
+		break;
+
+	case CLUSTER_UPGMB:
+		m_JoinStyle = JOIN_NearestNeighbor;
+		m_CentroidStyle = LINKAGE_Biased;
+		break;
+
+	case CLUSTER_NeighborJoining:
+		m_JoinStyle = JOIN_NeighborJoining;
+		m_CentroidStyle = LINKAGE_NeighborJoining;
+		break;
+
+	default:
+		Quit("Clust::Create, invalid method %d", Method);
 		}
-	}
-}
 
-void FileSML::OpenForWriting( boolean truncate ){
-	// Open smlfile for writing
-	boolean was_open = sarfile.is_open();
-	if(was_open)
-		sarfile.close();
-	if( truncate )
-		sarfile.open(filename.c_str(), ios::binary | ios::in | ios::out | ios::trunc );
-	else
-		sarfile.open(filename.c_str(), ios::binary | ios::in | ios::out );
-	if(!sarfile.is_open() || !sarfile.good()){
-		sarfile.clear();
-		if(was_open)
-			sarfile.open(filename.c_str(), ios::binary | ios::in );
-		Throw_gnExMsg(FileNotOpened(), "Unable to open file for writing.");
-	}
-}
+	if (m_uLeafCount <= 1)
+		Quit("Clust::Create: no leaves");
 
-boolean FileSML::WriteHeader(){
-	if(!sarfile.is_open()){
-		Throw_gnExMsg(IOStreamFailed(), "File is not valid.");
-	}
-	boolean success = true;
-	const char* errormsg = "";
-	// Open sarfile for writing and write new header.
-	OpenForWriting( false );
-	sarfile.write((char*)&header, sizeof(struct SMLHeader));
-	if(!sarfile.good()){
-		errormsg = "Error writing header to disk.";
-		success = false;
-	}
+	m_uNodeCount = 2*m_uLeafCount - 1;
+	m_Nodes = new ClustNode[m_uNodeCount];
+	m_ClusterIndexToNodeIndex = new unsigned[m_uLeafCount];
 
-	// reopen the sorted mer list file read-only
-	sarfile.close();
-	sarfile.open(filename.c_str(), ios::binary | ios::in );
-	if(!sarfile.is_open()){
-		errormsg = "Error opening sorted mer list file.";
-		success = false;
-	}
-	if(!success)
-		Throw_gnExMsg(IOStreamFailed(), errormsg);
-	return success;
-}
-
-gnSeqI FileSML::UniqueMerCount(){
-	gnSeqI tmp_count = header.unique_mers;
-	SortedMerList::UniqueMerCount();
-	if(tmp_count != header.unique_mers)
-		WriteHeader();
-	return header.unique_mers;
-}
-
-//change the description in memory and on disk
-void FileSML::SetDescription(const string& d){
-	strncpy(header.description, d.c_str(), DESCRIPTION_SIZE-1);
-	WriteHeader();
-} 
-
-void FileSML::SetID(const sarID_t d){
-	header.id = d;
-	WriteHeader();
-}
-
-
-extern "C" {
-#include "libMems/dmSML/dmsort.h"
-}
-
-char** FileSML::tmp_paths = NULL;
-
-void FileSML::registerTempPath( const string& path ) {
-	string tmp_path = path;
-	// add trailing path separator if necessary
-#ifdef WIN32
-	if( tmp_path[ tmp_path.size() - 1 ] != '\\' )
-		tmp_path += "\\";
-#else
-	if( tmp_path[ tmp_path.size() - 1 ] != '/' )
-		tmp_path += "/";
-#endif
-		
-	if( tmp_paths == NULL ){
-		tmp_paths = new char*[1];
-		tmp_paths[ 0 ] = NULL;
-	}
-	
-	int path_count = 0;
-	while( tmp_paths[ path_count ] != NULL )
-		path_count++;
-
-	// create a new array with room for another element
-	char** tmp_tmp_paths = new char*[ path_count+1 ];
-	// copy old elements
-	for( int pathI = 0; pathI < path_count; pathI++ )
-		tmp_tmp_paths[ pathI ] = tmp_paths[ pathI ];
-	// add new element
-	tmp_tmp_paths[ path_count ] = new char[ tmp_path.size() + 1 ];
-	strncpy( tmp_tmp_paths[ path_count ], tmp_path.c_str(), tmp_path.size() + 1 );
-	// set null terminator element
-	tmp_tmp_paths[ path_count + 1 ] = NULL;
-	
-	// set new paths
-	char** old_paths = tmp_paths;
-	tmp_paths = tmp_tmp_paths;
-	
-	// free old array
-	delete[] old_paths;
-}
-
-const char* FileSML::getTempPath( int pathI ){
-	return tmp_paths[ pathI ];
-}
-
-int FileSML::getTempPathCount(){
-	int path_count = 0;
-	while( tmp_paths && tmp_paths[ path_count ] != NULL )
-		path_count++;
-	return path_count;
-}
-
-
-void maskNNNNN( const gnSequence& in_seq, gnSequence& out_seq, vector< int64 >& seq_coords, int mask_n_length ) {
-	
-	gnSeqI seqI = 1;
-	gnSeqI read_length = 1024*1024;
-	string cur_seq;
-	gnSeqI n_count = 0;
-	gnSeqI n_stretch_start = 0;
-	gnSeqI n_stretch_end = 1;
-
-	while( seqI <= in_seq.length() ){
-		read_length = seqI + read_length < in_seq.length() ? read_length : in_seq.length() - seqI + 1;
-		in_seq.ToString( cur_seq, read_length, seqI );
-		
-		uint charI = 0;
-		for( ; charI < cur_seq.size(); charI++ ){
-			if( cur_seq[ charI ] == 'N' || cur_seq[ charI ] == 'n' ){
-				if( n_count == 0 ){
-					n_stretch_start = seqI + charI;
-				}
-				n_count++;
-			}else{
-				if( n_count > static_cast<gnSeqI>(mask_n_length) ){
-					if( n_stretch_start - n_stretch_end != 0 ){
-						// Add the sequence region to the output sequence
-						out_seq += in_seq.subseq( n_stretch_end, n_stretch_start - n_stretch_end );
-						// add the masked coordinates
-						seq_coords.push_back( n_stretch_end );
-						seq_coords.push_back( n_stretch_start - 1 );
-					}
-					// update n_stretch_end to the first non N character
-					n_stretch_end = seqI + charI;
-				}
-				n_count = 0;
+	m_ptrClusterList = 0;
+	for (unsigned uNodeIndex = 0; uNodeIndex < m_uNodeCount; ++uNodeIndex)
+		{
+		ClustNode &Node = m_Nodes[uNodeIndex];
+		Node.m_uIndex = uNodeIndex;
+		if (uNodeIndex < m_uLeafCount)
+			{
+			Node.m_uSize = 1;
+			Node.m_uLeafIndexes = new unsigned[1];
+			Node.m_uLeafIndexes[0] = uNodeIndex;
+			AddToClusterList(uNodeIndex);
 			}
-		}
-		seqI += read_length;
-	}
-	out_seq += in_seq.subseq( n_stretch_end, seqI - n_stretch_end );
-
-	// add the masked coordinates
-	seq_coords.push_back( n_stretch_end );
-	seq_coords.push_back( seqI - 1 );
-}
-
-	// use dmSML to construct the SML
-	// then read it in using LoadFile()
-void FileSML::dmCreate(const gnSequence& seq, const uint64 seed){
-	// Filter NNNNNs
-	gnSequence masked_seq;
-	seq_coords.clear();
-	maskNNNNN( seq, masked_seq, seq_coords, 0 );
-	
-	// write a raw sequence to a tmp file stored in the first scratch path
-	string rawfile = CreateTempFileName("dm_rawseq");
-	gnRAWSource::Write( masked_seq, rawfile.c_str() );
-	
-	// write a sequence coordinate file
-	if( seq_coords.size() > 0 ){
-		string coordfile = filename + ".coords";
-		ofstream coord_out( coordfile.c_str() );
-		if( !coord_out.is_open() ){
-			cerr << "Could not open " << coordfile << endl;
-			throw "";
-		}
-		
-		for( size_t coordI = 0; coordI < seq_coords.size(); coordI+=2 ){
-			coord_out << seq_coords[ coordI ] << '\t' << seq_coords[ coordI + 1 ] << endl;
-		}
-		coord_out.close();
-	}
-	
-	
-	// run dmSML
-	const char* const* scratch_paths = (const char* const*)tmp_paths;
-	sarfile.close();
-	int rval = dmSML( rawfile.c_str(), filename.c_str(), scratch_paths, seed );
-	if( rval != 0 )
-		cerr << "Crap.  It's broke, return value " << rval << endl;
-	
-	boost::filesystem::remove( rawfile );
-	// load the sorted mer list
-	LoadFile( filename );
-}
-
-void FileSML::Create(const gnSequence& seq, const uint64 seed){
-
-	vector<bmer> sml_array;
-	bool is_spaced_seed = getSeedWeight(seed) != getSeedLength(seed);
-	OpenForWriting( true );
-
-	try{
-		SortedMerList::Create( seq, seed );
-		
-		if( is_spaced_seed )
-			FillDnaSeedSML(seq, sml_array);
 		else
-			FillSML(seq, sml_array);
+			Node.m_uSize = 0;
+		}
 
-	}catch(...){	
-		// if there was a memory allocation error then
-		// try using dmSML to do an external sort
-		sarfile.clear();
-		sarfile.close();
-		sarfile.clear();
-		if( sequence != NULL )
-			delete[] sequence;
-		binary_seq_len = 0;
-
-		dmCreate( seq, seed );
-	}
-
-//	RadixSort(s_array);
-	sort(sml_array.begin(), sml_array.end(), &bmer_lessthan);
-	
-	/* now write out the file header */
-	sarfile.write((char*)&header, sizeof(struct SMLHeader));
-
-	if(!sarfile.good()){
-		sarfile.clear();
-		Throw_gnExMsg( IOStreamFailed(), "Error writing sorted mer list header to disk.\n");
-	}
-
-	/* write out the actual sequence */
-	sarfile.write((char*)sequence, binary_seq_len*sizeof(uint32));
-	sarray_start_offset = sarfile.tellg();
-
-	/* write out the sorted mer list */
-	for(gnSeqI suffixI=0; suffixI < sml_array.size(); suffixI++)
-		sarfile.write((char*)&(sml_array[suffixI].position), sizeof(smlSeqI_t));
-	
-	sarfile.flush();
-	if(!sarfile.good()){
-		sarfile.clear();
-		Throw_gnExMsg( IOStreamFailed(), "Error writing sorted mer list to disk.\n");
-	}
-	// reopen the sorted mer list file read-only
-	sarfile.close();
-	sarfile.open(filename.c_str(), ios::binary | ios::in );
-	if(!sarfile.is_open())
-		Throw_gnExMsg( FileNotOpened(), "FileSML::Create: Error opening sorted mer list file.\n");
-
-	sardata.open(filename);
-}
-
-bmer FileSML::operator[](gnSeqI index)
-{
-	bmer tmp_mer;
-	tmp_mer.position = base()[index];
-	tmp_mer.mer = GetSeedMer(tmp_mer.position);
-	return tmp_mer;
-}
-
-
-boolean FileSML::Read(vector<bmer>& readVector, gnSeqI size, const gnSeqI offset)
-{
-	if(!sarfile.is_open()){
-		DebugMsg("FileSML::Read: Error sar file not open.\n");
-		return false;
-	}
-
-	gnSeqI total_len = SMLLength();
-	if(offset >= total_len){
-		readVector.clear();
-		return false;
-	}
-	gnSeqI readlen = offset + size < total_len ? size : total_len - offset;
-	
-	readVector.resize( readlen );
-
-	//copy data to the vector
-	for(gnSeqI j=0; j < readlen; j++){
-		bmer tmp_mer;
-		tmp_mer.position = base()[offset+j];
-		if( tmp_mer.position > header.length ){
-			string errmsg = "Corrupted SML, position ";
-			errmsg += tmp_mer.position + " is out of range\n";
-			ErrorMsg( errmsg );
-			cerr << errmsg;
-		}else
-			tmp_mer.mer = GetSeedMer(tmp_mer.position);
-		readVector[ j ] = tmp_mer;
-	}
-	return true;
-}
-
-void FileSML::BigCreate(const gnSequence& seq, const uint32 split_levels, const uint32 mersize){
-//	unsigned long freemem = wxGetFreeMemory();	//get the amount of free memory.
-//	unsigned long neededmem = GetNeededMemory(seq.length());
-//	if(neededmem >= freemem && neededmem > MEMORY_MINIMUM){ // divide and conquer
-	if(split_levels > 0){	// split_levels defines the number of times to divide and conquer
-		uint64 midpoint = seq.length() / 2;
-		midpoint = (midpoint * header.alphabet_bits) / 32;
-		midpoint = (midpoint / header.alphabet_bits) * 32;
-		gnSequence seqA = seq.subseq(1, midpoint);
-		gnSequence seqB = seq.subseq(1 + midpoint, seq.length() - midpoint);
-		seqA.setCircular(false);
-		seqB.setCircular(false);
-		cout << "Splitting " << seq.length() << " to " << seqA.length() << " and " << seqB.length() << "\n";
-
-		//create the first sar
-		string temp_sarfile = CreateTempFileName("bdsa_split");
-		FileSML* temp_sar = this->Clone();
-		temp_sar->filename = temp_sarfile.c_str();
-		temp_sar->BigCreate(seqA, split_levels - 1, mersize);
-
-		//create the second sar
-		string temp_sarfile2 = CreateTempFileName("bdsa_split");
-		FileSML* temp_sar2 = this->Clone();
-		temp_sar2->filename = temp_sarfile2.c_str();
-		temp_sar2->BigCreate(seqB, split_levels - 1, mersize);
-
-		//merge them to this file
-		cout << "Merging " << seqA.length() << " and " << seqB.length() << "\n";
-		Merge(*temp_sar, *temp_sar2);
-		//free up RAM
-		delete temp_sar;
-		delete temp_sar2;
-		//erase the temp files.
-		boost::filesystem::remove(temp_sarfile);
-		boost::filesystem::remove(temp_sarfile2);
-	}else{
-		Create(seq, mersize);
-	}
-}
-
-void FileSML::RadixSort(vector<bmer>& s_array){
-	vector<bmer> *source_buckets;
-	vector<bmer> *tmp_buckets;
-	vector<bmer> *buckets;
-	uint32 radix_size = 11;
-	uint64 radix_mask = 0xFFFFFFFF;
-	radix_mask <<= 32;
-	radix_mask |= 0xFFFFFFFF;
-	radix_mask >>= 64 - radix_size;
-	
-	uint32 bucket_count = (uint32) pow((double)2, (double)radix_size);
-	uint32 cur_shift_bits = 0;
-	buckets = new vector<bmer>[bucket_count];
-	source_buckets = new vector<bmer>[bucket_count];
-	uint64 cur_bucket;
-	for(uint32 merI = 0; merI < s_array.size(); merI++){
-		cur_bucket = s_array[merI].mer & radix_mask;
-		source_buckets[cur_bucket].push_back(s_array[merI]);
-	}
-	s_array.clear();
-	cur_shift_bits += radix_size;
-	radix_mask <<= radix_size;
-	while(cur_shift_bits < 64){
-		for(uint32 bucketI = 0; bucketI < bucket_count; bucketI++){
-			for(uint32 merI = 0; merI < source_buckets[bucketI].size(); merI++){
-				cur_bucket = source_buckets[bucketI][merI].mer & radix_mask;
-				cur_bucket >>= cur_shift_bits;
-				buckets[cur_bucket].push_back(source_buckets[bucketI][merI]);
+// Compute initial distance matrix between leaves
+	SetProgressDesc("Build dist matrix");
+	unsigned uPairIndex = 0;
+	const unsigned uPairCount = (m_uLeafCount*(m_uLeafCount - 1))/2;
+	for (unsigned i = 0; i < m_uLeafCount; ++i)
+		for (unsigned j = 0; j < i; ++j)
+			{
+			const float dDist = (float) m_ptrSet->ComputeDist(*this, i, j);
+			SetDist(i, j, dDist);
+			if (0 == uPairIndex%10000)
+				Progress(uPairIndex, uPairCount);
+			++uPairIndex;
 			}
-			source_buckets[bucketI].clear();
+	ProgressStepsDone();
+
+// Call CreateCluster once for each internal node in the tree
+	SetProgressDesc("Build guide tree");
+	m_uClusterCount = m_uLeafCount;
+	const unsigned uInternalNodeCount = m_uNodeCount - m_uLeafCount;
+	for (unsigned uNodeIndex = m_uLeafCount; uNodeIndex < m_uNodeCount; ++uNodeIndex)
+		{
+		unsigned i = uNodeIndex + 1 - m_uLeafCount;
+		Progress(i, uInternalNodeCount);
+		CreateCluster();
 		}
-		cur_shift_bits += radix_size;
-		radix_mask <<= radix_size;
-		tmp_buckets = source_buckets;
-		source_buckets = buckets;
-		buckets = tmp_buckets;
+	ProgressStepsDone();
 	}
-	s_array.clear();
-	for(uint32 bucketI = 0; bucketI < bucket_count; bucketI++){
-		for(uint32 merI = 0; merI < source_buckets[bucketI].size(); merI++){
-			s_array.push_back(source_buckets[bucketI][merI]);
+
+void Clust::CreateCluster()
+	{
+	unsigned uLeftNodeIndex;
+	unsigned uRightNodeIndex;
+	float dLeftLength;
+	float dRightLength;
+	ChooseJoin(&uLeftNodeIndex, &uRightNodeIndex, &dLeftLength, &dRightLength);
+
+	const unsigned uNewNodeIndex = m_uNodeCount - m_uClusterCount + 1;
+
+	JoinNodes(uLeftNodeIndex, uRightNodeIndex, dLeftLength, dRightLength,
+	  uNewNodeIndex);
+
+#if	TRACE
+	Log("Merge New=%u L=%u R=%u Ld=%7.2g Rd=%7.2g\n",
+	  uNewNodeIndex, uLeftNodeIndex, uRightNodeIndex, dLeftLength, dRightLength);
+#endif
+
+// Compute distances to other clusters
+	--m_uClusterCount;
+	for (unsigned uNodeIndex = GetFirstCluster(); uNodeIndex != uInsane;
+	  uNodeIndex = GetNextCluster(uNodeIndex))
+		{
+		if (uNodeIndex == uLeftNodeIndex || uNodeIndex == uRightNodeIndex)
+			continue;
+
+		if (uNewNodeIndex == uNodeIndex)
+			continue;
+
+		const float dDist = ComputeDist(uNewNodeIndex, uNodeIndex);
+		SetDist(uNewNodeIndex, uNodeIndex, dDist);
 		}
-		source_buckets[bucketI].clear();
-	}
-	delete[] source_buckets;
-	delete[] buckets;
-}
 
-//Merges the supplied sorted mer lists into this one, overwriting the existing sml.
-//KNOWN BUG:  The first sorted mer list must have (length * alphabet_bits) / word_bits == 0
-//for Merge to work properly.
-void FileSML::Merge(SortedMerList& sa, SortedMerList& sa2){
-STACK_TRACE_START
-	SMLHeader sa_head = sa.GetHeader();
-	SMLHeader sa_head2 = sa2.GetHeader();
-	
-	//basic copying
-	header = sa_head;
-	//take the smaller mer_size
-	if(sa_head.seed_length < sa_head2.seed_length){
-		header.seed_length = sa_head.seed_length;
-		mer_mask = sa.GetMerMask();
-	}else{
-		header.seed_length = sa_head2.seed_length;
-		mer_mask = sa2.GetMerMask();
-	}
-	header.unique_mers = NO_UNIQUE_COUNT;
-	header.length += sa_head2.length;
+	for (unsigned uNodeIndex = GetFirstCluster(); uNodeIndex != uInsane;
+	  uNodeIndex = GetNextCluster(uNodeIndex))
+		{
+		if (uNodeIndex == uLeftNodeIndex || uNodeIndex == uRightNodeIndex)
+			continue;
 
-	//allocate some memory
-	const uint32 SEQ_BUFFER_SIZE = 200000;
-	Array<uint32> seq_buf ( SEQ_BUFFER_SIZE + header.seed_length );
+		if (uNewNodeIndex == uNodeIndex)
+			continue;
 
-	//do some sanity checks on the sars we're merging.
-	if(sa_head.alphabet_bits != sa_head2.alphabet_bits ||
-	  sa_head.version != sa_head2.version ||
-	  std::memcmp(sa_head.translation_table, sa_head2.translation_table, UINT8_MAX)){
-		Throw_gnExMsg(SMLMergeError(), "Incompatible sorted mer lists.");
-	}
-	
-	OpenForWriting( true );
-
-	//write the header
-	sarfile.write((char*)&header, sizeof(struct SMLHeader));
-	if(!sarfile.good()){
-		sarfile.clear();
-		sarfile.close();
-		sarfile.open(filename.c_str(), ios::binary | ios::in );
-		Throw_gnExMsg(IOStreamFailed(), "Error writing sorted mer list header to disk.");
-	}
-
-	//copy sequence data into memory.
-	uint32 binary_seq_len = (header.length * header.alphabet_bits) / 32;
-	if((header.length * header.alphabet_bits) % 32 > 0)
-		binary_seq_len++;
-
-	//The +1 is to avoid access violations when copying in the
-	//binary sequence before shifting.
-	if( sequence != NULL )
-		delete[] sequence;
-	sequence = new uint32[binary_seq_len+1];
-	sa.GetBSequence(sequence, sa_head.length, 0);
-
-	uint32 bseq_len1 = (sa_head.length * sa_head.alphabet_bits) / 32;
-	uint32 bseq_remainder = (sa_head.length * sa_head.alphabet_bits) % 32;
-	if(bseq_remainder > 0){
-		sa2.GetBSequence(&(sequence[bseq_len1]), sa_head2.length, 0);
-		//mask off the end of the first sequence
-		uint32 end_mask = 0xFFFFFFFF;
-		end_mask <<= bseq_remainder;
-		sequence[bseq_len1] &= end_mask;
-
-		//shift the second sequence over.
-		for(uint32 i=bseq_len1; i < binary_seq_len; i++){
-			uint32 tmp = sequence[i+1];
-			tmp >>= 32 - bseq_remainder;
-			sequence[i] |= tmp;
-			sequence[i+1] <<= bseq_remainder;
+#if	REDLACK
+		const float dMetric = ComputeMetric(uNewNodeIndex, uNodeIndex);
+		InsertMetric(uNewNodeIndex, uNodeIndex, dMetric);
+#endif
 		}
-	}else
-		sa2.GetBSequence(&(sequence[bseq_len1]), sa_head2.length, 0);
-	
-	//write the sequence
-	sarfile.write((char*)sequence, binary_seq_len * sizeof(uint32));
-	sarray_start_offset = sarfile.tellg();
-
-	//get new mers in the middle
-	vector<bmer> middle_mers;
-	bmer mid_mer;
-	for(uint32 midI = sa_head.length - header.seed_length + 1; midI < sa_head.length; midI++){
-		mid_mer.position = midI;
-		mid_mer.mer = GetMer(midI);
-		middle_mers.push_back(mid_mer);
 	}
-	sort(middle_mers.begin(), middle_mers.end(), &bmer_lessthan);
-	//put a special mer at the end which will never go into the sorted mer list
-	//since every possible mer is less than it.
-	mid_mer.mer = 0xFFFFFFFF;
-	mid_mer.mer <<= 32;
-	mid_mer.mer |= 0xFFFFFFFF;
-	mid_mer.position = GNSEQI_END;
-	middle_mers.push_back(mid_mer);
-	//merge and write the sorted mer lists
-	vector<bmer> array1, array2;
-	uint32 SAR_BUFFER_SIZE = SEQ_BUFFER_SIZE/2;  //actual size is this number * 13 bytes
-	uint32 k=0, l=0, midI=0;
-	uint32 m = 0, n = 0;
-	gnSeqI bufferI=0;
-	do{
-		//mergesort them
-		while(m < array1.size() && n < array2.size()){
-			if(array1[m].mer <= array2[n].mer){
-				if(array1[m].mer <= middle_mers[midI].mer){
-					seq_buf.data[bufferI] = array1[m].position;
-					m++;
-					bufferI++;
-				}else{
-					seq_buf.data[bufferI] = middle_mers[midI].position;
-					midI++;
-					bufferI++;
+
+void Clust::ChooseJoin(unsigned *ptruLeftIndex, unsigned *ptruRightIndex,
+  float *ptrdLeftLength, float *ptrdRightLength)
+	{
+	switch (m_JoinStyle)
+		{
+	case JOIN_NearestNeighbor:
+		ChooseJoinNearestNeighbor(ptruLeftIndex, ptruRightIndex, ptrdLeftLength,
+		  ptrdRightLength);
+		return;
+	case JOIN_NeighborJoining:
+		ChooseJoinNeighborJoining(ptruLeftIndex, ptruRightIndex, ptrdLeftLength,
+		  ptrdRightLength);
+		return;
+	case JOIN_Undefined:
+		Quit("Clust::ChooseJoin, undefined join style");
+		return;
+		}
+	Quit("Clust::ChooseJoin, Invalid join style %u", m_JoinStyle);
+	}
+
+void Clust::ChooseJoinNearestNeighbor(unsigned *ptruLeftIndex,
+  unsigned *ptruRightIndex, float *ptrdLeftLength, float *ptrdRightLength)
+	{
+	const unsigned uClusterCount = GetClusterCount();
+
+	unsigned uMinLeftNodeIndex;
+	unsigned uMinRightNodeIndex;
+	GetMinMetric(&uMinLeftNodeIndex, &uMinRightNodeIndex);
+
+	float dMinDist = GetDist(uMinLeftNodeIndex, uMinRightNodeIndex);
+
+	const float dLeftHeight = GetHeight(uMinLeftNodeIndex);
+	const float dRightHeight = GetHeight(uMinRightNodeIndex);
+
+	*ptruLeftIndex = uMinLeftNodeIndex;
+	*ptruRightIndex = uMinRightNodeIndex;
+	*ptrdLeftLength = dMinDist/2 - dLeftHeight;
+	*ptrdRightLength = dMinDist/2 - dRightHeight;
+	}
+
+void Clust::ChooseJoinNeighborJoining(unsigned *ptruLeftIndex,
+  unsigned *ptruRightIndex, float *ptrdLeftLength, float *ptrdRightLength)
+	{
+	const unsigned uClusterCount = GetClusterCount();
+
+	//unsigned uMinLeftNodeIndex = uInsane;
+	//unsigned uMinRightNodeIndex = uInsane;
+	//float dMinD = PLUS_INFINITY;
+	//for (unsigned i = GetFirstCluster(); i != uInsane; i = GetNextCluster(i))
+	//	{
+	//	const float ri = Calc_r(i);
+	//	for (unsigned j = GetNextCluster(i); j != uInsane; j = GetNextCluster(j))
+	//		{
+	//		const float rj = Calc_r(j);
+	//		const float dij = GetDist(i, j);
+	//		const float Dij = dij - (ri + rj);
+	//		if (Dij < dMinD)
+	//			{
+	//			dMinD = Dij;
+	//			uMinLeftNodeIndex = i;
+	//			uMinRightNodeIndex = j;
+	//			}
+	//		}
+	//	}
+
+	unsigned uMinLeftNodeIndex;
+	unsigned uMinRightNodeIndex;
+	GetMinMetric(&uMinLeftNodeIndex, &uMinRightNodeIndex);
+
+	const float dDistLR = GetDist(uMinLeftNodeIndex, uMinRightNodeIndex);
+	const float rL = Calc_r(uMinLeftNodeIndex);
+	const float rR = Calc_r(uMinRightNodeIndex);
+
+	const float dLeftLength = (dDistLR + rL - rR)/2;
+	const float dRightLength = (dDistLR - rL + rR)/2;
+
+	*ptruLeftIndex = uMinLeftNodeIndex;
+	*ptruRightIndex = uMinRightNodeIndex;
+	*ptrdLeftLength = dLeftLength;
+	*ptrdRightLength = dRightLength;
+	}
+
+void Clust::JoinNodes(unsigned uLeftIndex, unsigned uRightIndex, float dLeftLength,
+  float dRightLength, unsigned uNodeIndex)
+	{
+	ClustNode &Parent = m_Nodes[uNodeIndex];
+	ClustNode &Left = m_Nodes[uLeftIndex];
+	ClustNode &Right = m_Nodes[uRightIndex];
+
+	Left.m_dLength = dLeftLength;
+	Right.m_dLength = dRightLength;
+
+	Parent.m_ptrLeft = &Left;
+	Parent.m_ptrRight = &Right;
+
+	Left.m_ptrParent = &Parent;
+	Right.m_ptrParent = &Parent;
+
+	const unsigned uLeftSize = Left.m_uSize;
+	const unsigned uRightSize = Right.m_uSize;
+	const unsigned uParentSize = uLeftSize + uRightSize;
+	Parent.m_uSize = uParentSize;
+
+	assert(0 == Parent.m_uLeafIndexes);
+	Parent.m_uLeafIndexes = new unsigned[uParentSize];
+
+	const unsigned uLeftBytes = uLeftSize*sizeof(unsigned);
+	const unsigned uRightBytes = uRightSize*sizeof(unsigned);
+	memcpy(Parent.m_uLeafIndexes, Left.m_uLeafIndexes, uLeftBytes);
+	memcpy(Parent.m_uLeafIndexes + uLeftSize, Right.m_uLeafIndexes, uRightBytes);
+
+	DeleteFromClusterList(uLeftIndex);
+	DeleteFromClusterList(uRightIndex);
+	AddToClusterList(uNodeIndex);
+	}
+
+float Clust::Calc_r(unsigned uNodeIndex) const
+	{
+	const unsigned uClusterCount = GetClusterCount();
+	if (2 == uClusterCount)
+		return 0;
+
+	float dSum = 0;
+	for (unsigned i = GetFirstCluster(); i != uInsane; i = GetNextCluster(i))
+		{
+		if (i == uNodeIndex)
+			continue;
+		dSum += GetDist(uNodeIndex, i);
+		}
+	return dSum/(uClusterCount - 2);
+	}
+
+float Clust::ComputeDist(unsigned uNewNodeIndex, unsigned uNodeIndex)
+	{
+	switch (m_CentroidStyle)
+		{
+	case LINKAGE_Avg:
+		return ComputeDistAverageLinkage(uNewNodeIndex, uNodeIndex);
+
+	case LINKAGE_Min:
+		return ComputeDistMinLinkage(uNewNodeIndex, uNodeIndex);
+
+	case LINKAGE_Max:
+		return ComputeDistMaxLinkage(uNewNodeIndex, uNodeIndex);
+
+	case LINKAGE_Biased:
+		return ComputeDistMAFFT(uNewNodeIndex, uNodeIndex);
+
+	case LINKAGE_NeighborJoining:
+		return ComputeDistNeighborJoining(uNewNodeIndex, uNodeIndex);
+
+	case LINKAGE_Undefined:
+		Quit("Clust::ComputeDist, undefined linkage style");
+		break;
+		}
+	Quit("Clust::ComputeDist, invalid centroid style %u", m_CentroidStyle);
+	return (float) g_dNAN.get();
+	}
+
+float Clust::ComputeDistMinLinkage(unsigned uNewNodeIndex, unsigned uNodeIndex)
+	{
+	const unsigned uLeftNodeIndex = GetLeftIndex(uNewNodeIndex);
+	const unsigned uRightNodeIndex = GetRightIndex(uNewNodeIndex);
+	const float dDistL = GetDist(uLeftNodeIndex, uNodeIndex);
+	const float dDistR = GetDist(uRightNodeIndex, uNodeIndex);
+	return (dDistL < dDistR ? dDistL : dDistR);
+	}
+
+float Clust::ComputeDistMaxLinkage(unsigned uNewNodeIndex, unsigned uNodeIndex)
+	{
+	const unsigned uLeftNodeIndex = GetLeftIndex(uNewNodeIndex);
+	const unsigned uRightNodeIndex = GetRightIndex(uNewNodeIndex);
+	const float dDistL = GetDist(uLeftNodeIndex, uNodeIndex);
+	const float dDistR = GetDist(uRightNodeIndex, uNodeIndex);
+	return (dDistL > dDistR ? dDistL : dDistR);
+	}
+
+float Clust::ComputeDistAverageLinkage(unsigned uNewNodeIndex, unsigned uNodeIndex)
+	{
+	const unsigned uLeftNodeIndex = GetLeftIndex(uNewNodeIndex);
+	const unsigned uRightNodeIndex = GetRightIndex(uNewNodeIndex);
+	const float dDistL = GetDist(uLeftNodeIndex, uNodeIndex);
+	const float dDistR = GetDist(uRightNodeIndex, uNodeIndex);
+	return (dDistL + dDistR)/2;
+	}
+
+float Clust::ComputeDistNeighborJoining(unsigned uNewNodeIndex, unsigned uNodeIndex)
+	{
+	const unsigned uLeftNodeIndex = GetLeftIndex(uNewNodeIndex);
+	const unsigned uRightNodeIndex = GetRightIndex(uNewNodeIndex);
+	const float dDistLR = GetDist(uLeftNodeIndex, uRightNodeIndex);
+	const float dDistL = GetDist(uLeftNodeIndex, uNodeIndex);
+	const float dDistR = GetDist(uRightNodeIndex, uNodeIndex);
+	const float dDist = (dDistL + dDistR - dDistLR)/2;
+	return dDist;
+	}
+
+// This is a mysterious variant of UPGMA reverse-engineered from MAFFT source.
+float Clust::ComputeDistMAFFT(unsigned uNewNodeIndex, unsigned uNodeIndex)
+	{
+	const unsigned uLeftNodeIndex = GetLeftIndex(uNewNodeIndex);
+	const unsigned uRightNodeIndex = GetRightIndex(uNewNodeIndex);
+
+	const float dDistLR = GetDist(uLeftNodeIndex, uRightNodeIndex);
+	const float dDistL = GetDist(uLeftNodeIndex, uNodeIndex);
+	const float dDistR = GetDist(uRightNodeIndex, uNodeIndex);
+	const float dMinDistLR = (dDistL < dDistR ? dDistL : dDistR);
+	const float dSumDistLR = dDistL + dDistR;
+	const float dDist = dMinDistLR*(1 - g_dSUEFF.get()) + dSumDistLR*g_dSUEFF.get()/2;
+	return dDist;
+	}
+
+unsigned Clust::GetClusterCount() const
+	{
+	return m_uClusterCount;
+	}
+
+void Clust::LogMe() const
+	{
+	Log("Clust %u leaves, %u nodes, %u clusters.\n",
+	  m_uLeafCount, m_uNodeCount, m_uClusterCount);
+
+	Log("Distance matrix\n");
+	const unsigned uNodeCount = GetNodeCount();
+	Log("       ");
+	for (unsigned i = 0; i < uNodeCount - 1; ++i)
+		Log(" %7u", i);
+	Log("\n");
+
+	Log("       ");
+	for (unsigned i = 0; i < uNodeCount - 1; ++i)
+		Log("  ------");
+	Log("\n");
+
+	for (unsigned i = 0; i < uNodeCount - 1; ++i)
+		{
+		Log("%4u:  ", i);
+		for (unsigned j = 0; j < i; ++j)
+			Log(" %7.2g", GetDist(i, j));
+		Log("\n");
+		}
+
+	Log("\n");
+	Log("Node  Size  Prnt  Left  Rght   Length  Name\n");
+	Log("----  ----  ----  ----  ----   ------  ----\n");
+	for (unsigned uNodeIndex = 0; uNodeIndex < m_uNodeCount; ++uNodeIndex)
+		{
+		const ClustNode &Node = m_Nodes[uNodeIndex];
+		Log("%4u  %4u", uNodeIndex, Node.m_uSize);
+		if (0 != Node.m_ptrParent)
+			Log("  %4u", Node.m_ptrParent->m_uIndex);
+		else
+			Log("      ");
+
+		if (0 != Node.m_ptrLeft)
+			Log("  %4u", Node.m_ptrLeft->m_uIndex);
+		else
+			Log("      ");
+
+		if (0 != Node.m_ptrRight)
+			Log("  %4u", Node.m_ptrRight->m_uIndex);
+		else
+			Log("      ");
+
+		if (uNodeIndex != m_uNodeCount - 1)
+			Log("  %7.3g", Node.m_dLength);
+		if (IsLeaf(uNodeIndex))
+			{
+			const char *ptrName = GetNodeName(uNodeIndex);
+			if (0 != ptrName)
+				Log("  %s", ptrName);
+			}
+		if (GetRootNodeIndex() == uNodeIndex)
+			Log("    [ROOT]");
+		Log("\n");
+		}
+	}
+
+const ClustNode &Clust::GetNode(unsigned uNodeIndex) const
+	{
+	if (uNodeIndex >= m_uNodeCount)
+		Quit("ClustNode::GetNode(%u) %u", uNodeIndex, m_uNodeCount);
+	return m_Nodes[uNodeIndex];
+	}
+
+bool Clust::IsLeaf(unsigned uNodeIndex) const
+	{
+	return uNodeIndex < m_uLeafCount;
+	}
+
+unsigned Clust::GetClusterSize(unsigned uNodeIndex) const
+	{
+	const ClustNode &Node = GetNode(uNodeIndex);
+	return Node.m_uSize;
+	}
+
+unsigned Clust::GetLeftIndex(unsigned uNodeIndex) const
+	{
+	const ClustNode &Node = GetNode(uNodeIndex);
+	if (0 == Node.m_ptrLeft)
+		Quit("Clust::GetLeftIndex: leaf");
+	return Node.m_ptrLeft->m_uIndex;
+	}
+
+unsigned Clust::GetRightIndex(unsigned uNodeIndex) const
+	{
+	const ClustNode &Node = GetNode(uNodeIndex);
+	if (0 == Node.m_ptrRight)
+		Quit("Clust::GetRightIndex: leaf");
+	return Node.m_ptrRight->m_uIndex;
+	}
+
+float Clust::GetLength(unsigned uNodeIndex) const
+	{
+	const ClustNode &Node = GetNode(uNodeIndex);
+	return Node.m_dLength;
+	}
+
+void Clust::SetLeafCount(unsigned uLeafCount)
+	{
+	if (uLeafCount <= 1)
+		Quit("Clust::SetLeafCount(%u)", uLeafCount);
+
+	m_uLeafCount = uLeafCount;
+	const unsigned uNodeCount = GetNodeCount();
+
+// Triangular matrix size excluding diagonal (all zeros in our case).
+	m_uTriangularMatrixSize = (uNodeCount*(uNodeCount - 1))/2;
+	m_dDist = new float[m_uTriangularMatrixSize];
+	}
+
+unsigned Clust::GetLeafCount() const
+	{
+	return m_uLeafCount;
+	}
+
+unsigned Clust::VectorIndex(unsigned uIndex1, unsigned uIndex2) const
+	{
+	const unsigned uNodeCount = GetNodeCount();
+	if (uIndex1 >= uNodeCount || uIndex2 >= uNodeCount)
+		Quit("DistVectorIndex(%u,%u) %u", uIndex1, uIndex2, uNodeCount);
+	unsigned v;
+	if (uIndex1 >= uIndex2)
+		v = uIndex2 + (uIndex1*(uIndex1 - 1))/2;
+	else
+		v = uIndex1 + (uIndex2*(uIndex2 - 1))/2;
+	assert(v < m_uTriangularMatrixSize);
+	return v;
+	}
+
+float Clust::GetDist(unsigned uIndex1, unsigned uIndex2) const
+	{
+	unsigned v = VectorIndex(uIndex1, uIndex2);
+	return m_dDist[v];
+	}
+
+void Clust::SetDist(unsigned uIndex1, unsigned uIndex2, float dDist)
+	{
+	unsigned v = VectorIndex(uIndex1, uIndex2);
+	m_dDist[v] = dDist;
+	}
+
+float Clust::GetHeight(unsigned uNodeIndex) const
+	{
+	if (IsLeaf(uNodeIndex))
+		return 0;
+
+	const unsigned uLeftIndex = GetLeftIndex(uNodeIndex);
+	const unsigned uRightIndex = GetRightIndex(uNodeIndex);
+	const float dLeftLength = GetLength(uLeftIndex);
+	const float dRightLength = GetLength(uRightIndex);
+	const float dLeftHeight = dLeftLength + GetHeight(uLeftIndex);
+	const float dRightHeight = dRightLength + GetHeight(uRightIndex);
+	return (dLeftHeight + dRightHeight)/2;
+	}
+
+const char *Clust::GetNodeName(unsigned uNodeIndex) const
+	{
+	if (!IsLeaf(uNodeIndex))
+		Quit("Clust::GetNodeName, is not leaf");
+	return m_ptrSet->GetLeafName(uNodeIndex);
+	}
+
+unsigned Clust::GetNodeId(unsigned uNodeIndex) const
+	{
+	if (uNodeIndex >= GetLeafCount())
+		return 0;
+	return m_ptrSet->GetLeafId(uNodeIndex);
+	}
+
+unsigned Clust::GetLeaf(unsigned uNodeIndex, unsigned uLeafIndex) const
+	{
+	const ClustNode &Node = GetNode(uNodeIndex);
+	const unsigned uLeafCount = Node.m_uSize;
+	if (uLeafIndex >= uLeafCount)
+		Quit("Clust::GetLeaf, invalid index");
+	const unsigned uIndex = Node.m_uLeafIndexes[uLeafIndex];
+	if (uIndex >= m_uNodeCount)
+		Quit("Clust::GetLeaf, index out of range");
+	return uIndex;
+	}
+
+unsigned Clust::GetFirstCluster() const
+	{
+	if (0 == m_ptrClusterList)
+		return uInsane;
+	return m_ptrClusterList->m_uIndex;
+	}
+
+unsigned Clust::GetNextCluster(unsigned uIndex) const
+	{
+	ClustNode *ptrNode = &m_Nodes[uIndex];
+	if (0 == ptrNode->m_ptrNextCluster)
+		return uInsane;
+	return ptrNode->m_ptrNextCluster->m_uIndex;
+	}
+
+void Clust::DeleteFromClusterList(unsigned uNodeIndex)
+	{
+	assert(uNodeIndex < m_uNodeCount);
+	ClustNode *ptrNode = &m_Nodes[uNodeIndex];
+	ClustNode *ptrPrev = ptrNode->m_ptrPrevCluster;
+	ClustNode *ptrNext = ptrNode->m_ptrNextCluster;
+
+	if (0 != ptrNext)
+		ptrNext->m_ptrPrevCluster = ptrPrev;
+	if (0 == ptrPrev)
+		{
+		assert(m_ptrClusterList == ptrNode);
+		m_ptrClusterList = ptrNext;
+		}
+	else
+		ptrPrev->m_ptrNextCluster = ptrNext;
+
+	ptrNode->m_ptrNextCluster = 0;
+	ptrNode->m_ptrPrevCluster = 0;
+	}
+
+void Clust::AddToClusterList(unsigned uNodeIndex)
+	{
+	assert(uNodeIndex < m_uNodeCount);
+	ClustNode *ptrNode = &m_Nodes[uNodeIndex];
+
+	if (0 != m_ptrClusterList)
+		m_ptrClusterList->m_ptrPrevCluster = ptrNode;
+
+	ptrNode->m_ptrNextCluster = m_ptrClusterList;
+	ptrNode->m_ptrPrevCluster = 0;
+
+	m_ptrClusterList = ptrNode;
+	}
+
+float Clust::ComputeMetric(unsigned uIndex1, unsigned uIndex2) const
+	{
+	switch (m_JoinStyle)
+		{
+	case JOIN_NearestNeighbor:
+		return ComputeMetricNearestNeighbor(uIndex1, uIndex2);
+
+	case JOIN_NeighborJoining:
+		return ComputeMetricNeighborJoining(uIndex1, uIndex2);
+
+	case JOIN_Undefined:
+		Quit("Clust::ComputeMetric, undefined join style");
+		break;
+		}
+	Quit("Clust::ComputeMetric");
+	return 0;
+	}
+
+float Clust::ComputeMetricNeighborJoining(unsigned i, unsigned j) const
+	{
+	float ri = Calc_r(i);
+	float rj = Calc_r(j);
+	float dij = GetDist(i, j);
+	float dMetric = dij - (ri + rj);
+	return (float) dMetric;
+	}
+
+float Clust::ComputeMetricNearestNeighbor(unsigned i, unsigned j) const
+	{
+	return (float) GetDist(i, j);
+	}
+
+float Clust::GetMinMetricBruteForce(unsigned *ptruIndex1, unsigned *ptruIndex2) const
+	{
+	unsigned uMinLeftNodeIndex = uInsane;
+	unsigned uMinRightNodeIndex = uInsane;
+	float dMinMetric = PLUS_INFINITY;
+	for (unsigned uLeftNodeIndex = GetFirstCluster(); uLeftNodeIndex != uInsane;
+	  uLeftNodeIndex = GetNextCluster(uLeftNodeIndex))
+		{
+		for (unsigned uRightNodeIndex = GetNextCluster(uLeftNodeIndex);
+		  uRightNodeIndex != uInsane;
+		  uRightNodeIndex = GetNextCluster(uRightNodeIndex))
+			{
+			float dMetric = ComputeMetric(uLeftNodeIndex, uRightNodeIndex);
+			if (dMetric < dMinMetric)
+				{
+				dMinMetric = dMetric;
+				uMinLeftNodeIndex = uLeftNodeIndex;
+				uMinRightNodeIndex = uRightNodeIndex;
 				}
-			}else if(array2[n].mer <= middle_mers[midI].mer){
-				seq_buf.data[bufferI] = array2[n].position + sa_head.length;
-				n++;
-				bufferI++;
-			}else{
-				seq_buf.data[bufferI] = middle_mers[midI].position;
-				midI++;
-				bufferI++;
-			}
-			if(bufferI == SEQ_BUFFER_SIZE){
-				sarfile.write((char*)seq_buf.data, bufferI * sizeof(uint32));
-				bufferI = 0;
 			}
 		}
-		if(m == array1.size()){
-			sa.Read(array1, SAR_BUFFER_SIZE, k);
-			k += array1.size();
-			m = 0;
-		}
-		if(n == array2.size()){
-			sa2.Read(array2, SAR_BUFFER_SIZE, l);
-			l += array2.size();
-			n = 0;
-		}
-	}while(array1.size() != 0 && array2.size() != 0);
-	if(bufferI > 0)
-		sarfile.write((char*)seq_buf.data, (bufferI)*sizeof(uint32));
-	//consolidate the remaining mers to a known vector
-	vector<bmer> remaining_mers;
-	for(;m < array1.size(); m++)
-		remaining_mers.push_back(array1[m]);
-	for(;n < array2.size(); n++){
-		remaining_mers.push_back(array2[n]);
-		remaining_mers[remaining_mers.size()-1].position += sa_head.length;
+	*ptruIndex1 = uMinLeftNodeIndex;
+	*ptruIndex2 = uMinRightNodeIndex;
+	return dMinMetric;
 	}
-	for(;midI < middle_mers.size() - 1; midI++)
-		remaining_mers.push_back(middle_mers[midI]);
-	//merge them with the remaining middle_mers
-	sort(remaining_mers.begin(), remaining_mers.end(), &bmer_lessthan);
-	uint32 remI = 0;
-	for(;remI < remaining_mers.size(); remI++)
-		seq_buf.data[remI] = remaining_mers[remI].position;
-	if(remI > 0)
-		sarfile.write((char*)seq_buf.data, (remI)*sizeof(uint32));
 
-	if(!sarfile.good()){
-		sarfile.clear();
-		sarfile.close();
-		sarfile.open(filename.c_str(), ios::binary | ios::in );
-		Throw_gnExMsg(IOStreamFailed(), "Error writing position array.");
+float Clust::GetMinMetric(unsigned *ptruIndex1, unsigned *ptruIndex2) const
+	{
+	return GetMinMetricBruteForce(ptruIndex1, ptruIndex2);
 	}
-	// reopen the sorted mer list file read-only
-	sarfile.close();
-	sarfile.open(filename.c_str(), ios::binary | ios::in );
-	if(!sarfile.is_open()){
-		sarfile.clear();
-		Throw_gnExMsg(FileNotOpened(), "Error opening sorted mer list file.");
-	}
-STACK_TRACE_END
-}
-
 }
