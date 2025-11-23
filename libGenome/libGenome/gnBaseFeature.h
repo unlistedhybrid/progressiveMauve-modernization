@@ -38,7 +38,7 @@ class GNDLLEXPORT gnBaseFeature : public gnClone
 {
 public:
 	gnBaseFeature();
-	gnBaseFeature( std::string& name, uint32 id = 0, gnFragmentSpec* spec = NULL, gnLocation::gnLocationType lt = gnLocation::LT_Nothing, boolean broken = false );
+	gnBaseFeature( std::string& name, uint32 id = 0, gnFragmentSpec* spec = NULL, gnLocation::gnLocationType lt = gnLocation::LT_Nothing, bool broken = false );
 	/**
 	 * Destructor, frees memory.
 	 */
@@ -101,7 +101,7 @@ public:
 	 * @return True if successful, false otherwise.
 	 * @see gnLocation
 	 */
-	virtual boolean AddLocation( const gnLocation& l, uint32 listI = 0);
+	virtual bool AddLocation( const gnLocation& l, uint32 listI = 0);
 	/**
 	 * Gets the location at listI.
 	 * @param listI The index into the location list to get.
@@ -113,91 +113,91 @@ public:
 	 * @param listI The index into the location list to delete.
 	 * @return True if successful, false otherwise.
 	 */
-	virtual boolean RemoveLocation( uint32 listI );
+	virtual bool RemoveLocation( uint32 listI );
 	/**
 	 * Sets the location at listI to a new location.
 	 * @param l The new location
 	 * @param listI The index into the location list to set.
 	 * @return True if successful, false otherwise.
 	 */
-	virtual boolean SetLocation( const gnLocation& l, uint32 listI );
+	virtual bool SetLocation( const gnLocation& l, uint32 listI );
 	/**
 	 * Increases this feature's coordinates by a specific number of bases.
 	 * @param i The number of bases to increase by.
 	 * @return True if successful, false if the feature was broken by the change.
 	 */
-	virtual boolean MovePositive( const gnSeqI i );
+	virtual bool MovePositive( const gnSeqI i );
 	/**
 	 * Decreases this feature's coordinates by a specific number of bases.
 	 * @param i The number of bases to decrease by.
 	 * @return True if successful, false if the feature was broken by the change.
 	 */
-	virtual boolean MoveNegative( const gnSeqI i );
+	virtual bool MoveNegative( const gnSeqI i );
 	/**
 	 * Crops the start locations of this feature by the specified amount.
 	 * @param i The amount to crop.
 	 * @return True if successful, false if the feature was broken by the change.
 	 */
-	virtual boolean CropStart( const gnSeqI i );
+	virtual bool CropStart( const gnSeqI i );
 	/**
 	 * Crops the end locations of this feature by the specified amount.
 	 * @param i The amount to crop.
 	 * @return True if successful, false if the feature was broken by the change.
 	 */
-	virtual boolean CropEnd( const gnSeqI i );
+	virtual bool CropEnd( const gnSeqI i );
 	/**
 	 * Crops the locations of this feature to fit within the given location.
 	 * @param l The location to crop reduce to.
 	 * @return True if successful, false if the feature was broken by the change.
 	 */
-	virtual boolean Crop( const gnLocation& l );
+	virtual bool Crop( const gnLocation& l );
 	/**
 	 * Returns true if the feature is broken
 	 * @return True if the feature is broken
 	 */
-	virtual boolean IsBroken() const;
+	virtual bool IsBroken() const;
 	/**
 	 * Sets whether the feature is broken or not.
 	 * @param broke True if the feature should be broken, false otherwise
 	 */
-	virtual void SetBroken(boolean broke);
+	virtual void SetBroken(bool broke);
 
 	/**
 	 * Checks if the given coordinate is contained by this feature
 	 * @param i The coordinate to check
 	 * @return True if "i" is contained by this feature.  False otherwise
 	 */
-	virtual boolean Contains( gnSeqI i ) const;
+	virtual bool Contains( gnSeqI i ) const;
 	/**
 	 * Checks if the given location is contained by this feature
 	 * @param l The location to check
 	 * @return True if "l" is contained by this feature.  False otherwise
 	 */
-	virtual boolean Contains( const gnLocation& l ) const;
+	virtual bool Contains( const gnLocation& l ) const;
 	/**
 	 * Checks if the given feature is entirely contained by this feature
 	 * @param feature The feature to check
 	 * @return True if "feature" is contained by this feature.  False otherwise
 	 */
-	virtual boolean Contains( gnBaseFeature* feature ) const;
+	virtual bool Contains( gnBaseFeature* feature ) const;
 	/**
 	 * Checks if this feature is entirely contained by the given location
 	 * @param l The location to check
 	 * @return True if "l" contains by this feature.  False otherwise
 	 */
-	virtual boolean IsContainedBy( const gnLocation& l ) const;
+	virtual bool IsContainedBy( const gnLocation& l ) const;
 	/**
 	 * Checks if the given location intersects this feature
 	 * @param l The location to check
 	 * @return True if "l" intersects this feature.  False otherwise
 	 */
-	virtual boolean Intersects( const gnLocation& l ) const;
+	virtual bool Intersects( const gnLocation& l ) const;
 	/**
 	 * Checks if the given feature intersects this feature
 	 * @param feature The location to check
 	 * @return True if "feature" intersects this feature.  False otherwise
 	 */
-	virtual boolean Intersects( gnBaseFeature* feature ) const;
+	virtual bool Intersects( gnBaseFeature* feature ) const;
 
 	/**
 	 * Returns the number of qualifiers in this feature.
@@ -209,13 +209,13 @@ public:
 	 * @param qualifier The qualifier to add.
 	 * @return True if successful, false otherwise.
 	 */
-	virtual boolean AddQualifier( gnBaseQualifier* qualifier );
+	virtual bool AddQualifier( gnBaseQualifier* qualifier );
 	/**
 	 * Looks for a qualifier by name.
 	 * @param name The name of the qualifier to look for.
 	 * @return True if a qualifier was found, false otherwise.
 	 */
-	virtual boolean HasQualifier( const std::string& name ) const;
+	virtual bool HasQualifier( const std::string& name ) const;
 	/**
 	 * Searches for a qualifier by name, starting at the index listI.
 	 * @param name The name of the qualifier to look for.
@@ -253,7 +253,7 @@ public:
 	 * @param listI The index into the qualifier list.
 	 * @return True if successful, false otherwise.
 	 */
-	virtual boolean RemoveQualifier( uint32 listI );
+	virtual bool RemoveQualifier( uint32 listI );
 	/**
 	 * Set the name and value of the qualifier at the list index listI.
 	 * @param name The new name of the qualifier.
@@ -261,25 +261,25 @@ public:
 	 * @param listI The index into the qualifier list.
 	 * @return True if successful, false otherwise.
 	 */
-	virtual boolean SetQualifier( std::string& name, std::string& value, uint32 listI );
+	virtual bool SetQualifier( std::string& name, std::string& value, uint32 listI );
 	/**
 	 * Set the name of the qualifier at the list index listI.
 	 * @param name The new name of the qualifier.
 	 * @param listI The index into the qualifier list.
 	 * @return True if successful, false otherwise.
 	 */
-	virtual boolean SetQualifierName( std::string& name, uint32 listI );
+	virtual bool SetQualifierName( std::string& name, uint32 listI );
 	/**
 	 * Set the value of the qualifier at the list index listI.
 	 * @param value The new value of the qualifier.
 	 * @param listI The index into the qualifier list.
 	 * @return True if successful, false otherwise.
 	 */
-	virtual boolean SetQualifierValue( std::string& value, uint32 listI );
+	virtual bool SetQualifierValue( std::string& value, uint32 listI );
 protected:
 	uint32 m_id;
 	std::string m_name;
-	boolean m_broken;
+	bool m_broken;
 	gnLocation::gnLocationType m_locationType;
 	std::vector< gnLocation > m_locationList;
 	std::vector< gnBaseQualifier* > m_qualifierList;
@@ -311,11 +311,11 @@ void gnBaseFeature::SetSpec(gnFragmentSpec* spec){
 	m_spec = spec;
 }
 inline
-boolean gnBaseFeature::IsBroken() const{
+bool gnBaseFeature::IsBroken() const{
 	return m_broken;
 }
 inline
-void gnBaseFeature::SetBroken(boolean broke){
+void gnBaseFeature::SetBroken(bool broke){
 	m_broken = broke;
 }
 
@@ -332,7 +332,7 @@ uint32 gnBaseFeature::GetLocationListLength() const{
 	return m_locationList.size();
 }
 inline
-boolean gnBaseFeature::Crop( const gnLocation& l ){
+bool gnBaseFeature::Crop( const gnLocation& l ){
 	return CropStart(l.GetStart()) && CropEnd(l.GetEnd());
 }
 inline
