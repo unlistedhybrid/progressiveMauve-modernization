@@ -38,8 +38,8 @@ class AlignmentTreeNode : public TreeNode
 public:
 	AlignmentTreeNode() : TreeNode(), refined(false) {};
 	std::vector< SuperInterval > ordering;	/**< A total ordering on alignments of sequence contained by leafs below this node */
-	std::vector< boolean > parents_aligned;		/**< have parents been aligned? */
-	std::vector< boolean > children_aligned;	/**< have children been aligned? */
+	std::vector< bool > parents_aligned;		/**< have parents been aligned? */
+	std::vector< bool > children_aligned;	/**< have children been aligned? */
 	genome::gnSequence* sequence;	/**< The sequence associated with this node, NULL for ancestral nodes */
 	bool refined;	/**< true if iterative refinement has been applied to the alignment at this node */
 };
@@ -67,7 +67,7 @@ public:
 	/** sets the the minimum breakpoint penalty after scaling */
 	void setMinimumBreakpointPenalty( double min_bp_penalty ){ min_breakpoint_penalty = min_bp_penalty; }
 	/** assume all genomes are collinear when set to true */
-	void setCollinear( boolean collinear ){ this->collinear_genomes = collinear; }
+	void setCollinear( bool collinear ){ this->collinear_genomes = collinear; }
 	/** use a list of precomputed matches instead of computing them */
 	void setPairwiseMatches( mems::MatchList& pair_ml );
 	/** use a precomputed guide tree stored in the given file */
@@ -200,8 +200,8 @@ protected:
 	double min_breakpoint_penalty;
 	std::string input_guide_tree_fname;
 	std::string output_guide_tree_fname;
-	boolean debug;
-	boolean refine;
+	bool debug;
+	bool refine;
 	bool using_cache_db;
 
 	std::vector< SeedOccurrenceList > sol_list;
@@ -250,7 +250,7 @@ template<class T>
 class AbsolutComparator
 {
 public:
-	boolean operator()(const T& a, const T& b) const
+	bool operator()(const T& a, const T& b) const
 	{
 		return (genome::absolut(a) < genome::absolut(b));
 	}
@@ -325,7 +325,7 @@ void EliminateOverlaps_v2( MatchVector& ml, const std::vector< uint >& seq_ids, 
 				if( ml[ nextI ] == NULL )
 					continue;
 
-				boolean deleted_matchI = false;
+				bool deleted_matchI = false;
 				// check for overlaps
 				int64 startI = ml[ matchI ]->Start( seqI );
 				int64 lenI = ml[ matchI ]->Length( seqI );
