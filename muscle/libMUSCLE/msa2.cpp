@@ -5,6 +5,7 @@
 #include "libMUSCLE/tree.h"
 #include "libMUSCLE/threadstorage.h"
 #include <iostream>
+#include <sstream>
 
 namespace muscle {
 
@@ -382,6 +383,10 @@ void SetMSAWeightsMuscle(MSA &msa)
 	
 	case SEQWEIGHT_ThreeWay:
 		SetThreeWayWeightsMuscle(msa);
+		return;
+
+	case SEQWEIGHT_Undefined:
+		Quit("SetMSAWeightsMuscle: Undefined weight method");
 		return;
 		}
 	Quit("SetMSAWeightsMuscle, Invalid method=%d", Method);
