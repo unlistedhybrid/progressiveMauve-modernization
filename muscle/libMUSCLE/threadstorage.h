@@ -1,71 +1,40 @@
 #ifndef _threadstorage_h_
 #define _threadstorage_h_
 
-// aed 9/7/7: MUSCLE v3.6 made prolific use of file and function-scope static variables.
-// When running multi-threaded, the shared nature of static variables
-// results in nasty race conditions.
-//
-// The TLS template defines thread-local storage for a particular variable
-//
+// Portable thread-local storage for MUSCLE, supporting MSVC, GCC, Clang, OpenMP, single-threaded
 
-#ifdef _OPENMP
-#define MAX_THREAD_COUNT	16
-#define OMP_GET_THREAD_NUM	omp_get_thread_num()
-#include <omp.h>
+#if defined(_MSC_VER)
+    #define TLS_DECL __declspec(thread)
+#elif defined(__GNUC__) || defined(__clang__)
+    #define TLS_DECL __thread
 #else
-#define MAX_THREAD_COUNT	1
-#define OMP_GET_THREAD_NUM	0
-
+    #define TLS_DECL
 #endif
 
-
-#define NELEMS(o)	sizeof(o)/sizeof(o[0])
-
-template<typename T>
+template <typename T>
 class TLS
 {
 public:
-	TLS(){};
+    TLS() : value(nullptr) {}
+    explicit TLS(T t_val) { value = t_val; }
 
-	TLS( T t_val ){
-		for(int i = 0; i < MAX_THREAD_COUNT; i++)
-			t[i] = t_val;
-	}
+    // Use .get() everywhere for cross-platform compatibility
+    T* get() const { return value; }
+    void set(T* v) { value = v; }
 
-	T& get()
-	{
-		return t[OMP_GET_THREAD_NUM];
-	}
+    // Operator overloads for code using g_SeqVec->method()
+    T* operator->() const { return value; }
+    T& operator*()  const { return *value; }
+
 private:
-	TLS( const TLS& tls );	// disallow copying
-	T t[MAX_THREAD_COUNT];
+    // No copying
+    TLS(const TLS&) = delete;
+    TLS& operator=(const TLS&) = delete;
+
+    TLS_DECL static T* value;
 };
 
+template <typename T>
+TLS_DECL T* TLS<T>::value = nullptr;
 
-/**
- * A thread-local storage class specifically to handle string constant initializers.
- * The above TLS code gives the compiler fits for string constants.
- */
-template<typename T>
-class TLSstr
-{
-public:
-	TLSstr(){};
-
-	TLSstr( T t_val ){
-		for(int i = 0; i < MAX_THREAD_COUNT; i++)
-			memcpy(t[i], t_val, sizeof(t_val));
-	}
-
-	T& get()
-	{
-		return t[OMP_GET_THREAD_NUM];
-	}
-private:
-	TLSstr( const TLSstr& tls );	// disallow copying
-	T t[MAX_THREAD_COUNT];
-};
-
-
-#endif	// _threadstorage_h_
-
+#endif // _threadstorage_h_
