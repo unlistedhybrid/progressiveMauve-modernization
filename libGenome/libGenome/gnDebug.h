@@ -1,75 +1,59 @@
 /////////////////////////////////////////////////////////////////////////////
 // File:            libGenome/gnDebug.h
-// Purpose:         Debug header used for libGenome
-// Description:     Debug defines all debuging tools used for libGenome
-// Rev:             A
-// Author:          Aaron Darling 
-// Modified by:     
-// Copyright:       (c) Aaron Darling 
-// Licenses:        See COPYING file for details 
+// Purpose:         Debug header used for libGenome (C++17 modernized)
+// Author:          Aaron Darling (modernized)
+// License:         See COPYING file for details
 /////////////////////////////////////////////////////////////////////////////
+#pragma once
+
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
-
-#ifndef _gnDebug_h_
-#define _gnDebug_h_
 
 #include "libGenome/gnDefs.h"
 #include <string>
 #include <iostream>
 
-#if(defined(WIN32))
-#include "intrin.h"
+#if defined(_WIN32)
+#include <intrin.h>
 #endif
 
 namespace genome {
 
-/** this little function traps into the MSVC debugger */
-inline
-void breakHere()
-{
-#if(defined(WIN32))
-__debugbreak();
+/** Traps into the MSVC debugger */
+inline void breakHere() {
+#if defined(_WIN32)
+    __debugbreak();
 #endif
 }
 
+// Determine command-line/GUI mode
 #if defined(COMMAND_LINE) || defined(_CONSOLE)
-
-const boolean USE_COMMAND_LINE = true;
-const boolean USE_GUI = false;
-
+constexpr bool USE_COMMAND_LINE = true;
+constexpr bool USE_GUI = false;
 #elif defined(GN_GUI)
-
-const boolean USE_COMMAND_LINE = false;
-const boolean USE_GUI = true;
-
+constexpr bool USE_COMMAND_LINE = false;
+constexpr bool USE_GUI = true;
 #else
-
-const boolean USE_COMMAND_LINE = false;
-const boolean USE_GUI = false;
-
+constexpr bool USE_COMMAND_LINE = false;
+constexpr bool USE_GUI = false;
 #endif
-GNDLLEXPORT void DebugMsg(std::string a);
-inline
-void DebugMsg(std::string a){
-	if(USE_COMMAND_LINE){
-		std::cout << a;
-	}else if(USE_GUI){
-	}
+
+// Debug message functions
+inline void DebugMsg(const std::string& msg) {
+    if (USE_COMMAND_LINE) {
+        std::cout << msg;
+    } else if (USE_GUI) {
+        // GUI message logic can be added here
+    }
 }
 
-GNDLLEXPORT void ErrorMsg(std::string a);
-inline
-void ErrorMsg(std::string a){
-	if(USE_COMMAND_LINE){
-		std::cout << a;
-	}else if(USE_GUI){
-	}
+inline void ErrorMsg(const std::string& msg) {
+    if (USE_COMMAND_LINE) {
+        std::cerr << msg;
+    } else if (USE_GUI) {
+        // GUI error logic can be added here
+    }
 }
 
-
-}	// end namespace genome
-
-#endif
-	//_gnDebug_h_
+} // namespace genome
