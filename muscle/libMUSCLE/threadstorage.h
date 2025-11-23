@@ -86,9 +86,9 @@ class TLSstr
 public:
 	TLSstr(){};
 
-	TLSstr( T t_val ){
+	TLSstr( const T& t_val ){
 		for(int i = 0; i < MAX_THREAD_COUNT; i++)
-			memcpy(t[i], t_val, sizeof(t_val));
+			memcpy(t[i], t_val, sizeof(T));
 	}
 
 	T& get()
