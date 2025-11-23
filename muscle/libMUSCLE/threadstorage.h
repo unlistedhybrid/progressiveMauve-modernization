@@ -15,7 +15,7 @@ template <typename T>
 class TLS
 {
 public:
-    TLS() : value(nullptr) {}
+    TLS() {}
     explicit TLS(T t_val) { value = t_val; }
 
     // Use .get() everywhere for cross-platform compatibility
