@@ -4,22 +4,15 @@
 #include <string>
 #include <vector>
 #include <memory>
-#include <cstdint>
 #include <iosfwd>
 
+#include "libGenome/gnDefs.h"
 #include "libGenome/gnFileSource.h"
 #include "libGenome/gnFileContig.h"
 #include "libGenome/gnGenomeSpec.h"
 #include "libGenome/gnFilter.h"
 
 namespace genome {
-
-using uint32 = std::uint32_t;
-using gnSeqI = std::int64_t;
-using uint64 = std::uint64_t;
-
-constexpr uint32 ALL_CONTIGS = static_cast<uint32>(-1);
-constexpr gnSeqI GNSEQI_ERROR = -1;
 
 class gnABISource : public gnFileSource {
 public:
