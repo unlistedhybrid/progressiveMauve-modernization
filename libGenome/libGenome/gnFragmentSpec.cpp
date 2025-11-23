@@ -114,7 +114,7 @@ gnFragmentSpec* gnFragmentSpec::CloneRange(const gnSeqI startI, const gnSeqI len
     // Find their starting and ending bases
     gnSeqI firstBase = startI - GetSpecStartBase(firstSpec);
     gnSeqI firstSpecLen = GetSpec(firstSpec)->GetLength();
-    boolean spans_specs = true;
+    bool spans_specs = true;
     gnSeqI firstCopyLen = firstSpecLen - firstBase;
     if (firstCopyLen >= total_copylen) {
         spans_specs = false;
@@ -147,7 +147,7 @@ gnFragmentSpec* gnFragmentSpec::CloneRange(const gnSeqI startI, const gnSeqI len
     return destSpec;
 }
 
-void gnFragmentSpec::SetReverseComplement(const boolean value) {
+void gnFragmentSpec::SetReverseComplement(const bool value) {
     if (value == m_reverseComplement)
         return;
     // Reverse the spec list entries
