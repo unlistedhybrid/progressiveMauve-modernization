@@ -402,17 +402,34 @@ WEIGHT GetMuscleSeqWeightById(unsigned uId)
 
 void SetMuscleTree(const Tree &tree)
 	{
+	std::cerr << "DEBUG SetMuscleTree: Starting" << std::endl;
+	std::cerr << "DEBUG SetMuscleTree: tree.GetLeafCount()=" << tree.GetLeafCount() << std::endl;
+	std::cerr << "DEBUG SetMuscleTree: tree.GetNodeCount()=" << tree.GetNodeCount() << std::endl;
+	std::cerr << "DEBUG SetMuscleTree: tree.IsRooted()=" << tree.IsRooted() << std::endl;
+	
 	g_ptrMuscleTree.get() = &tree;
+	std::cerr << "DEBUG SetMuscleTree: Set g_ptrMuscleTree" << std::endl;
 
 	if (SEQWEIGHT_ClustalW != GetSeqWeightMethod())
+		{
+		std::cerr << "DEBUG SetMuscleTree: SeqWeightMethod is not ClustalW, returning early" << std::endl;
 		return;
+		}
 
+	std::cerr << "DEBUG SetMuscleTree: Deleting old weights" << std::endl;
 	delete[] g_MuscleWeights.get();
 
 	const unsigned uLeafCount = tree.GetLeafCount();
+	std::cerr << "DEBUG SetMuscleTree: uLeafCount=" << uLeafCount << std::endl;
 	g_uMuscleIdCount.get() = uLeafCount;
+	
+	std::cerr << "DEBUG SetMuscleTree: Allocating weights array for " << uLeafCount << " leaves" << std::endl;
 	g_MuscleWeights.get() = new WEIGHT[uLeafCount];
+	
+	std::cerr << "DEBUG SetMuscleTree: Calling CalcClustalWWeights" << std::endl;
 	CalcClustalWWeights(tree, g_MuscleWeights.get());
+	std::cerr << "DEBUG SetMuscleTree: CalcClustalWWeights completed" << std::endl;
+	std::cerr << "DEBUG SetMuscleTree: Completed successfully" << std::endl;
 	}
 
 void SetClustalWWeightsMuscle(MSA &msa)
