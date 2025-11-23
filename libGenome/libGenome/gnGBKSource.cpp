@@ -58,7 +58,7 @@ gnGBKSource::~gnGBKSource()
 		delete fg;
 	}
 }
-boolean gnGBKSource::HasContig( const string& name ) const
+bool gnGBKSource::HasContig( const string& name ) const
 {
 	for(uint32 i = 0 ; i <= m_contigList.size(); i++ )
 	{
@@ -95,14 +95,14 @@ gnSeqI gnGBKSource::GetContigSeqLength( const uint32 i ) const
 	return GNSEQI_ERROR;
 }
 
-boolean gnGBKSource::SeqRead( const gnSeqI start, char* buf, gnSeqI& bufLen, const uint32 contigI )
+bool gnGBKSource::SeqRead( const gnSeqI start, char* buf, gnSeqI& bufLen, const uint32 contigI )
 {
-	boolean result = false;
+	bool result = false;
 	result = SeqReadImpl( start, buf, bufLen, contigI );
 	return result;
 }
 
-boolean gnGBKSource::SeqReadImpl( const gnSeqI start, char* buf, gnSeqI& bufLen, const uint32 contigI ){
+bool gnGBKSource::SeqReadImpl( const gnSeqI start, char* buf, gnSeqI& bufLen, const uint32 contigI ){
 
 	uint64 startPos = 0;
 	uint64 readableBytes = 0;
@@ -186,7 +186,7 @@ boolean gnGBKSource::SeqReadImpl( const gnSeqI start, char* buf, gnSeqI& bufLen,
 // figures out which contig the sequence starts at then calls SeqStartPos to get the offset within that contig
 // returns startPos, the file offset where the sequence starts
 // returns true if successful, false otherwise
-boolean gnGBKSource::SeqSeek( const gnSeqI start, const uint32& contigI, uint64& startPos, uint64& readableBytes )
+bool gnGBKSource::SeqSeek( const gnSeqI start, const uint32& contigI, uint64& startPos, uint64& readableBytes )
 {
 	if( contigI == ALL_CONTIGS )
 	{
@@ -213,7 +213,7 @@ boolean gnGBKSource::SeqSeek( const gnSeqI start, const uint32& contigI, uint64&
 	return false;
 }
 //Returns startPos, the file offset where the sequence starts.
-boolean gnGBKSource::SeqStartPos( const gnSeqI start, gnFileContig& contig, uint64& startPos, uint64& readableBytes )
+bool gnGBKSource::SeqStartPos( const gnSeqI start, gnFileContig& contig, uint64& startPos, uint64& readableBytes )
 {
 	readableBytes = 0;
 	uint32 curLen = 0;
@@ -324,7 +324,7 @@ void WriteHeader(gnMultiSpec< SubSpec >* spec, const string& hdr, ofstream& m_of
 	}catch(gnException& gne){}
 }
 
-boolean gnGBKSource::Write(gnSequence& seq, const string& filename){
+bool gnGBKSource::Write(gnSequence& seq, const string& filename){
 	ofstream m_ofstream(filename.c_str(), ios::out | ios::binary);
 	if(!m_ofstream.is_open())
 		return false;
@@ -544,7 +544,7 @@ boolean gnGBKSource::Write(gnSequence& seq, const string& filename){
 		gnSeqI contig_bases = 0;
 		while(readLength > 0){	//buffer the read/writes
 			gnSeqI writeLen = readLength < BUFFER_SIZE + 20 ? readLength : BUFFER_SIZE + 20;
-			boolean success = seq.ToArray(bases, writeLen, readOffset);
+			bool success = seq.ToArray(bases, writeLen, readOffset);
 			if(!success)
 				return false;
 			//print each 60 on their own lines...
@@ -579,7 +579,7 @@ gnFileContig* gnGBKSource::GetFileContig( const uint32 contigI ) const{
 }
 
 //File parsing access routine
-boolean gnGBKSource::ParseStream( istream& fin )
+bool gnGBKSource::ParseStream( istream& fin )
 {
 	// INIT temp varables
 	uint32 readState = 0;
@@ -606,7 +606,7 @@ boolean gnGBKSource::ParseStream( istream& fin )
 	string curContigName = "";
 	gnSeqI seqLength = 0;
 	gnSeqI seqChunk, seqChunkCount, gapChunk;
-	boolean corruptWarning = false;
+	bool corruptWarning = false;
 	
 	//decide what type of newlines we have
 	DetermineNewlineType();
