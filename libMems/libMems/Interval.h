@@ -704,7 +704,7 @@ template< class MatchVector >
 void FindBoundaries( const MatchVector& matches, std::vector<gnSeqI>& left_ends, std::vector<gnSeqI>& lengths, std::vector<bool>& orientations )
 {
 	uint seqI;
-	boolean zero_exists = false;
+	bool zero_exists = false;
 	uint seq_count = matches.front()->SeqCount();
 	left_ends = std::vector<gnSeqI>( seq_count, NO_MATCH );
 	lengths = std::vector<gnSeqI>( seq_count, 0 );
@@ -956,3 +956,4 @@ void swap( mems::Interval& a, mems::Interval& b )
 }
 
 #endif	// __Interval_h__
+
