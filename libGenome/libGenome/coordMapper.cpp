@@ -30,7 +30,7 @@ struct ExMem{
     int64 in_start;
 };
 
-static boolean ExMemLessthan(const ExMem& a, const ExMem& b){
+static bool ExMemLessthan(const ExMem& a, const ExMem& b){
     if(a.ex_start == b.ex_start){
         if(a.in_start == b.in_start)
             return a.length < b.length;
