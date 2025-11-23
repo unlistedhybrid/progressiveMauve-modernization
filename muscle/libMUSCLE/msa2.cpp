@@ -403,10 +403,18 @@ WEIGHT GetMuscleSeqWeightById(unsigned uId)
 
 void SetMuscleTree(const Tree &tree)
 	{
-	std::cerr << "DEBUG SetMuscleTree: Starting" << std::endl;
-	std::cerr << "DEBUG SetMuscleTree: tree.GetLeafCount()=" << tree.GetLeafCount() << std::endl;
-	std::cerr << "DEBUG SetMuscleTree: tree.GetNodeCount()=" << tree.GetNodeCount() << std::endl;
-	std::cerr << "DEBUG SetMuscleTree: tree.IsRooted()=" << tree.IsRooted() << std::endl;
+	static int call_count = 0;
+	call_count++;
+	
+	std::stringstream thread_info;
+#ifdef _OPENMP
+	thread_info << " [Thread " << omp_get_thread_num() << "]";
+#endif
+	
+	std::cerr << "DEBUG SetMuscleTree" << thread_info.str() << ": Starting (call #" << call_count << ")" << std::endl;
+	std::cerr << "DEBUG SetMuscleTree" << thread_info.str() << ": tree.GetLeafCount()=" << tree.GetLeafCount() << std::endl;
+	std::cerr << "DEBUG SetMuscleTree" << thread_info.str() << ": tree.GetNodeCount()=" << tree.GetNodeCount() << std::endl;
+	std::cerr << "DEBUG SetMuscleTree" << thread_info.str() << ": tree.IsRooted()=" << tree.IsRooted() << std::endl;
 	
 	g_ptrMuscleTree.get() = &tree;
 	std::cerr << "DEBUG SetMuscleTree: Set g_ptrMuscleTree" << std::endl;
@@ -417,8 +425,8 @@ void SetMuscleTree(const Tree &tree)
 		return;
 		}
 
-	std::cerr << "DEBUG SetMuscleTree: Deleting old weights" << std::endl;
-	std::cerr << "DEBUG SetMuscleTree: g_MuscleWeights.get()=" << (void*)g_MuscleWeights.get() << std::endl;
+	std::cerr << "DEBUG SetMuscleTree (call #" << call_count << "): Deleting old weights" << std::endl;
+	std::cerr << "DEBUG SetMuscleTree (call #" << call_count << "): g_MuscleWeights.get()=" << (void*)g_MuscleWeights.get() << std::endl;
 	
 	// Check if pointer is valid (not NULL and not uninitialized garbage)
 	WEIGHT* pWeights = g_MuscleWeights.get();
