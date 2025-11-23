@@ -1,15 +1,8 @@
 #ifndef _threadstorage_h_
 #define _threadstorage_h_
 
-// Portable thread-local storage for MUSCLE, supporting MSVC, GCC, Clang
-
-#if defined(_MSC_VER)
-    #define TLS_DECL __declspec(thread)
-#elif defined(__GNUC__) || defined(__clang__)
-    #define TLS_DECL __thread
-#else
-    #define TLS_DECL
-#endif
+// Use standard thread_local, supported on MSVC, GCC, Clang (C++11+)
+#define TLS_THREAD_LOCAL thread_local
 
 // =========================
 // Generic scalar or enum type
@@ -35,11 +28,11 @@ public:
 private:
     TLS(const TLS&) = delete;
     TLS& operator=(const TLS&) = delete;
-    TLS_DECL static T value;
+    static TLS_THREAD_LOCAL T value;
 };
 
 template <typename T>
-TLS_DECL T TLS<T>::value = T();
+TLS_THREAD_LOCAL T TLS<T>::value = T();
 
 // =========================
 // Specialization for pointers (so set/get work as expected)
@@ -60,11 +53,11 @@ public:
 private:
     TLS(const TLS&) = delete;
     TLS& operator=(const TLS&) = delete;
-    TLS_DECL static T* value;
+    static TLS_THREAD_LOCAL T* value;
 };
 
 template <typename T>
-TLS_DECL T* TLS<T*>::value = nullptr;
+TLS_THREAD_LOCAL T* TLS<T*>::value = nullptr;
 
 // =========================
 // Specialization for C arrays (e.g. unsigned int[256])
@@ -85,10 +78,10 @@ public:
 private:
     TLS(const TLS&) = delete;
     TLS& operator=(const TLS&) = delete;
-    TLS_DECL static T value[N];
+    static TLS_THREAD_LOCAL T value[N];
 };
 
 template <typename T, size_t N>
-TLS_DECL T TLS<T[N]>::value[N] = {};
+TLS_THREAD_LOCAL T TLS<T[N]>::value[N] = {};
 
 #endif // _threadstorage_h_
