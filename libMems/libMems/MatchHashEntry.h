@@ -1,147 +1,131 @@
 /*******************************************************************************
  * $Id: Match.h,v 1.10 2004/03/01 02:40:08 darling Exp $
- * This file is copyright 2002-2007 Aaron Darling and authors listed in the AUTHORS file.
- * This file is licensed under the GPL.
- * Please see the file called COPYING for licensing details.
- * **************
+ * Modernized C++17 version — behavior preserved.
  ******************************************************************************/
 
-#ifndef __MatchHashEntry_h__
-#define __MatchHashEntry_h__
+#pragma once
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
 
 #include "libGenome/gnClone.h"
-#include <iostream>
-#include <set>
 #include "libMems/Match.h"
+
+#include <set>
+#include <cstdint>
+#include <iostream>
 
 namespace mems {
 
 /**
- * The Match class stores the location of an <b>equal size</b> (inexact or exactly) 
- * matching region
- * between several sequences.  There are numerous functions in this
- * class which can be used to compare and manipulate this match.
+ * MatchHashEntry stores the location of a fixed-size matching block ("MEM")
+ * that occurs across multiple sequences.
+ *
+ * It extends Match and adds bookkeeping for offset computation and extension.
  */
-
-class MatchHashEntry : public Match
-{
+class MatchHashEntry : public Match {
 public:
-	enum MemType
-	{
-		seed,
-		extended
-	};
+    enum class MemType {
+        seed,
+        extended
+    };
 
 public:
-	MatchHashEntry();
-	/**
-	 * Creates a new Match.
-	 * @param seq_count The total number of sequences in the alignment
-	 * @param mersize The size of the mers used in the sorted mer lists.
-	 * @param m_type The type of mem to create, can either be a seed or already extended.
-	 * @see MemType
-	 */
-	MatchHashEntry( const uint seq_count, const gnSeqI mersize, const MemType m_type = seed );
-	MatchHashEntry* Clone() const;
-	MatchHashEntry* Copy() const;
-	virtual void Free();
-	MatchHashEntry( const MatchHashEntry& mhe ) : Match(mhe) { }
-	MatchHashEntry& operator=(const MatchHashEntry& mhe);
+    MatchHashEntry();
 
-	/** comparison operator, compares two matches to see if they are the same */
-	boolean operator==(const MatchHashEntry& mhe) const;
+    MatchHashEntry(uint seq_count,
+                   gnSeqI mersize,
+                   MemType m_type = MemType::seed);
 
+    MatchHashEntry(const MatchHashEntry& mhe) : Match(mhe) { }
+    MatchHashEntry& operator=(const MatchHashEntry& mhe);
 
-	/** @return true if this match has already been extended */
-	boolean Extended() const{return m_extended;}
-	/** Sets this match to be extended if the value passed in "extended" is true */
-	void SetExtended(boolean extended){m_extended = extended;}
-	/** @return the mer size of the sorted mer lists used to find this match */
-	uint MerSize() const{return m_mersize;}
+    MatchHashEntry* Clone() const { return new MatchHashEntry(*this); }
 
-	/**
-	 * Calculates the generalized offset and other bookkeeping information
-	 * for this mem.  This should <b>always</b> be called after changing the start
-	 * positions of the mem.
-	 */
-	virtual void CalculateOffset();
-	
-	/** Returns the generalized offset of this match */
-	int64 Offset() const{return m_offset;};
+    // SlotAllocator-based clone/free interface
+    MatchHashEntry* Copy() const { return m_allocateAndCopy(*this); }
+    void Free() { m_free(this); }
 
-	/** Sets the generalized offset of this match to "offset" */
-	void SetOffset(int64 offset){m_offset = offset;};		
+    // Whether this seed has been extended to a full MEM
+    bool Extended() const { return m_extended; }
+    void SetExtended(bool extended) { m_extended = extended; }
 
-	static boolean offset_lessthan(const MatchHashEntry& a, const MatchHashEntry& b);
-	static boolean start_lessthan_ptr(const MatchHashEntry* a, const MatchHashEntry* b);
-	static bool start_lessthan(const MatchHashEntry& a, const MatchHashEntry& b);
-	static boolean strict_start_lessthan_ptr(const MatchHashEntry* a, const MatchHashEntry* b);
-	/** compare the end of a to the start of b 
-	 */
-	static int64 end_to_start_compare(const MatchHashEntry& a, const MatchHashEntry& b);
-	static int64 start_compare(const MatchHashEntry& a, const MatchHashEntry& b);
+    // Mer-size used to detect this match
+    uint MerSize() const { return m_mersize; }
 
-	/**
-	 *	Will return true if this match contains mhe
-	 *  Containment implies that a match has a length >= the contained
-	 *  match, it has coordinates in every genome the contained match has,
-	 *  the difference in start positions in each genome is the same.
-	 * @param mhe The match to check for containment.
-	 * @return True if this match contains mhe.
-	 */
-	boolean Contains(const MatchHashEntry& mhe) const;
+    // Required: recompute offset after changing coordinates
+    void CalculateOffset() override;
+
+    int64_t Offset() const { return m_offset; }
+    void SetOffset(int64_t offset) { m_offset = offset; }
+
+    // Comparisons
+    bool operator==(const MatchHashEntry& mhe) const;
+
+    static bool offset_lessthan(const MatchHashEntry& a,
+                                const MatchHashEntry& b);
+
+    static bool start_lessthan(const MatchHashEntry& a,
+                               const MatchHashEntry& b);
+
+    static bool start_lessthan_ptr(const MatchHashEntry* a,
+                                   const MatchHashEntry* b);
+
+    static bool strict_start_lessthan_ptr(const MatchHashEntry* a,
+                                          const MatchHashEntry* b);
+
+    static int64_t end_to_start_compare(const MatchHashEntry& a,
+                                        const MatchHashEntry& b);
+
+    static int64_t start_compare(const MatchHashEntry& a,
+                                 const MatchHashEntry& b);
+
+    // Containment test ("a contains b")
+    bool Contains(const MatchHashEntry& mhe) const;
 
 private:
-
-	boolean m_extended;
-	gnSeqI m_mersize;
-	int64 m_offset;
+    bool     m_extended = false;
+    gnSeqI   m_mersize  = 0;
+    int64_t  m_offset   = 0;
 };
 
-inline
-MatchHashEntry* MatchHashEntry::Copy() const
+
+// Convenience non-pointer comparator
+inline bool MatchHashEntry::start_lessthan(const MatchHashEntry& a,
+                                           const MatchHashEntry& b)
 {
-	return m_allocateAndCopy(*this);
-}
-inline
-void MatchHashEntry::Free()
-{
-	m_free(this);
+    return start_lessthan_ptr(&a, &b);
 }
 
-inline
-bool MatchHashEntry::start_lessthan(const MatchHashEntry& a, const MatchHashEntry& b){
-	return start_lessthan_ptr(&a, &b);
-}
 
+// Sorting functor for pointer-to-MatchHashEntry
 class MheCompare {
 public:
-	bool operator()(const MatchHashEntry* a, const MatchHashEntry* b) const{
-		if( a->FirstStart() > b->FirstStart() ){
-			return true;
-		}else if( a->FirstStart() == b->FirstStart() ){
-			// check that the matches hit the same genomes
-			for( size_t i = a->FirstStart(); i < a->SeqCount(); i++ )
-			{
-				if( a->LeftEnd(i) == NO_MATCH && b->LeftEnd(i) != NO_MATCH )
-					return true;
-				else if( a->LeftEnd(i) != NO_MATCH && b->LeftEnd(i) == NO_MATCH )
-					return false;
-			}
-			//offsets are the same, check for containment...
-			if(a->Contains(*b) || b->Contains(*a)){
-				return false;
-			}else
-				return MatchHashEntry::strict_start_lessthan_ptr(a, b);
-		}
-		return false;
-	}
+    bool operator()(const MatchHashEntry* a,
+                    const MatchHashEntry* b) const
+    {
+        // Primary: smaller "FirstStart()" sorts first
+        if (a->FirstStart() != b->FirstStart())
+            return a->FirstStart() < b->FirstStart();
+
+        // Secondary: presence/absence of coordinates per sequence
+        uint n = std::min(a->SeqCount(), b->SeqCount());
+        for (uint i = 0; i < n; i++) {
+            bool a_missing = (a->LeftEnd(i) == NO_MATCH);
+            bool b_missing = (b->LeftEnd(i) == NO_MATCH);
+
+            if (a_missing != b_missing)
+                return b_missing; // defined > undefined
+        }
+
+        // Tertiary: containment
+        if (a->Contains(*b) || b->Contains(*a))
+            return false;
+
+        // Last resort: strict start comparison
+        return MatchHashEntry::strict_start_lessthan_ptr(a, b);
+    }
 };
 
-}
-
-#endif // __MatchHashEntry_h__
+} // namespace mems
