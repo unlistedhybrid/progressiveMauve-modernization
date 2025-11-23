@@ -1,90 +1,71 @@
 #ifndef _threadstorage_h_
 #define _threadstorage_h_
 
-#define TLS_THREAD_LOCAL thread_local
+// aed 9/7/7: MUSCLE v3.6 made prolific use of file and function-scope static variables.
+// When running multi-threaded, the shared nature of static variables
+// results in nasty race conditions.
+//
+// The TLS template defines thread-local storage for a particular variable
+//
 
-// =========================
-// Generic scalar or enum type
-// =========================
-template <typename T>
+#ifdef _OPENMP
+#define MAX_THREAD_COUNT	16
+#define OMP_GET_THREAD_NUM	omp_get_thread_num()
+#include <omp.h>
+#else
+#define MAX_THREAD_COUNT	1
+#define OMP_GET_THREAD_NUM	0
+
+#endif
+
+
+#define NELEMS(o)	sizeof(o)/sizeof(o[0])
+
+template<typename T>
 class TLS
 {
 public:
-    TLS() {}
-    explicit TLS(const T& t_val) { value = t_val; }
+	TLS(){};
 
-    TLS& operator=(const T& v) { value = v; return *this; }
+	TLS( T t_val ){
+		for(int i = 0; i < MAX_THREAD_COUNT; i++)
+			t[i] = t_val;
+	}
 
-    void set(const T& v) { value = v; }
-    T get() const { return value; }
-    T& ref() { return value; }
-    const T& ref() const { return value; }
-
-    // For pointer types (works for T = pointer)
-    T* operator->() { return &value; }
-    const T* operator->() const { return &value; }
-    T& operator*() { return value; }
-    const T& operator*() const { return value; }
-
+	T& get()
+	{
+		return t[OMP_GET_THREAD_NUM];
+	}
 private:
-    TLS(const TLS&) = delete;
-    TLS& operator=(const TLS&) = delete;
-    static TLS_THREAD_LOCAL T value;
+	TLS( const TLS& tls );	// disallow copying
+	T t[MAX_THREAD_COUNT];
 };
 
-template <typename T>
-TLS_THREAD_LOCAL T TLS<T>::value = T();
 
-// =========================
-// Specialization for pointers (so set/get work as expected)
-// =========================
-template <typename T>
-class TLS<T*>
+/**
+ * A thread-local storage class specifically to handle string constant initializers.
+ * The above TLS code gives the compiler fits for string constants.
+ */
+template<typename T>
+class TLSstr
 {
 public:
-    TLS() { value = nullptr; }
-    explicit TLS(T* t_val) { value = t_val; }
+	TLSstr(){};
 
-    TLS& operator=(T* v) { value = v; return *this; }
+	TLSstr( T t_val ){
+		for(int i = 0; i < MAX_THREAD_COUNT; i++)
+			memcpy(t[i], t_val, sizeof(t_val));
+	}
 
-    void set(T* v) { value = v; }
-    T* get() const { return value; }
-
-    T* operator->() const { return value; }
-    T& operator*()  const { return *value; }
-
+	T& get()
+	{
+		return t[OMP_GET_THREAD_NUM];
+	}
 private:
-    TLS(const TLS&) = delete;
-    TLS& operator=(const TLS&) = delete;
-    static TLS_THREAD_LOCAL T* value;
+	TLSstr( const TLSstr& tls );	// disallow copying
+	T t[MAX_THREAD_COUNT];
 };
 
-template <typename T>
-TLS_THREAD_LOCAL T* TLS<T*>::value = nullptr;
 
-// =========================
-// Specialization for C arrays (e.g. unsigned int[256])
-// =========================
-template <typename T, size_t N>
-class TLS<T[N]>
-{
-public:
-    TLS() { for (size_t i = 0; i < N; ++i) value[i] = T{}; }
-    explicit TLS(const T& t_val) { for (size_t i = 0; i < N; ++i) value[i] = t_val; }
+#endif	// _threadstorage_h_
 
-    T* get() { return value; }
-    const T* get() const { return value; }
-    T& operator[](size_t idx) { return value[idx]; }
-    const T& operator[](size_t idx) const { return value[idx]; }
-    void set(const T* v) { for (size_t i = 0; i < N; ++i) value[i] = v[i]; }
-
-private:
-    TLS(const TLS&) = delete;
-    TLS& operator=(const TLS&) = delete;
-    static TLS_THREAD_LOCAL T value[N];
-};
-
-template <typename T, size_t N>
-TLS_THREAD_LOCAL T TLS<T[N]>::value[N] = {};
-
-#endif // _threadstorage_h_
