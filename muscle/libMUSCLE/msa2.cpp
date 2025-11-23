@@ -4,6 +4,7 @@
 #include "libMUSCLE/profile.h"
 #include "libMUSCLE/tree.h"
 #include "libMUSCLE/threadstorage.h"
+#include <iostream>
 
 namespace muscle {
 

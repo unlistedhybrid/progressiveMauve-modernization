@@ -1,6 +1,7 @@
 #include "libMUSCLE/muscle.h"
 #include "libMUSCLE/tree.h"
 #include "libMUSCLE/msa.h"
+#include <iostream>
 
 namespace muscle {
 
