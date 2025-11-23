@@ -235,7 +235,7 @@ void FastDistKmer(const SeqVect &v, DistFunc &DF)
 				F = 0.01;
 			double Y = log(0.02 + F);
 			double EstimatedPctId = Y/4.12 + 0.995;
-			[[maybe_unused]] double KD = KimuraDist(EstimatedPctId);
+			double KD = KimuraDist(EstimatedPctId);
 //			DF.SetDist(uSeqIndex1, uSeqIndex2, (float) KD);
 			DF.SetDist(uSeqIndex1, uSeqIndex2, (float) (1 - F));
 #if	TRACE
@@ -248,4 +248,4 @@ void FastDistKmer(const SeqVect &v, DistFunc &DF)
 	delete[] Seq1Letters;
 	delete[] Seq2Letters;
 	}
-}
+} 

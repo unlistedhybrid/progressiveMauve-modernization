@@ -105,7 +105,6 @@ SCORE FastScorePath2(const ProfPos *PA, unsigned uLengthA,
 		case 'U':
 			{
 			Quit("FastScorePath2 U");
-			break;
 			}
 
 		default:
@@ -166,4 +165,4 @@ SCORE FastScorePath2(const ProfPos *PA, unsigned uLengthA,
 	Log("Total = %g\n", scoreTotal);
 	return scoreTotal;
 	}
-}
+} 

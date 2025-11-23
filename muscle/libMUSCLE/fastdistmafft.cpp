@@ -104,6 +104,16 @@ static void CountTuples(const unsigned L[], unsigned uTupleCount, unsigned char 
 		}
 	}
 
+static void ListCount(const unsigned char Count[])
+	{
+	for (unsigned n = 0; n < TUPLE_COUNT; ++n)
+		{
+		if (0 == Count[n])
+			continue;
+		Log("%s  %u\n", TupleToStr(n), Count[n]);
+		}
+	}
+
 void DistKmer6_6(const SeqVect &v, DistFunc &DF)
 	{
 	const unsigned uSeqCount = v.Length();
@@ -209,8 +219,9 @@ void DistKmer6_6(const SeqVect &v, DistFunc &DF)
 				}
 #if	TRACE
 			{
+			Seq &s1 = *(v[uSeq1]);
 			Seq &s2 = *(v[uSeq2]);
-			const char *pName1 = (*(v[uSeq1])).GetName();
+			const char *pName1 = s1.GetName();
 			const char *pName2 = s2.GetName();
 			Log("Common count %s(%d) - %s(%d) =%u\n",
 			  pName1, uSeq1, pName2, uSeq2, uSum);
@@ -226,6 +237,9 @@ void DistKmer6_6(const SeqVect &v, DistFunc &DF)
 	SetProgressDesc("K-mer dist pass 2");
 	for (unsigned uSeq1 = 0; uSeq1 < uSeqCount; ++uSeq1)
 		{
+		Seq &s1 = *(v[uSeq1]);
+		const char *pName1 = s1.GetName();
+
 		double dCommonTupleCount11 = uCommonTupleCount[uSeq1][uSeq1];
 		if (0 == dCommonTupleCount11)
 			dCommonTupleCount11 = 1;
@@ -277,6 +291,4 @@ double PctIdToHeightMAFFT(double dPctId)
 	{
 	return PctIdToMAFFTDist(dPctId);
 	}
-}
-
-
+} 

@@ -11,6 +11,25 @@ const unsigned KTUP = 5;
 const unsigned KTUPS = 6*6*6*6*6;
 static TLS<unsigned[KTUPS]> TuplePos;
 
+static char *TupleToStr(int t)
+	{
+	static TLS<char[7]> s;
+	int t1, t2, t3, t4, t5;
+
+	t1 = t%6;
+	t2 = (t/6)%6;
+	t3 = (t/(6*6))%6;
+	t4 = (t/(6*6*6))%6;
+	t5 = (t/(6*6*6*6))%6;
+
+	s.get()[4] = '0' + t1;
+	s.get()[3] = '0' + t2;
+	s.get()[2] = '0' + t3;
+	s.get()[1] = '0' + t4;
+	s.get()[0] = '0' + t5;
+	return s.get();
+	}
+
 static unsigned GetTuple(const ProfPos *PP, unsigned uPos)
 	{
 	const unsigned t0 = PP[uPos].m_uResidueGroup;
@@ -143,4 +162,4 @@ void FindDiags(const ProfPos *PX, unsigned uLengthX, const ProfPos *PY,
 			}
 		}
 	}
-}
+} 
