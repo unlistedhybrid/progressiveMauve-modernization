@@ -24,7 +24,6 @@ void SetTermGaps(const ProfPos *Prof, unsigned uLength)
 		if (uLength > 1 && Last->m_scoreGapClose != MINUS_INFINITY)
 			Last->m_scoreGapClose = 0;
 
-		[[fallthrough]];
 	case TERMGAPS_Ext:
 		if (First->m_scoreGapOpen != MINUS_INFINITY)
 			First->m_scoreGapOpen *= -1;
@@ -37,4 +36,4 @@ void SetTermGaps(const ProfPos *Prof, unsigned uLength)
 		Quit("Invalid g_TermGaps.get()");
 		}
 	}
-}
+} 

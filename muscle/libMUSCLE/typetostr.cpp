@@ -5,17 +5,14 @@ namespace muscle {
 
 const char *SecsToStr(unsigned long Secs)
 	{
-	// Fixed: Increased buffer size from 16 to 32 to prevent truncation warnings.
-	// 16 bytes causes -Wformat-truncation on 64-bit systems because very large 
-	// 'hh' values would overflow the formatted string.
-	static TLS<char[32]> Str;
+	static TLS<char[16]> Str;
 	long hh, mm, ss;
 
 	hh = Secs/(60*60);
 	mm = (Secs/60)%60;
 	ss = Secs%60;
 
-	snprintf(Str.get(), 32, "%02ld:%02ld:%02ld", hh, mm, ss);
+	sprintf(Str.get(), "%02d:%02d:%02d", hh, mm, ss);
 	return Str.get();
 	}
 
@@ -28,27 +25,32 @@ const char *ScoreToStr(SCORE Score)
 	{
 	if (MINUS_INFINITY >= Score)
 		return "       *";
+// Hack to use "circular" buffer so when called multiple
+// times in a printf-like argument list it works OK.
 	const int iBufferCount = 16;
 	const int iBufferLength = 16;
 	static TLS<char[iBufferCount*iBufferLength]> szStr;
 	static TLS<int> iBufferIndex(0);
 	iBufferIndex.get() = (iBufferIndex.get() + 1)%iBufferCount;
 	char *pStr = szStr.get() + iBufferIndex.get()*iBufferLength;
-	snprintf(pStr, 16, "%8g", Score);
+	sprintf(pStr, "%8g", Score);
 	return pStr;
 	}
 
+// Left-justified version of ScoreToStr
 const char *ScoreToStrL(SCORE Score)
 	{
 	if (MINUS_INFINITY >= Score)
 		return "*";
+// Hack to use "circular" buffer so when called multiple
+// times in a printf-like argument list it works OK.
 	const int iBufferCount = 16;
 	const int iBufferLength = 16;
 	static TLS<char[iBufferCount*iBufferLength]> szStr;
 	static TLS<int> iBufferIndex(0);
 	iBufferIndex.get() = (iBufferIndex.get() + 1)%iBufferCount;
 	char *pStr = szStr.get() + iBufferIndex.get()*iBufferLength;
-	snprintf(pStr, 16, "%.3g", Score);
+	sprintf(pStr, "%.3g", Score);
 	return pStr;
 	}
 
@@ -56,4 +58,4 @@ const char *WeightToStr(WEIGHT w)
 	{
 	return ScoreToStr(w);
 	}
-}
+} 

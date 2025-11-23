@@ -106,7 +106,7 @@ void TextFile::Rewind()
 
 void TextFile::PutChar(char c)
 	{
-	[[maybe_unused]] int i = fputc(c, m_ptrFile);
+	int i = fputc(c, m_ptrFile);
 	assert(i == c);
 	if ('\n' == c)
 		{
@@ -119,7 +119,7 @@ void TextFile::PutChar(char c)
 
 void TextFile::PutString(const char szLine[])
 	{
-	[[maybe_unused]] int iError = fputs(szLine, m_ptrFile);
+	int iError = fputs(szLine, m_ptrFile);
 	assert(iError >= 0);
 	}
 
@@ -128,7 +128,7 @@ void TextFile::PutFormat(const char szFormat[], ...)
 	char szStr[4096];
 	va_list ArgList;
 	va_start(ArgList, szFormat);
-	vsnprintf(szStr, sizeof(szStr), szFormat, ArgList);
+	vsprintf(szStr, szFormat, ArgList);
 	PutString(szStr);
 	}
 
@@ -353,4 +353,4 @@ bool TextFile::SkipWhiteX()
 		}
 	return false;
 	}
-}
+} 
