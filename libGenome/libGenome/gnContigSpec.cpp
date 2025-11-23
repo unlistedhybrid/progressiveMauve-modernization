@@ -27,7 +27,7 @@ void gnContigSpec::CropEnd(gnSeqI cropLen) {
     m_length -= cropLen;
 }
 
-void gnContigSpec::SetReverseComplement(const boolean value) {
+void gnContigSpec::SetReverseComplement(const bool value) {
     // Translate coordinates if revComp has changed and length > 0
     if ((m_reverseComplement != value) && (m_length > 0)) {
         m_start = (m_start + m_length) % GetSourceLength();
@@ -35,14 +35,14 @@ void gnContigSpec::SetReverseComplement(const boolean value) {
     m_reverseComplement = value;
 }
 
-boolean gnContigSpec::SeqRead(
+bool gnContigSpec::SeqRead(
     const gnSeqI start,
     gnSeqC* buf,
     gnSeqI& bufLen,
     const uint32 contigI
 ) const
 {
-    boolean success = false;
+    bool success = false;
     bufLen = (bufLen < m_length - start) ? bufLen : (m_length - start);  // Trim the read to size
     gnSeqI readable = bufLen;
     gnSeqI read_start = start; // Coordinate translation
