@@ -34,7 +34,7 @@ gnSEQSource::gnSEQSource()
 {
 	m_openString = "";
 	m_pFilter = gnFilter::fullDNASeqFilter();
-	if(m_pFilter == NULL){
+	if(m_pFilter == nullptr){
 		DebugMsg("Error using static sequence filters.\n");
 	}
 }
@@ -53,7 +53,7 @@ gnSEQSource::~gnSEQSource()
 	for( ; iter != m_contigList.end(); ++iter )
 	{
 		gnFileContig* fg = *iter;
-		*iter = 0;
+		*iter = nullptr;
 		delete fg;
 	}
 }
@@ -251,209 +251,82 @@ bool gnSEQSource::SeqStartPos( const gnSeqI start, gnFileContig& contig, uint64&
 		}
 		for( uint32 i=0; i < tmpbufsize; ++i ){
 			if( m_pFilter->IsValid(tmpbuf[i]) ){
-				if( curLen >= start ){ //stop when we reach the starting offset within this contig
+				if(curLen == start){
 					startPos += i;
-					m_ifstream.seekg( startPos, ios::beg );  //seek to startPos
 					readableBytes = contig.GetSectStartEnd(gnContigSequence).second - startPos;
 					delete[] tmpbuf;
 					return true;
 				}
-				++curLen;  //each time we read a valid b.p., increment the sequence length
+				curLen++;
 			}
 		}
 		startPos += tmpbufsize;
 		delete[] tmpbuf;
 	}
-	return true;
-}
-
-
-//IMPLEMENT ME!  move these static methods somewhere else!  especially basecount!
-void gnSEQSource::BaseCount(const string& bases, gnSeqI& a_count, gnSeqI& c_count, gnSeqI& g_count, gnSeqI& t_count, gnSeqI& other_count){
-	a_count = 0;
-	c_count = 0;
-	g_count = 0;
-	t_count = 0;
-	other_count = 0;
-	for(uint32 i=0; i < bases.length(); i++){
-		if((bases[i] == 'a')||(bases[i] == 'A'))
-			a_count++;
-		else if((bases[i] == 'c')||(bases[i] == 'C'))
-			c_count++;
-		else if((bases[i] == 'g')||(bases[i] == 'G'))
-			g_count++;
-		else if((bases[i] == 't')||(bases[i] == 'T'))
-			t_count++;
-		else
-			other_count++;
-	}
-}
-
-void gnSEQSource::FormatString(string& data, uint32 offset, uint32 width){
-	//first remove newlines and corresponding whitespace
-	string::size_type newline_loc = data.find_first_of('\n', 0);
-	while(newline_loc != string::npos){
-		if(data[newline_loc-1] == '\r')
-			newline_loc--;
-		string::size_type text_loc = newline_loc;
-		while((data[text_loc] == ' ') ||(data[text_loc] == '	')||(data[text_loc] == '\n')||(data[text_loc] == '\r')){
-			text_loc++;
-			if(text_loc+1 == data.length())
-				break;
-		}
-		data = (data.substr(0, newline_loc) + " " + data.substr(text_loc));
-		newline_loc = data.find_first_of('\n', 0);
-	}
-	//now reformat with newlines and whitespace, observing word boundaries...
-	string output_string = "";
-	for(uint32 charI = 0; charI < data.length();){
-		//get the substring to append and increment charI
-		string::size_type base_loc = charI;
-		string append_string;
-		while(base_loc - charI <= width){
-			string::size_type space_loc = data.find_first_of(' ', base_loc+1);
-			if(space_loc - charI < width)
-				base_loc = space_loc;
-			else if(base_loc == charI){
-				//word is too big for one line.  split it.
-				append_string = data.substr(charI, width);
-				charI+=width;
-			}else{
-				append_string = data.substr(charI, base_loc - charI);
-				charI = base_loc;
-			}
-		}
-		output_string += string(offset, ' ') + append_string;
-		if(charI + width < data.length())
-			output_string += "\r\n";
-	}
-	data = output_string;
-}
-
-bool gnSEQSource::Write(gnGenomeSpec *spec, const string& filename){
-	ErrorMsg("Writing DNAStar SEQ files is not supported at this time.  Try again next week.\n");
 	return false;
 }
 
-gnFileContig* gnSEQSource::GetFileContig( const uint32 contigI ) const{
-	if(m_contigList.size() > contigI)
-		return m_contigList[contigI];
-	return NULL;
-}
-
-//File parsing access routine
-bool gnSEQSource::ParseStream( istream& fin )
+bool gnSEQSource::ParseStream( std::istream& fin )
 {
-	// INIT temp varables
-	uint32 readState = 0;
-	uint32 lineStart = 0;
-	int64 gapstart = -1;
-	// INIT buffer
-	uint32 sectionStart = 0;
-	uint64 streamPos = 0;
+	if(m_spec == nullptr)
+		m_spec = new gnGenomeSpec();
+	char *buf = new char[BUFFER_SIZE];	//DNA char buffer
 	uint64 bufReadLen = 0;
-	uint64 remainingBuffer = 0;
-	char* buf = new char[BUFFER_SIZE];
-	gnFragmentSpec* curFrag = 0;
-	gnSourceSpec* curSpec = 0;
-	gnSourceHeader *curHeader;
-	gnBaseFeature* curFeature;
-	gnFileContig* curContig = 0;
-	gnLocation::gnLocationType curBaseLocationType;
-	gnSeqI curLocationStart;
-	int32 curStartLength = 0;
-	int32 curEndLength = 0;
-	string curLocContig = "";
-	string curQualifierName;
-	uint64 curQualifierStart;
-	string curContigName = "";
-	gnSeqI seqLength = 0;
-	gnSeqI lineSeqSize = 0;
-	
-	m_spec = new gnGenomeSpec();
-	while( !fin.eof() )
+	std::string::size_type loc = 0;
+	uint64 streamPos = 0;
+	const char *pRead = NULL;
+	char ch, cht;
+
+	gnFileContig *curContig = nullptr;
+	gnSourceSpec *curSpec = nullptr;
+	gnFeature *curFeature = nullptr;
+	gnFragment *curFrag = nullptr;
+	boolean readstate = true;
+
+	// Parse the stream...
+	while( readstate && (fin.read(buf, BUFFER_SIZE) || fin.gcount() > 0))
 	{
-		if(sectionStart > 0){
-			if(readState == 15)
-				sectionStart = bufReadLen;
-			else if(readState == 16)
-				sectionStart = lineStart;
-			remainingBuffer = bufReadLen - sectionStart;
-			memmove(buf, buf+sectionStart, remainingBuffer);
-		}
-		  // read chars
-		fin.read( buf + remainingBuffer, BUFFER_SIZE - remainingBuffer);
-		streamPos -= remainingBuffer;
-		lineStart -= sectionStart;
-		if(gapstart > 0)
-			gapstart -= sectionStart;
-		sectionStart = 0;
 		bufReadLen = fin.gcount();
-		bufReadLen += remainingBuffer;
-		
-		for( uint32 i=remainingBuffer ; i < bufReadLen ; i++ )
-		{
-			char ch = buf[i];
-			switch( readState )
+
+		//	cout << "bufReadLen: " << bufReadLen << "\n";	
+		string strBuf(buf, bufReadLen);
+		uint32 readState = 0;
+		uint32 sectionStart = 0;
+		uint32 lineStart = 0;
+		gnSeqI seqLength = 0;
+		gnSeqI curLocationStart = 0;
+		int32 curStartLength = 0;
+		int32 curEndLength = 0;
+		gnLocation::gnLocationType curBaseLocationType = gnLocation::LT_Standard;
+		std::string curLocContig = "";
+		std::string curQualifierName = "";
+		uint64 curQualifierStart = 0;
+		int32 gapstart = -1;
+		uint32 lineSeqSize = 0;
+
+		for(uint32 i = 0; i < bufReadLen; i++){
+			ch = buf[i];
+			switch(readState)
 			{
-				case 0: 	//Assume we are in header at the start of a new line.  
-							//Look for keywords starting in column 1
-					if((ch == '\n')&&(buf[lineStart] != ' ')&&(buf[lineStart] != '	')){  //not equal to space or tab
-						if(curSpec == NULL){
-							curSpec = new gnSourceSpec(this, m_spec->GetSpecListLength());
-							curFrag = new gnFragmentSpec();
-							curFrag->AddSpec(curSpec);
-							curSpec->SetSourceName(m_openString);
-							m_spec->AddSpec(curFrag);
-						}
-						if(lineStart != sectionStart){	//Add the previous header to our list
-							uint32 j = SEQ_HEADER_NAME_LENGTH-1;
-							for(; j > 0; j--)	
-								if((buf[sectionStart+j] != ' ')&&(buf[sectionStart+j] != '	'))
-									break;
-							string header_name = string(buf+sectionStart, j+1);
-							curHeader = new gnSourceHeader(this, header_name, sectionStart + streamPos, lineStart - sectionStart);
-							//if this is header info _before_ a locus statement then its a general file header.
-							if(strncmp(&buf[lineStart], "LOCUS", 5) == 0)
-								m_spec->AddHeader(curHeader);
-							else	//otherwise its a fragment header.
-								curFrag->AddHeader(curHeader);
-							sectionStart = lineStart;
-						}
-						
-						if(strncmp(&buf[lineStart], "FEATURES", 8) == 0){
-							sectionStart = i + 1;
-							readState = 1;  //read in features
-						}else if(strncmp(&buf[lineStart], "ORIGIN", 6) == 0){
-							curHeader = new gnSourceHeader(this, string("ORIGIN"), sectionStart + streamPos, i - sectionStart + 1);
-							curFrag->AddHeader(curHeader);
-							curContig = new gnFileContig();
-							curContig->SetName(curContigName);
-							curContigName = "";
-							readState = 13;  //read in base pairs
-						}else if(strncmp(&buf[lineStart], "LOCUS", 5) == 0){
-							if(strncmp(&buf[lineStart+SEQ_LOCUS_CIRCULAR_COLUMN-1], "circular", 8) == 0)
-								curFrag->SetCircular(true);
-							uint32 j = SEQ_LOCUS_NAME_LENGTH + 1;
-							for(; j > 0; j--)	
-								if((buf[lineStart+SEQ_LOCUS_NAME_COLUMN+j-1] != ' ')&&(buf[sectionStart+SEQ_LOCUS_NAME_COLUMN+j-1] != '	'))
-									break;
-							curContigName = string(buf+lineStart+SEQ_LOCUS_NAME_COLUMN-1, j+1);
-							curFrag->SetName(curContigName);
-						}else if(strncmp(&buf[lineStart], "^^", 2) == 0){
-							//start the sequence.
-							if(curContig == NULL){
-								curContig = new gnFileContig();
-								curContig->SetName(curContigName);
-								curContigName = "";
+				case 0:  //look for lines that don't start with whitespace or "//", treat them as a tag.  skip the tag and get
+					if((ch == '\n') || (ch == '\r')){
+						lineStart = i + 1;
+						break;
+					}
+					if((ch == '/') && (i < (bufReadLen - 1)) && (buf[i+1] == '/')){
+						readState = 0;
+						i++;
+						lineStart = i + 1;
+						break;
+					}
+					if((ch != ' ') && (ch != '	')){
+						if((i - lineStart) < SEQ_SUBTAG_COLUMN){
+							if((i - lineStart) == 0){
+								sectionStart = i;
+								readState = 1;
 							}
-							i--;
-							readState = 14;
-							break;
 						}
 					}
-					if(ch == '\n')
-						lineStart = i + 1;
 					break;
 				case 1:	//look for feature tag in column six.  ignore whitespace before feature.
 					if((ch == ' ')||(ch == '	')){
@@ -470,8 +343,7 @@ bool gnSEQSource::ParseStream( istream& fin )
 					}else if((i - lineStart == SEQ_SUBTAG_COLUMN)||((buf[lineStart]=='	')&&(i==lineStart+1))){
 						sectionStart = i;
 						readState = 2;
-					}
-					[[fallthrough]];
+					} //
 				case 2:  //Get the feature name.  stop on whitespace
 					if((ch == ' ')||(ch == '	')){
 						string featureName(buf+sectionStart, i - sectionStart);
@@ -489,7 +361,7 @@ bool gnSEQSource::ParseStream( istream& fin )
 						break;
 					}
 					sectionStart = i;
-					[[fallthrough]];
+					readState = 4;
 				case 4:		//Read a location start.  stop on (<.:^ and whitespace
 					if((ch == ' ')||(ch == '	')||(ch == '(')||(ch == '.')||(ch=='^')||(ch==':')){
 						string starter(buf+sectionStart, i - sectionStart);
@@ -542,7 +414,6 @@ bool gnSEQSource::ParseStream( istream& fin )
 						break;
 					}
 					curBaseLocationType = gnLocation::LT_OneOf;
-					[[fallthrough]];
 				case 6:	//see if there's a second location value.  stop on >, and whitespace
 					if(ch == '>'){
 						curEndLength = 1;
@@ -678,9 +549,9 @@ bool gnSEQSource::ParseStream( istream& fin )
 						curContig->SetSectEnd(gnContigSequence, lineStart - 2 + streamPos);
 						curContig->SetSeqLength(seqLength);
 						m_contigList.push_back(curContig);
-						curContig = 0;
+						curContig = nullptr;
 						curSpec->SetLength(seqLength);
-						curSpec = 0;
+						curSpec = nullptr;
 						seqLength = 0;
 						lineStart = i + 1;
 						sectionStart = i + 1;
@@ -691,13 +562,13 @@ bool gnSEQSource::ParseStream( istream& fin )
 		}
 		streamPos += bufReadLen;
 	}
-	if(curContig != 0){
+	if(curContig != nullptr){
 		curContig->SetSectEnd(gnContigSequence, streamPos - 1);
 		curContig->SetSeqLength(seqLength);
 		m_contigList.push_back(curContig);
 		curSpec->SetLength(seqLength);
 	}
-	if(curSpec != NULL)
+	if(curSpec != nullptr)
 		if((curFrag->GetFeatureListLength() == 0) && (curFrag->GetHeaderListLength() == 0)
 			&&(curSpec->GetLength() == 0)){
 			m_spec->RemoveSpec(m_spec->GetSpecListLength() - 1);
