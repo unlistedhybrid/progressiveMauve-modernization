@@ -1,23 +1,24 @@
-name: Debug Linux Build
+name: Multi-Platform Static Build
 
 on: [push, pull_request]
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
 
     steps:
     - uses: actions/checkout@v4
 
-    # ----------------------------
-    # LINUX DEPENDENCIES
-    # ----------------------------
-    - name: Install dependencies
+    # --- Linux Dependencies ---
+    - name: Install dependencies (Linux)
+      if: runner.os == 'Linux'
       run: |
         sudo apt update
-        sudo apt install -y cmake g++ wget libzstd-dev libbz2-dev zlib1g-dev pkg-config libicu-dev gdb
-        
-        # Install Boost 1.89 manually
+        sudo apt install -y cmake g++ wget libzstd-dev libbz2-dev zlib1g-dev pkg-config libicu-dev
+        # Build static Boost 1.89
         cd /tmp
         wget https://github.com/boostorg/boost/releases/download/boost-1.89.0/boost-1.89.0-cmake.tar.gz
         tar xzf boost-1.89.0-cmake.tar.gz
@@ -26,48 +27,61 @@ jobs:
         cmake .. -DCMAKE_INSTALL_PREFIX=/usr/local -DBUILD_SHARED_LIBS=OFF
         sudo cmake --build . --target install -j$(nproc)
 
-    # ----------------------------
-    # BUILD (Debug + Logging)
-    # ----------------------------
-    - name: Build
+    # --- macOS Dependencies ---
+    - name: Install dependencies (macOS)
+      if: runner.os == 'macOS'
+      run: |
+        brew install boost@1.89 cmake
+        # Homebrew does not install static libs by default. To force static linking,
+        # you may need to build Boost from source manually if linker errors appear.
+
+    # --- Windows Dependencies ---
+    - name: Install dependencies (Windows)
+      if: runner.os == 'Windows'
+      run: |
+        choco install cmake -y
+        git clone https://github.com/Microsoft/vcpkg.git
+        cd vcpkg
+        .\bootstrap-vcpkg.bat
+        .\vcpkg install boost-filesystem:x64-windows-static boost-iostreams:x64-windows-static boost-program-options:x64-windows-static boost-regex:x64-windows-static
+        echo "CMAKE_TOOLCHAIN_FILE=${{ github.workspace }}\\vcpkg\\scripts\\buildsystems\\vcpkg.cmake" >> $env:GITHUB_ENV
+
+    # --- Build (Linux/macOS) ---
+    - name: Build (Linux/macOS)
+      if: runner.os != 'Windows'
       run: |
         mkdir build
         cd build
         export CXXFLAGS="-Wall -Wextra -Wno-unused-parameter"
-        cmake .. -DCMAKE_BUILD_TYPE=Debug -DBoost_USE_STATIC_LIBS=ON
+        cmake .. -DCMAKE_BUILD_TYPE=Debug -DBoost_USE_STATIC_LIBS=ON -DBUILD_SHARED_LIBS=OFF
         cmake --build . --parallel 2>&1 | tee build_log.txt
 
-    # ----------------------------
-    # COPY SAMPLE FASTA FILES
-    # ----------------------------
-    - name: Copy sample FASTA files to build directory
+    # --- Build (Windows) ---
+    - name: Build (Windows)
+      if: runner.os == 'Windows'
       run: |
-        cp test_data/1.fasta build/
-        cp test_data/2.fasta build/
-
-    # ----------------------------
-    # RUN UNDER GDB FOR BACKTRACE
-    # ----------------------------
-    - name: Run progressiveMauve under gdb
-      run: |
+        mkdir build
         cd build
-        set +e
-        gdb -q -batch -ex "run 1.fasta 2.fasta --output=seqs.xmfa" -ex "bt" ./progressiveMauve || true
+        cmake .. -DCMAKE_BUILD_TYPE=Debug -DBoost_USE_STATIC_LIBS=ON -DCMAKE_TOOLCHAIN_FILE="${{ env.CMAKE_TOOLCHAIN_FILE }}" -DVCPKG_LIBRARY_LINKAGE=static -DBUILD_SHARED_LIBS=OFF
+        cmake --build . --config Debug --parallel > build_log.txt
 
-    # ----------------------------
-    # SAVE ARTIFACTS
-    # ----------------------------
-    - name: Stage Binaries
+    # --- Stage Binaries ---
+    - name: Stage Binaries (Linux/macOS)
+      if: runner.os != 'Windows'
       run: |
         mkdir dist
-        cp build/progressiveMauve dist/
-        cp build/build_log.txt dist/
-        # Optionally, copy output or logs
-        [ -f build/bb.txt ] && cp build/bb.txt dist/
-        [ -f build/seqs.xmfa ] && cp build/seqs.xmfa dist/
+        cp build/progressiveMauve dist/ || true
+        cp build/build_log.txt dist/ || true
+
+    - name: Stage Binaries (Windows)
+      if: runner.os == 'Windows'
+      run: |
+        mkdir dist
+        if exist build\Debug\progressiveMauve.exe copy build\Debug\progressiveMauve.exe dist\
+        if exist build\build_log.txt copy build\build_log.txt dist\
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: debug-linux-artifacts
+        name: ${{ runner.os }}-static-artifacts
         path: dist/*
