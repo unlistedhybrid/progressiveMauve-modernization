@@ -22,7 +22,7 @@ gnStringSpec::gnStringSpec() {
     gnContigSpec::Clear();
 }
 
-gnStringSpec::gnStringSpec(const std::string& m_string, gnSeqI start, gnSeqI endI, boolean revComp) {
+gnStringSpec::gnStringSpec(const std::string& m_string, gnSeqI start, gnSeqI endI, bool revComp) {
     m_seqString = m_string;
     m_start = start;
     gnSeqI actual_len = static_cast<gnSeqI>(m_seqString.length());
