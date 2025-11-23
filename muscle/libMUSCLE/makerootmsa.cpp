@@ -1,4 +1,3 @@
-// makerootmsa.cpp
 #include "libMUSCLE/muscle.h"
 #include "libMUSCLE/tree.h"
 #include "libMUSCLE/seqvect.h"
@@ -12,14 +11,13 @@ namespace muscle {
 #define TRACE		0
 #define VALIDATE	0
 
-#if	VALIDATE
-
 static void PathSeq(const Seq &s, const PWPath &Path, bool bRight, Seq &sOut)
 	{
 	short *esA;
 	short *esB;
 	PathToEstrings(Path, &esA, &esB);
 
+	const unsigned uSeqLength = s.Length();
 	const unsigned uEdgeCount = Path.GetEdgeCount();
 
 	sOut.Clear();
@@ -52,6 +50,8 @@ static void PathSeq(const Seq &s, const PWPath &Path, bool bRight, Seq &sOut)
 			}
 		}
 	}
+
+#if	VALIDATE
 
 static void MakeRootSeq(const Seq &s, const Tree &GuideTree, unsigned uLeafNodeIndex,
   const ProgNode Nodes[], Seq &sRoot)
@@ -92,6 +92,7 @@ static short *MakeRootSeqE(const Seq &s, const Tree &GuideTree, unsigned uLeafNo
 			break;
 		bool bRight = (GuideTree.GetLeft(uParent) == uNodeIndex);
 		uNodeIndex = uParent;
+		const PWPath &Path = Nodes[uNodeIndex].m_Path;
 		const short *EstringNode = bRight ?
 		  Nodes[uNodeIndex].m_EstringL : Nodes[uNodeIndex].m_EstringR;
 
@@ -165,7 +166,9 @@ void MakeRootMSA(const SeqVect &v, const Tree &GuideTree, ProgNode Nodes[],
 	const unsigned uSeqCount = v.GetSeqCount();
 	unsigned uColCount = uInsane;
 	unsigned uSeqIndex = 0;
-	const PWPath &RootPath = Nodes[GuideTree.GetRootNodeIndex()].m_Path;
+	const unsigned uTreeNodeCount = GuideTree.GetNodeCount();
+	const unsigned uRootNodeIndex = GuideTree.GetRootNodeIndex();
+	const PWPath &RootPath = Nodes[uRootNodeIndex].m_Path;
 	const unsigned uRootColCount = RootPath.GetEdgeCount();
 	const unsigned uEstringSize = uRootColCount + 1;
 	short *Estring1 = new short[uEstringSize];
@@ -227,4 +230,4 @@ void MakeRootMSA(const SeqVect &v, const Tree &GuideTree, ProgNode Nodes[],
 	ProgressStepsDone();
 	assert(uSeqIndex == uSeqCount);
 	}
-}
+} 

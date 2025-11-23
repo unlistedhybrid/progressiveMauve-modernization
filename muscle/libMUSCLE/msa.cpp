@@ -141,16 +141,19 @@ void MSA::LogMe() const
 
 char MSA::GetChar(unsigned uSeqIndex, unsigned uIndex) const
 	{
+// TODO: Performance cost?
 	if (uSeqIndex >= m_uSeqCount || uIndex >= m_uColCount)
 		Quit("MSA::GetChar(%u/%u,%u/%u)",
 		  uSeqIndex, m_uSeqCount, uIndex, m_uColCount);
 
 	char c = m_szSeqs[uSeqIndex][uIndex];
+//	assert(IsLegalChar(c));
 	return c;
 	}
 
 unsigned MSA::GetLetter(unsigned uSeqIndex, unsigned uIndex) const
 	{
+// TODO: Performance cost?
 	char c = GetChar(uSeqIndex, uIndex);
 	unsigned uLetter = CharToLetter(c);
 	if (uLetter >= 20)
@@ -166,6 +169,7 @@ unsigned MSA::GetLetter(unsigned uSeqIndex, unsigned uIndex) const
 
 unsigned MSA::GetLetterEx(unsigned uSeqIndex, unsigned uIndex) const
 	{
+// TODO: Performance cost?
 	char c = GetChar(uSeqIndex, uIndex);
 	unsigned uLetter = CharToLetterEx(c);
 	return uLetter;
@@ -237,9 +241,9 @@ void MSA::GetSeq(unsigned uSeqIndex, Seq &seq) const
 		if (!IsGap(uSeqIndex, n))
 			{
 			char c = GetChar(uSeqIndex, n);
-			if (!isalpha((unsigned char)c))
+			if (!isalpha(c))
 				Quit("Invalid character '%c' in sequence", c);
-			c = toupper((unsigned char)c);
+			c = toupper(c);
 			seq.push_back(c);
 			}
 	const char *ptrName = GetSeqName(uSeqIndex);
@@ -346,6 +350,7 @@ void MSA::FromFile(TextFile &File)
 	FromFASTAFile(File);
 	}
 
+// Weights sum to 1, WCounts sum to NIC
 WEIGHT MSA::GetSeqWeight(unsigned uSeqIndex) const
 	{
 	assert(uSeqIndex < m_uSeqCount);
@@ -378,6 +383,46 @@ void MSA::NormalizeWeights(WEIGHT wDesiredTotal) const
 void MSA::CalcWeights() const
 	{
 	Quit("Calc weights not implemented");
+	}
+
+static void FmtChar(char c, unsigned uWidth)
+	{
+	Log("%c", c);
+	for (unsigned n = 0; n < uWidth - 1; ++n)
+		Log(" ");
+	}
+
+static void FmtInt(unsigned u, unsigned uWidth)
+	{
+	static TLS<char[1024]> szStr;
+	assert(uWidth < sizeof(szStr.get()));
+	if (u > 0)
+		sprintf(szStr.get(), "%u", u);
+	else
+		strcpy(szStr.get(), ".");
+	Log(szStr.get());
+	unsigned n = (unsigned) strlen(szStr.get());
+	if (n < uWidth)
+		for (unsigned i = 0; i < uWidth - n; ++i)
+			Log(" ");
+	}
+
+static void FmtInt0(unsigned u, unsigned uWidth)
+	{
+	static TLS<char[1024]> szStr;
+	assert(uWidth < sizeof(szStr.get()));
+	sprintf(szStr.get(), "%u", u);
+	Log(szStr.get());
+	unsigned n = (unsigned) strlen(szStr.get());
+	if (n < uWidth)
+		for (unsigned i = 0; i < uWidth - n; ++i)
+			Log(" ");
+	}
+
+static void FmtPad(unsigned n)
+	{
+	for (unsigned i = 0; i < n; ++i)
+		Log(" ");
 	}
 
 void MSA::FromSeq(const Seq &s)
@@ -450,6 +495,24 @@ bool MSA::IsEmptyCol(unsigned uColIndex) const
 			return false;
 	return true;
 	}
+
+//void MSA::DeleteEmptyCols(bool bProgress)
+//	{
+//	unsigned uColCount = GetColCount();
+//	for (unsigned uColIndex = 0; uColIndex < uColCount; ++uColIndex)
+//		{
+//		if (IsEmptyCol(uColIndex))
+//			{
+//			if (bProgress)
+//				{
+//				Log("Deleting col %u of %u\n", uColIndex, uColCount);
+//				printf("Deleting col %u of %u\n", uColIndex, uColCount);
+//				}
+//			DeleteCol(uColIndex);
+//			--uColCount;
+//			}
+//		}
+//	}
 
 unsigned MSA::AlignedColIndexToColIndex(unsigned uAlignedColIndex) const
 	{
@@ -587,6 +650,16 @@ bool MSA::ColumnHasGap(unsigned uColIndex) const
 
 void MSA::SetIdCount(unsigned uIdCount)
 	{
+	//if (m_uIdCount.get() != 0)
+	//	Quit("MSA::SetIdCount: may only be called once");
+
+/*	if (m_uIdCount.get() > 0)
+		{
+		if (uIdCount > m_uIdCount)
+			Quit("MSA::SetIdCount: cannot increase count");
+		return;
+		}
+*/
 	m_uIdCount.get() = uIdCount;
 	}
 
@@ -666,6 +739,7 @@ void MSASubsetByIds(const MSA &msaIn, const unsigned Ids[], unsigned uIdCount,
 		}
 	}
 
+// Caller must allocate ptrSeq and ptrLabel as new char[n].
 void MSA::AppendSeq(char *ptrSeq, unsigned uSeqLength, char *ptrLabel)
 	{
 	if (m_uSeqCount > m_uCacheSeqCount)
@@ -729,6 +803,7 @@ void MSA::FixAlpha()
 			if (!IsResidueChar(c) && !IsGapChar(c))
 				{
 				char w = GetWildcardChar();
+				// Warning("Invalid letter '%c', replaced by '%c'", c, w);
 				InvalidLetterWarning(c, w);
 				SetChar(uSeqIndex, uColIndex, w);
 				}
@@ -739,6 +814,9 @@ void MSA::FixAlpha()
 
 ALPHA MSA::GuessAlpha() const
 	{
+// If at least MIN_NUCLEO_PCT of the first CHAR_COUNT non-gap
+// letters belong to the nucleotide alphabet, guess nucleo.
+// Otherwise amino.
 	const unsigned CHAR_COUNT = 100;
 	const unsigned MIN_NUCLEO_PCT = 95;
 
@@ -775,4 +853,4 @@ ALPHA MSA::GuessAlpha() const
 		return ALPHA_DNA;
 	return ALPHA_Amino;
 	}
-}
+} 

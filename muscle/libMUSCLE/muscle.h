@@ -1,3 +1,4 @@
+
 #if	DEBUG && !_DEBUG
 #define _DEBUG	1
 #endif
@@ -11,6 +12,12 @@
 #endif
 
 #define VER_3_52	0
+
+#ifdef	_MSC_VER	// Miscrosoft compiler
+#pragma warning(disable : 4800)	// disable int-bool conversion warning
+#pragma warning(disable : 4996)       // deprecated names like strdup, isatty.
+#define _WIN32_WINNT 0x0400 // AED 9/27/5: fix for missing IsDebuggerPresent() in VS 2005
+#endif
 
 #define MUSCLE_LONG_VERSION           "MUSCLE v3.7 by Robert C. Edgar"
 #define MUSCLE_MAJOR_VERSION	"3"
@@ -44,7 +51,6 @@
 #define assert(b)	Call_MY_ASSERT(__FILE__, __LINE__, b, #b)
 void Call_MY_ASSERT(const char *file, int line, bool b, const char *msg);
 #else
-#undef assert
 #define assert(exp)     ((void)0)
 #endif
 
