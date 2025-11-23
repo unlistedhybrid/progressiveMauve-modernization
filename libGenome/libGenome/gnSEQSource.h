@@ -132,4 +132,3 @@ gnGenomeSpec *gnSEQSource::GetSpec() const{
 
 #endif
 	// _gnSEQSource_h_
-	
