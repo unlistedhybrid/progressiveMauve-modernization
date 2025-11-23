@@ -56,9 +56,9 @@ struct SMLHeader{
 	uint64 length;						/**< length of the sequence before circularity - 8 bytes */
 	uint32 unique_mers;					/**< Number of unique mers in the sequence 4 bytes */
 	uint32 word_size;					/**< Word size on the machine the sequence was translated */
-	boolean little_endian;				/**< Is the byte order little endian?  0==no, !0==yes */
+	bool little_endian;				/**< Is the byte order little endian?  0==no, !0==yes */
 	sarID_t id;							/**< Obsolete ID value - 1 byte, eaten by alignment? */
-	boolean circular;					/**< Circularity of sequence - 1 byte */
+	bool circular;					/**< Circularity of sequence - 1 byte */
 	uint8 translation_table[UINT8_MAX];	/**< Translation table for ascii characters to binary values -- 256 bytes */
 	char description[DESCRIPTION_SIZE]; /**< Freeform text description of sequence data -- 2048 bytes */
 };
@@ -100,7 +100,7 @@ public:
 	 * @param offset The mer index in the sorted mer list to start reading from. 
 	 * @return false if a problem was encountered while reading.
 	 */
-	virtual boolean Read(std::vector<bmer>& readVector, gnSeqI size, gnSeqI offset) = 0;
+	virtual bool Read(std::vector<bmer>& readVector, gnSeqI size, gnSeqI offset) = 0;
 	/**
 	 * Merges two SortedMerLists.
 	 */
@@ -124,14 +124,14 @@ public:
 	 * If no matching mer is found, 'result' contains the index that the query
 	 * sequence would be in if it existed in the SML.
 	 */
-	virtual boolean Find(const std::string& query_seq, gnSeqI& result);
+	virtual bool Find(const std::string& query_seq, gnSeqI& result);
 	/**
 	 * Searches the SML for a mer which matches the query mer.
 	 * Returns true if one is found, false otherwise.
 	 * If no matching mer is found, 'result' contains the index that the query
 	 * mer would be in if it existed in the SML.
 	 */
-	virtual boolean FindMer(const uint64 query_mer, gnSeqI& result);
+	virtual bool FindMer(const uint64 query_mer, gnSeqI& result);
 	/**
 	 * Searches the SML for mers which match the query mer.
 	 * Puts the indices of all matching mers into the 'result' vector
@@ -196,7 +196,7 @@ public:
 	/**
 	 * Returns true if this SML is circular.  False otherwise.
 	 */
-	virtual boolean IsCircular() const;
+	virtual bool IsCircular() const;
 	/**
 	 * Returns a mask which can be bitwise AND'ed to a mer in order to
 	 * get only the relevant bits of sequence data without direction bits.
@@ -259,7 +259,7 @@ protected:
 	/** Set the sequence data to the seq_len characters in seq_buf */
 	virtual void SetSequence(gnSeqC* seq_buf, gnSeqI seq_len);
 	/** Fill in the vector of bmers with the initial unsorted bmers for the sequence in seq_buf  */
-	virtual void FillSML(gnSeqC* seq_buf, gnSeqI seq_len, boolean circular, std::vector<bmer>& sml_array);
+	virtual void FillSML(gnSeqC* seq_buf, gnSeqI seq_len, bool circular, std::vector<bmer>& sml_array);
 	virtual void FillSML(const genome::gnSequence& seq, std::vector<bmer>& sml_array);
 	virtual void FillDnaSML(const genome::gnSequence& seq, std::vector<bmer>& sml_array);
 	/** Fill in the vector of positions with the initial unsorted positions for the sequence in seq_buf  */
@@ -294,7 +294,7 @@ CREATE_EXCEPTION(SMLMergeError);
 class MerCompare {
 public:
 	MerCompare( SortedMerList* sa ){ sar = sa; }
-	boolean operator()(const gnSeqI a, const gnSeqI b) const{
+	bool operator()(const gnSeqI a, const gnSeqI b) const{
 		return sar->GetMer(a) < sar->GetMer(b);
 	}
 protected:
@@ -330,3 +330,4 @@ int bmer_compare(const void* a_v, const void* m_v){
 }
 
 #endif   //_SortedMerList_h_
+
