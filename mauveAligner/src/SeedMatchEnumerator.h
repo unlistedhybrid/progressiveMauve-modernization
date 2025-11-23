@@ -126,7 +126,7 @@ bool SeedMatchEnumerator::HashMatch(mems::IdmerList& match_list){
 
 void SeedMatchEnumerator::SetDirection(mems::Match& mhe){
 	//get the reference direction
-	boolean ref_forward = false;
+	bool ref_forward = false;
 	uint32 seqI=0;
 	for(; seqI < mhe.SeqCount(); ++seqI)
 		if(mhe[seqI] != mems::NO_MATCH){
@@ -142,3 +142,4 @@ void SeedMatchEnumerator::SetDirection(mems::Match& mhe){
 
 
 #endif	// __SeedMatchEnumerator_h__
+
