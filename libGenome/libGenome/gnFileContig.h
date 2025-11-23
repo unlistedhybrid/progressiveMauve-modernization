@@ -1,11 +1,10 @@
 /////////////////////////////////////////////////////////////////////////////
 // File:            gnFileContig.h
 // Purpose:         File Position holder.
-// Description:     
-// Changes:        
+// Description:     Holds start/end offsets for sequence data on disk,
+//                  repeat gap info, and validates section layout.
 // Version:         libGenome 0.5.1 
 // Author:          Aaron Darling 
-// Modified by:     
 // Copyright:       (c) Aaron Darling 
 // Licenses:        See COPYING file for details 
 /////////////////////////////////////////////////////////////////////////////
@@ -17,199 +16,144 @@
 #define _gnFileContig_h_
 
 #include "libGenome/gnDefs.h"
-
 #include <string>
-#include "libGenome/gnClone.h"
 #include <utility>
-
+#include "libGenome/gnClone.h"
 
 namespace genome {
 
 /**
- * gnFileContig is used by source classes to track the location of
- * sequence data on disk.  gnFileContig stores the start and end byte
- * offset, and the size of a repeated gap in the sequence data.
- * Also stores whether the sequence data is in the expected format or
- * if it is corrupted.
+ * Tracks on-disk location and repeat-gaps of contig sequence data.
  */
 class GNDLLEXPORT gnFileContig : public gnClone
 {
 public:
-	gnFileContig();
-	gnFileContig( std::string nameStr, const uint64 pos, const uint64 len );
-	gnFileContig( const gnFileContig& fc );
-	~gnFileContig();
+    gnFileContig() noexcept;
+    gnFileContig(std::string nameStr, uint64 pos, uint64 len) noexcept;
+    gnFileContig(const gnFileContig& fc) = default;
+    gnFileContig& operator=(const gnFileContig& fc) = default;
+    ~gnFileContig() override = default;
 
-	gnFileContig* Clone() const;
-	void Clear();
+    gnFileContig* Clone() const override { return new gnFileContig(*this); }
+    void Clear() noexcept;
 
-	std::string GetName() const;
-	gnSeqI GetSeqLength() const;
-	std::pair<uint64,uint64> GetFileStartEnd() const;
-	uint64 GetFileLength() const;
-	std::pair<uint64,uint64> GetSectStartEnd( const gnContigSection i ) const;
-	uint64 GetSectLength( gnContigSection i ) const;
-	boolean HasRepeatSeqGap() const;
-	std::pair<uint64,uint64> GetRepeatSeqGapSize() const;
+    [[nodiscard]] std::string GetName() const noexcept;
+    [[nodiscard]] gnSeqI GetSeqLength() const noexcept;
+    [[nodiscard]] std::pair<uint64, uint64> GetFileStartEnd() const noexcept;
+    [[nodiscard]] uint64 GetFileLength() const noexcept;
+    [[nodiscard]] std::pair<uint64, uint64> GetSectStartEnd(gnContigSection i) const noexcept;
+    [[nodiscard]] uint64 GetSectLength(gnContigSection i) const noexcept;
+    [[nodiscard]] boolean HasRepeatSeqGap() const noexcept;
+    [[nodiscard]] std::pair<uint64, uint64> GetRepeatSeqGapSize() const noexcept;
 
-	boolean SetName( std::string nameStr );
-	boolean SetSeqLength( const gnSeqI len );
-	boolean AddToSeqLength( const gnSeqI len );
-	boolean SetFileStart( const uint64 s );
-	boolean SetFileEnd( const uint64 e );
-	boolean SetFileStartEnd( const std::pair<uint64,uint64> se );
-	boolean SetSectStart( const gnContigSection i, const uint64 s );
-	boolean SetSectEnd( const gnContigSection i, const uint64 e );
-	boolean SetSectStartEnd( const gnContigSection i, const std::pair<uint64,uint64> se);
-	boolean SetRepeatSeqGap( const boolean rsg );
-	boolean SetRepeatSeqGapSize( const std::pair<uint64,uint64> rsgSize );
-	boolean SetRepeatSeqSize( const uint64 seqSize );
-	boolean SetRepeatGapSize( const uint64 gapSize );
+    boolean SetName(const std::string& nameStr) noexcept;
+    boolean SetSeqLength(gnSeqI len) noexcept;
+    boolean AddToSeqLength(gnSeqI len) noexcept;
+    boolean SetFileStart(uint64 s) noexcept;
+    boolean SetFileEnd(uint64 e) noexcept;
+    boolean SetFileStartEnd(const std::pair<uint64, uint64>& se) noexcept;
+    boolean SetSectStart(gnContigSection i, uint64 s) noexcept;
+    boolean SetSectEnd(gnContigSection i, uint64 e) noexcept;
+    boolean SetSectStartEnd(gnContigSection i, const std::pair<uint64, uint64>& se) noexcept;
+    boolean SetRepeatSeqGap(boolean rsg) noexcept;
+    boolean SetRepeatSeqGapSize(const std::pair<uint64, uint64>& rsgSize) noexcept;
+    boolean SetRepeatSeqSize(uint64 seqSize) noexcept;
+    boolean SetRepeatGapSize(uint64 gapSize) noexcept;
+
 private:
-	std::string m_name;
-	gnSeqI m_seqLength;
-	std::pair<uint64,uint64> m_fileStartEnd;
-	
-	std::pair<uint64,uint64> m_startEndArray[CONTIG_SECTION_SIZE];
-	// sequence access
-	boolean m_repeatSeqGap;  // if true, use m_repeatSeqGapSize
-	std::pair< uint64, uint64 > m_repeatSeqGapSize;
-};// class gnFileContig
+    std::string m_name;
+    gnSeqI m_seqLength{0};
+    std::pair<uint64, uint64> m_fileStartEnd{0, 0};
+    std::pair<uint64, uint64> m_startEndArray[CONTIG_SECTION_SIZE]{};
+    boolean m_repeatSeqGap{false};
+    std::pair<uint64, uint64> m_repeatSeqGapSize{0, 0};
+};
 
-  // Clone
-inline
-gnFileContig* gnFileContig::Clone() const
-{
-	return new gnFileContig( *this );
+// ---- Inline implementation ----
+
+inline std::string gnFileContig::GetName() const noexcept {
+    return m_name;
 }
-  // GET
-inline
-std::string gnFileContig::GetName() const
-{
-	return m_name;
+inline gnSeqI gnFileContig::GetSeqLength() const noexcept {
+    return m_seqLength;
 }
-inline
-gnSeqI gnFileContig::GetSeqLength() const
-{
-	return m_seqLength;
+inline std::pair<uint64, uint64> gnFileContig::GetFileStartEnd() const noexcept {
+    return m_fileStartEnd;
 }
-inline
-std::pair<uint64,uint64> gnFileContig::GetFileStartEnd() const
-{
-	return m_fileStartEnd;
+inline uint64 gnFileContig::GetFileLength() const noexcept {
+    return m_fileStartEnd.second - m_fileStartEnd.first + 1;
 }
-inline
-uint64 gnFileContig::GetFileLength() const
-{
-	return m_fileStartEnd.second - m_fileStartEnd.first + 1;
+inline std::pair<uint64, uint64> gnFileContig::GetSectStartEnd(gnContigSection i) const noexcept {
+    if (static_cast<uint32>(i) < CONTIG_SECTION_SIZE)
+        return m_startEndArray[static_cast<uint32>(i)];
+    return {0, 0};
 }
-inline
-std::pair<uint64,uint64> gnFileContig::GetSectStartEnd( const gnContigSection i ) const
-{
-	if( (uint32)i < CONTIG_SECTION_SIZE )
-		return m_startEndArray[(uint32)i];
-	return std::pair<uint64,uint64>(0,0);
+inline uint64 gnFileContig::GetSectLength(gnContigSection i) const noexcept {
+    if (static_cast<uint32>(i) < CONTIG_SECTION_SIZE)
+        return m_startEndArray[static_cast<uint32>(i)].second - m_startEndArray[static_cast<uint32>(i)].first + 1;
+    return 0;
 }
-inline
-uint64 gnFileContig::GetSectLength( gnContigSection i ) const
-{
-	if( (uint32)i < CONTIG_SECTION_SIZE )
-		return m_startEndArray[(uint32)i].second - m_startEndArray[(uint32)i].first + 1;
-	return 0;
+inline boolean gnFileContig::HasRepeatSeqGap() const noexcept {
+    return m_repeatSeqGap;
 }
-inline
-boolean gnFileContig::HasRepeatSeqGap() const
-{
-	return m_repeatSeqGap;
-}
-inline
-std::pair<uint64,uint64> gnFileContig::GetRepeatSeqGapSize() const
-{
-	return m_repeatSeqGapSize;
-}
-  // SET
-inline
-boolean gnFileContig::SetName( std::string nameStr )
-{
-	m_name = nameStr;
-	return true;
-}
-inline
-boolean gnFileContig::SetSeqLength( const gnSeqI len )
-{
-	m_seqLength = len;
-	return true;
-}
-inline
-boolean gnFileContig::AddToSeqLength( const gnSeqI len )
-{
-	m_seqLength += len;
-	return true;
-}
-inline
-boolean gnFileContig::SetFileStart( const uint64 s )
-{
-	m_fileStartEnd.first = s;
-	return true;
-}
-inline
-boolean gnFileContig::SetFileEnd( const uint64 e )
-{
-	m_fileStartEnd.second = e;
-	return true;
-}
-inline
-boolean gnFileContig::SetFileStartEnd( const std::pair<uint64,uint64> se )
-{
-	m_fileStartEnd = se;
-	return true;	
-}
-inline
-boolean gnFileContig::SetSectStart( const gnContigSection i, const uint64 s )
-{
-	if( (uint32)i < CONTIG_SECTION_SIZE )
-	{
-		m_startEndArray[(uint32)i].first = s;
-		return true;
-	}
-	return false;
-}
-inline
-boolean gnFileContig::SetSectEnd( const gnContigSection i, const uint64 e )
-{
-	if( (uint32)i < CONTIG_SECTION_SIZE )
-	{
-		m_startEndArray[(uint32)i].second = e;
-		return true;
-	}
-	return false;
-}
-inline
-boolean gnFileContig::SetSectStartEnd( const gnContigSection i, const std::pair<uint64,uint64> se )
-{
-	if( (uint32)i < CONTIG_SECTION_SIZE )
-	{
-		m_startEndArray[(uint32)i] = se;
-		return true;
-	}
-	return false;
-}
-inline
-boolean gnFileContig::SetRepeatSeqGap( const boolean rsg )
-{
-	m_repeatSeqGap = rsg;
-	return true;
-}
-inline
-boolean gnFileContig::SetRepeatSeqGapSize( const std::pair<uint64,uint64> rsgSize )
-{
-	return  SetRepeatSeqSize( rsgSize.first ) && 
-		SetRepeatGapSize( rsgSize.second );
+inline std::pair<uint64, uint64> gnFileContig::GetRepeatSeqGapSize() const noexcept {
+    return m_repeatSeqGapSize;
 }
 
+// Setters
+inline boolean gnFileContig::SetName(const std::string& nameStr) noexcept {
+    m_name = nameStr;
+    return true;
+}
+inline boolean gnFileContig::SetSeqLength(gnSeqI len) noexcept {
+    m_seqLength = len;
+    return true;
+}
+inline boolean gnFileContig::AddToSeqLength(gnSeqI len) noexcept {
+    m_seqLength += len;
+    return true;
+}
+inline boolean gnFileContig::SetFileStart(uint64 s) noexcept {
+    m_fileStartEnd.first = s;
+    return true;
+}
+inline boolean gnFileContig::SetFileEnd(uint64 e) noexcept {
+    m_fileStartEnd.second = e;
+    return true;
+}
+inline boolean gnFileContig::SetFileStartEnd(const std::pair<uint64, uint64>& se) noexcept {
+    m_fileStartEnd = se;
+    return true;
+}
+inline boolean gnFileContig::SetSectStart(gnContigSection i, uint64 s) noexcept {
+    if (static_cast<uint32>(i) < CONTIG_SECTION_SIZE) {
+        m_startEndArray[static_cast<uint32>(i)].first = s;
+        return true;
+    }
+    return false;
+}
+inline boolean gnFileContig::SetSectEnd(gnContigSection i, uint64 e) noexcept {
+    if (static_cast<uint32>(i) < CONTIG_SECTION_SIZE) {
+        m_startEndArray[static_cast<uint32>(i)].second = e;
+        return true;
+    }
+    return false;
+}
+inline boolean gnFileContig::SetSectStartEnd(gnContigSection i, const std::pair<uint64, uint64>& se) noexcept {
+    if (static_cast<uint32>(i) < CONTIG_SECTION_SIZE) {
+        m_startEndArray[static_cast<uint32>(i)] = se;
+        return true;
+    }
+    return false;
+}
+inline boolean gnFileContig::SetRepeatSeqGap(boolean rsg) noexcept {
+    m_repeatSeqGap = rsg;
+    return true;
+}
+inline boolean gnFileContig::SetRepeatSeqGapSize(const std::pair<uint64, uint64>& rsgSize) noexcept {
+    return SetRepeatSeqSize(rsgSize.first) && SetRepeatGapSize(rsgSize.second);
+}
 
+} // end namespace genome
 
-}	// end namespace genome
-
-#endif
-	// _gnFileContig_h_
+#endif // _gnFileContig_h_
