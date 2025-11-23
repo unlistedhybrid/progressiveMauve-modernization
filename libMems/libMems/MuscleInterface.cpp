@@ -844,11 +844,11 @@ bool MuscleInterface::RefineFast( GappedAlignment& ga, size_t windowsize )
 	SetMaxIters(g_uMaxIters.get());
 	SetSeqWeightMethod(g_SeqWeight1.get());
 
-	MSA::SetIdCount(seq_table.size());
+	MSA::SetIdCount(aln_table.size());
 
 	// create an MSA
 	MSA msa;
-	msaFromSeqTable(msa, seq_table);
+	msaFromSeqTable(msa, aln_table);
 
 	SetAlpha(ALPHA_DNA);
 	msa.FixAlpha();
