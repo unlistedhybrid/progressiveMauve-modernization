@@ -93,14 +93,14 @@ public:
 	 * Removes matches that do not match in exactly the sequences specified in filter_spec
 	 * @param filter_spec 	The specification of the exact filter, true designates that the
 	 *						match must exist in that sequence.  filter_spec must contain
-	 *						one boolean entry for every sequence.
+	 *						one bool entry for every sequence.
 	 */
 //	void ExactFilter( valarray< bool >& filter_spec );
 	/**
 	 * Removes matches that do not intersect with the sequences specified in filter_spec
 	 * @param filter_spec 	The specification of the intersection filter, true designates
 	 *						match must exist in that sequence.  filter_spec must contain
-	 *						one boolean entry for every sequence.
+	 *						one bool entry for every sequence.
 	 */
 //	void IntersectFilter( valarray< bool >& filter_spec );
 
@@ -283,14 +283,14 @@ void GenericMatchList< MatchPtrType >::LoadSMLs( uint mer_size, std::ostream* lo
 		DNAFileSML* file_sml = new DNAFileSML();
 		sml_table.push_back( file_sml );
 
-		boolean success = true;
+		bool success = true;
 		try{
 			file_sml->LoadFile( sml_filename[ seqI ] );
 		}catch( genome::gnException& gne ){
 			success = false;
 			create_list.push_back( seqI );
 		}
-		boolean recreate = false;
+		bool recreate = false;
 		if(success && force_create){
 			if( log_stream != NULL )
 				(*log_stream) << "SML exists, but forcefully recreating.  A new sorted mer list will be created.\n";
@@ -566,7 +566,7 @@ void ReadList(MatchList& mlist, std::istream& match_file)
 		line_stream >> match_id;
 		
 		uint sub_count;
-		boolean bad_stream = false;
+		bool bad_stream = false;
 		line_stream >> sub_count;
 		if(sub_count > 0)
 			throw "Unable to read file, invalid format, cannot read subset data\n";
@@ -671,4 +671,5 @@ void GenericMatchList< MatchPtrType >::LengthFilter( gnSeqI length ){
 }
 
 #endif	//_MatchList_h_
+
 
