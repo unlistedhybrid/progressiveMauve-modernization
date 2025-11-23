@@ -54,7 +54,7 @@ public:
 	virtual void SetSourceName(const std::string& sourceName);
 	virtual void Clear();
 
-	virtual boolean SeqRead(const gnSeqI start, gnSeqC* buf, gnSeqI& bufLen, const uint32 contigI ) const;
+	virtual bool SeqRead(const gnSeqI start, gnSeqC* buf, gnSeqI& bufLen, const uint32 contigI ) const;
 
 //Multispec stuff
 	/**
@@ -351,7 +351,7 @@ template< class SubSpec >
 void gnMultiSpec< SubSpec >::CropEnd( gnSeqI cropLen ){
 	gnSeqI curbase = 0;
 	gnSeqI cropbase = GetLength() - cropLen;  //last base to keep
-	boolean trash_the_rest = false;
+	bool trash_the_rest = false;
 	for(uint32 specI = 0; specI < GetSpecListLength(); specI++){
 		curbase += GetSpec(specI)->GetLength();		
 		if(trash_the_rest){
@@ -395,7 +395,7 @@ void gnMultiSpec< SubSpec >::RemoveHeader( uint32 i)
 }
 
 template< class SubSpec >
-boolean gnMultiSpec< SubSpec >::SeqRead(const gnSeqI start, gnSeqC* buf, gnSeqI& bufLen, const uint32 contigI ) const{
+bool gnMultiSpec< SubSpec >::SeqRead(const gnSeqI start, gnSeqC* buf, gnSeqI& bufLen, const uint32 contigI ) const{
 	if( bufLen == 0 )
 		return true;
 	if(contigI == ALL_CONTIGS){
@@ -417,7 +417,7 @@ boolean gnMultiSpec< SubSpec >::SeqRead(const gnSeqI start, gnSeqC* buf, gnSeqI&
 			//check for circular
 			gnSeqI start_pos = readBytes == 0 ? start - (curpos - readable) : 0;
 			gnSeqI to_read = readable - start_pos >= remainingBytes ? remainingBytes : readable - start_pos;
-			boolean success = GetSpec(curSpecI)->SeqRead(start_pos, buf+readBytes, to_read, contigI);
+			bool success = GetSpec(curSpecI)->SeqRead(start_pos, buf+readBytes, to_read, contigI);
 
 			readBytes += to_read;
 			remainingBytes -= to_read;
