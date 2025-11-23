@@ -66,7 +66,7 @@ public:
 	/**
 	 * Checks whether a particular format name is supported
 	 */
-	static boolean isSupportedFormat( const std::string& format_name );
+	static bool isSupportedFormat( const std::string& format_name );
 
 	/**
 	 * Writes out this sequence alignment in the specified format, 
@@ -399,3 +399,4 @@ std::string gnAlignedSequences::getAlignedSequenceFileName() {return alignedSequ
 }
 
 #endif	// __gnAlignedSequences_h__
+
