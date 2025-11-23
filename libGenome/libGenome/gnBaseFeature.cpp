@@ -32,7 +32,7 @@ gnBaseFeature::gnBaseFeature( )
 	m_broken = false;
 	m_spec = NULL;
 }
-gnBaseFeature::gnBaseFeature( string& name, uint32 id, gnFragmentSpec* spec, gnLocation::gnLocationType lt, boolean broken )
+gnBaseFeature::gnBaseFeature( string& name, uint32 id, gnFragmentSpec* spec, gnLocation::gnLocationType lt, bool broken )
 {
 	m_id = id;
 	m_name = name;
@@ -47,34 +47,34 @@ gnBaseFeature::~gnBaseFeature()
 }
 // Clone
 // Location Modification methods
-boolean gnBaseFeature::MovePositive( const gnSeqI i )
+bool gnBaseFeature::MovePositive( const gnSeqI i )
 {
-	boolean still_valid = true;
+	bool still_valid = true;
 	for(uint32 locationI=0; locationI< m_locationList.size(); locationI++){
 		still_valid = still_valid && m_locationList[locationI].MovePositive(i);
 	}
 	return still_valid;
 }
-boolean gnBaseFeature::MoveNegative( const gnSeqI i )
+bool gnBaseFeature::MoveNegative( const gnSeqI i )
 {
-	boolean still_valid = true;
+	bool still_valid = true;
 	for(uint32 locationI=0; locationI< m_locationList.size(); locationI++){
 		still_valid = still_valid && m_locationList[locationI].MoveNegative(i);
 	}
 	return still_valid;
 }
 //delete everything bigger than i
-boolean gnBaseFeature::CropEnd( const gnSeqI i )
+bool gnBaseFeature::CropEnd( const gnSeqI i )
 {
-	boolean still_valid = true;
+	bool still_valid = true;
 	for(uint32 locationI=0; locationI< m_locationList.size(); locationI++){
 		still_valid = still_valid && m_locationList[locationI].CropEnd(i);
 	}
 	return still_valid;
 }
 //delete everything less than i
-boolean gnBaseFeature::CropStart( const gnSeqI i ){
-	boolean still_valid = true;
+bool gnBaseFeature::CropStart( const gnSeqI i ){
+	bool still_valid = true;
 	for(uint32 locationI=0; locationI< m_locationList.size(); locationI++){
 		still_valid = still_valid && m_locationList[locationI].CropStart(i);
 	}
@@ -102,7 +102,7 @@ uint32 gnBaseFeature::LastIndexOfQualifier( const string& name, uint32 listI ) c
 			break;
 	return i;
 }
-boolean gnBaseFeature::RemoveQualifier( uint32 listI ){
+bool gnBaseFeature::RemoveQualifier( uint32 listI ){
 	if(listI < m_qualifierList.size()){
 		delete m_qualifierList[ listI ];
 		m_qualifierList.erase(m_qualifierList.begin() + listI);
@@ -110,7 +110,7 @@ boolean gnBaseFeature::RemoveQualifier( uint32 listI ){
 	}
 	return false;
 }
-boolean gnBaseFeature::SetQualifier( string& name, string& value, uint32 listI ){
+bool gnBaseFeature::SetQualifier( string& name, string& value, uint32 listI ){
 	if(listI < m_qualifierList.size()){
 		delete m_qualifierList[ listI ];
 		m_qualifierList[listI] = new gnStringQualifier(name, value);
@@ -118,7 +118,7 @@ boolean gnBaseFeature::SetQualifier( string& name, string& value, uint32 listI )
 	}
 	return false;
 }
-boolean gnBaseFeature::SetQualifierName( string& name, uint32 listI ){
+bool gnBaseFeature::SetQualifierName( string& name, uint32 listI ){
 	if(listI < m_qualifierList.size()){
 		gnStringQualifier* new_qual = new gnStringQualifier(name, m_qualifierList[listI]->GetValue());
 		delete m_qualifierList[listI];
@@ -127,7 +127,7 @@ boolean gnBaseFeature::SetQualifierName( string& name, uint32 listI ){
 	}
 	return false;
 }
-boolean gnBaseFeature::SetQualifierValue( string& value, uint32 listI ){
+bool gnBaseFeature::SetQualifierValue( string& value, uint32 listI ){
 	if(listI < m_qualifierList.size()){
 		gnStringQualifier* new_qual = new gnStringQualifier(m_qualifierList[listI]->GetName(), value);
 		delete m_qualifierList[listI];
@@ -137,7 +137,7 @@ boolean gnBaseFeature::SetQualifierValue( string& value, uint32 listI ){
 	return false;
 }
 // Compare methods
-boolean gnBaseFeature::Contains( gnSeqI i ) const{
+bool gnBaseFeature::Contains( gnSeqI i ) const{
 	for(uint32 locationI=0; locationI< m_locationList.size(); locationI++){
 		if((m_locationList[locationI].GetStart() <= i) &&
 			(m_locationList[locationI].GetEnd() >= i))
@@ -145,14 +145,14 @@ boolean gnBaseFeature::Contains( gnSeqI i ) const{
 	}
 	return false;
 }
-boolean gnBaseFeature::Contains( const gnLocation& l ) const{
+bool gnBaseFeature::Contains( const gnLocation& l ) const{
 	for(uint32 locationI=0; locationI< m_locationList.size(); locationI++){
 		if(m_locationList[locationI].Contains(l))
 			return true;
 	}
 	return false;
 }
-boolean gnBaseFeature::Contains( gnBaseFeature* feature ) const{
+bool gnBaseFeature::Contains( gnBaseFeature* feature ) const{
 	for(uint32 locationI=0; locationI< m_locationList.size(); locationI++){
 		uint32 i=0;
 		for(; i < feature->GetLocationListLength(); i++){
@@ -164,7 +164,7 @@ boolean gnBaseFeature::Contains( gnBaseFeature* feature ) const{
 	}
 	return true;
 }
-boolean gnBaseFeature::IsContainedBy( const gnLocation& l ) const{
+bool gnBaseFeature::IsContainedBy( const gnLocation& l ) const{
 	for(uint32 locationI=0; locationI< m_locationList.size(); locationI++){
 		if(!l.Contains(m_locationList[locationI]))
 			return false;
@@ -172,14 +172,14 @@ boolean gnBaseFeature::IsContainedBy( const gnLocation& l ) const{
 	return true;
 }
 
-boolean gnBaseFeature::Intersects( const gnLocation& l ) const{
+bool gnBaseFeature::Intersects( const gnLocation& l ) const{
 	for(uint32 locationI=0; locationI< m_locationList.size(); locationI++){
 		if(!l.Intersects(m_locationList[locationI]))
 			return false;
 	}
 	return true;
 }
-boolean gnBaseFeature::Intersects( gnBaseFeature* feature ) const{
+bool gnBaseFeature::Intersects( gnBaseFeature* feature ) const{
 	for(uint32 locationI=0; locationI< m_locationList.size(); locationI++){
 		uint32 i=0;
 		for(; i < feature->GetLocationListLength(); i++){
@@ -192,7 +192,7 @@ boolean gnBaseFeature::Intersects( gnBaseFeature* feature ) const{
 	return true;
 }
 inline
-boolean gnBaseFeature::AddLocation( const gnLocation& l, uint32 listI ){
+bool gnBaseFeature::AddLocation( const gnLocation& l, uint32 listI ){
 	if(listI <= m_locationList.size()){
 		m_locationList.insert(m_locationList.begin() + listI, l);
 		return true;
@@ -206,7 +206,7 @@ gnLocation gnBaseFeature::GetLocation( uint32 listI ) const{
 	return gnLocation();
 }
 
-boolean gnBaseFeature::RemoveLocation( uint32 listI ){
+bool gnBaseFeature::RemoveLocation( uint32 listI ){
 	if(listI < m_locationList.size()){
 		m_locationList.erase(m_locationList.begin() + listI);
 		return true;
@@ -214,7 +214,7 @@ boolean gnBaseFeature::RemoveLocation( uint32 listI ){
 	return false;
 }
 
-boolean gnBaseFeature::SetLocation( const gnLocation& l, uint32 listI ){
+bool gnBaseFeature::SetLocation( const gnLocation& l, uint32 listI ){
 	if(listI < m_locationList.size()){
 		m_locationList[listI] = l;
 		return true;
@@ -222,7 +222,7 @@ boolean gnBaseFeature::SetLocation( const gnLocation& l, uint32 listI ){
 	return false;
 }
 
-boolean gnBaseFeature::AddQualifier( gnBaseQualifier* qualifier ){
+bool gnBaseFeature::AddQualifier( gnBaseQualifier* qualifier ){
 	if(qualifier != NULL){
 		m_qualifierList.push_back(qualifier);
 		return true;
@@ -230,7 +230,7 @@ boolean gnBaseFeature::AddQualifier( gnBaseQualifier* qualifier ){
 	return false;
 }
 
-boolean gnBaseFeature::HasQualifier( const string& name ) const{
+bool gnBaseFeature::HasQualifier( const string& name ) const{
 	for(uint32 i=0; i < m_qualifierList.size(); i++)
 		if(m_qualifierList[i]->GetName() == name)
 			return true;
