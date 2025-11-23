@@ -418,7 +418,17 @@ void SetMuscleTree(const Tree &tree)
 		}
 
 	std::cerr << "DEBUG SetMuscleTree: Deleting old weights" << std::endl;
-	delete[] g_MuscleWeights.get();
+	std::cerr << "DEBUG SetMuscleTree: g_MuscleWeights.get()=" << (void*)g_MuscleWeights.get() << std::endl;
+	if (g_MuscleWeights.get() != NULL)
+		{
+		std::cerr << "DEBUG SetMuscleTree: Deleting non-null weights" << std::endl;
+		delete[] g_MuscleWeights.get();
+		}
+	else
+		{
+		std::cerr << "DEBUG SetMuscleTree: Weights pointer is NULL, skipping delete" << std::endl;
+		}
+	g_MuscleWeights.get() = NULL;
 
 	const unsigned uLeafCount = tree.GetLeafCount();
 	std::cerr << "DEBUG SetMuscleTree: uLeafCount=" << uLeafCount << std::endl;
@@ -550,4 +560,4 @@ void MSACat(const MSA &msa1, const MSA &msa2, MSA &msaCat)
 			}
 		}
 	}
-} 
+}
