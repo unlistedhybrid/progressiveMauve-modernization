@@ -11,6 +11,16 @@ extern SCOREMATRIX VTML_SP;
 // #define SUBST(i, j)	Subst(seqA, seqB, i, j)
 #define SUBST(i, j)		MxRowA[i][seqB.GetLetter(j)]
 
+static SCORE Subst(const Seq &seqA, const Seq &seqB, unsigned i, unsigned j)
+	{
+	assert(i < seqA.Length());
+	assert(j < seqB.Length());
+
+	unsigned uLetterA = seqA.GetLetter(i);
+	unsigned uLetterB = seqB.GetLetter(j);
+	return VTML_SP[uLetterA][uLetterB] + g_scoreCenter.get();
+	}
+
 struct DP_MEMORY
 	{
 	unsigned uLength;
@@ -109,10 +119,8 @@ SCORE GlobalAlignSS(const Seq &seqA, const Seq &seqB, PWPath &Path)
 	{
 	const unsigned uLengthA = seqA.Length();
 	const unsigned uLengthB = seqB.Length();
-#if DEBUG
 	const unsigned uPrefixCountA = uLengthA + 1;
 	const unsigned uPrefixCountB = uLengthB + 1;
-#endif
 
 	AllocDPMem(uLengthA, uLengthB);
 
@@ -169,6 +177,7 @@ SCORE GlobalAlignSS(const Seq &seqA, const Seq &seqB, PWPath &Path)
 		memset(ptrMCurr_j, 0, uLengthB*sizeof(SCORE));
 
 		const SCORE *RowA = MxRowA[i];
+		const SCORE *ptrRowA = MxRowA[i];
 		const SCORE *ptrMCurrEnd = ptrMCurr_j + uLengthB;
 		unsigned *ptrLettersB = LettersB;
 		for (; ptrMCurr_j != ptrMCurrEnd; ++ptrMCurr_j)
@@ -310,4 +319,4 @@ SCORE GlobalAlignSS(const Seq &seqA, const Seq &seqB, PWPath &Path)
 
 	return scoreMax;
 	}
-}
+} 
