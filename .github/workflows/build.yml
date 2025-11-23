@@ -20,7 +20,6 @@ jobs:
       run: |
         sudo apt update
         sudo apt install -y cmake g++ wget libzstd-dev libbz2-dev zlib1g-dev pkg-config libicu-dev
-        # Build static Boost 1.89
         cd /tmp
         wget https://github.com/boostorg/boost/releases/download/boost-1.89.0/boost-1.89.0-cmake.tar.gz
         tar xzf boost-1.89.0-cmake.tar.gz
@@ -50,8 +49,9 @@ jobs:
         cd vcpkg
         .\bootstrap-vcpkg.bat
 
-        # Install static dependencies including ICU
-        .\vcpkg install boost-filesystem:x64-windows-static `
+        # FULL BOOST to include the headers (critical fix)
+        .\vcpkg install boost:x64-windows-static `
+            boost-filesystem:x64-windows-static `
             boost-iostreams:x64-windows-static `
             boost-program-options:x64-windows-static `
             boost-regex:x64-windows-static `
