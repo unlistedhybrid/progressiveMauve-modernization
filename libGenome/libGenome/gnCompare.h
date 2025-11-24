@@ -139,7 +139,7 @@ boolean gnCompare::LessThan( gnSeqC ch, gnSeqC ch2, boolean case_sensitive) cons
 		ch2 = toupper(ch2);
 	}
 		
-	if(strchr(m_pairArray[ch], ch2) == 0)
+	if(strchr(m_pairArray[(unsigned char)ch], ch2) == 0)
 		return ch < ch2 ? true : false;
 	return false;
 }
