@@ -1,52 +1,43 @@
-/******************************************************************************
- * This file is copyright 2002-2007 Aaron Darling and authors listed in the AUTHORS file.
- * This file is licensed under the GPL.
- * Please see the file called COPYING for licensing details.
- ******************************************************************************/
+#include <iostream> // for std::cerr
+#include <cstring>
+#include <limits>
+#include <cstdint> // Ensure standard integer types are available, though usually covered by sml.h
 
-#ifndef _MemorySML_h_
-#define _MemorySML_h_
+#include "libMems/dmSML/sml.h"
+#include "libMems/SeedMasks.h"
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
+namespace sml {
 
-#include "libGenome/gnSequence.h"
-#include "libMems/SortedMerList.h"
-#include <vector>
-#include <cstdint>
+SMLHeader_t InitSML(aFILE* file, uint64 file_size, uint64 seed) {
+    SMLHeader_t header{};
+    header.version = 5;
+    header.alphabet_bits = 2;
+    header.seed = seed;
+    header.seed_length = getSeedLength(seed);
+    header.seed_weight = getSeedWeight(seed);
+    header.length = file_size;
+    header.unique_mers = std::numeric_limits<uint32>::max(); // "unset"
+    header.word_size = 32;
+    header.little_endian = true;
+    header.id = 0;
+    header.circular = false;
+    
+    std::memset(header.translation_table, 0, sml::UINT8_MAX_VALUE);
 
-namespace mems {
+    {
+        // bdt is a raw pointer (uint8*) whose ownership was released by CreateBasicDNATable()
+        auto bdt = CreateBasicDNATable();
+        std::memcpy(header.translation_table, bdt, sml::UINT8_MAX_VALUE);
+        std::free(bdt);
+    }
+    header.description[0] = '\0';
 
-/**
- * MemorySML: A SortedMerList stored entirely in memory.
- * Consumes roughly 32 + alpha_bits bits per character in the sequences.
- * For unambiguous DNA sequences, requires ~4.25 bytes per base.
- */
-class MemorySML : public SortedMerList {
-public:
-    /**
-     * Create an empty MemorySML.
-     * @param table The translation table for characters to binary code.
-     * @param alpha_bits The number of bits per character (default: DNA settings).
-     */
-    MemorySML(const uint8_t* table = SortedMerList::BasicDNATable(), uint32_t alpha_bits = DNA_ALPHA_BITS);
-    MemorySML(const MemorySML& msa);
-    MemorySML& operator=(const MemorySML& msa);
-    MemorySML* Clone() const;
+    int retcode = aWrite(static_cast<void*>(&header), sizeof(header), 1, file, 0);
+    if (retcode == 0) {
+        std::cerr << "Error writing to SML\n";
+    }
+    aWaitComplete(file, retcode);
+    return header;
+}
 
-    virtual void Clear();
-
-    virtual void Create(const genome::gnSequence& seq, uint64_t seed);
-    virtual bool Read(std::vector<bmer>& readVector, gnSeqI size, gnSeqI offset = 0);
-    virtual void Merge(SortedMerList& sa, SortedMerList& sa2);
-
-    virtual bmer operator[](gnSeqI index);
-
-protected:
-    std::vector<smlSeqI_t> positions;
-};
-
-} // namespace mems
-
-#endif // _MemorySML_h_
+} // namespace sml
