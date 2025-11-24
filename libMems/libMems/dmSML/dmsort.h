@@ -78,8 +78,15 @@ offset_t CalculateDataReadSize( buffer_t* b );
 #define ALPHA_BITS 2
 
 void RestructureReadSMLBins( void );
-// FIX: Use sml::uint64 for the seed argument
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 int InitdmSML( long working_mb, long buffer_size, const char* input_filename, const char* output_filename, const char* const* scratch_paths, sml::uint64 seed );
+
+#ifdef __cplusplus
+}
+#endif
 void DisplayStatusHeader( void );
 void DisplayStatus( void );
 void UpdateIOState( void );
@@ -129,3 +136,4 @@ int dmSML( const char* input_file, const char* output_file, const char* const* s
 #endif
 
 #endif
+
