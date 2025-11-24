@@ -14,7 +14,7 @@
 #endif
 
 #include "libGenome/gnSequence.h"
-#include "libMems/MemorySML.h"
+#include "libMems/SortedMerList.h"
 #include "libMems/dmSML/sml.h"
 #include <vector>
 
@@ -42,3 +42,4 @@ protected:
 }
 
 #endif
+
