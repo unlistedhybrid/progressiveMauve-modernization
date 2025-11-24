@@ -11,12 +11,13 @@
 #include <algorithm>
 #include <cstring>
 #include <limits>
-#include "libMems/dmSML/sml.h"
+#include "libMems/dmSML/sml.h" // Ensure this is included for sml:: types
 
 namespace mems {
 
 MemorySML::MemorySML(const std::uint8_t* table, std::uint32_t alpha_bits) {
     header.alphabet_bits = alpha_bits;
+    // We already fixed this line:
     std::memcpy(header.translation_table, table, sml::UINT8_MAX_VALUE);
     header.version = 0;
 }
@@ -93,4 +94,4 @@ bmer MemorySML::operator[](gnSeqI index) {
     return cur_mer;
 }
 
-} // namespace mems
+}
