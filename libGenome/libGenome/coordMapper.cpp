@@ -209,7 +209,7 @@ int main(int argc, char* argv[]){
 	cout << intron_list.size() << " unique introns loaded from file\n";
 	
 	//now load the genbank file
-	gnSequence seq_file;
+	genome::gnSequence seq_file;
 	if(run_interactive){
 		cout << "Enter the name of the genbank sequence file you are using\n";
 		cin >> seq_filename;
