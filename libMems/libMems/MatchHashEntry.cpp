@@ -9,20 +9,29 @@
 
 // Include MatchHashEntry.h for class definition
 #include "libMems/MatchHashEntry.h"
-#include <algorithm> // std::min, std::abs
-#include <cmath>     // std::abs (for floating point, though std::abs in <algorithm> may suffice)
-#include <cstdint>   // For int64_t
+#include <algorithm>
+#include <cmath>
+#include <cstdint>
+#include "libMems/dmSML/sml.h"
 
 namespace mems {
 
 MatchHashEntry::MatchHashEntry()
     : m_extended(false), m_mersize(0), m_offset(0) {}
 
-// FIX: Assuming the constructor that receives 'seed' was intended to receive 'mask_t seed'
+// FIX: Implementation of the primary MemType constructor
 MatchHashEntry::MatchHashEntry(uint seq_count, gnSeqI mersize, MemType m_type)
     : m_extended(m_type == MemType::extended),
       m_mersize(mersize),
       m_offset(0) {}
+
+// FIX: Implementation of the missing sml::mask_t constructor to resolve the linker error
+MatchHashEntry::MatchHashEntry(uint seq_count, gnSeqI mersize, sml::mask_t seed)
+    // Forwards the call to the MemType constructor, assuming sml::mask_t implies MemType::seed
+    : MatchHashEntry(seq_count, mersize, MemType::seed)
+{
+    // The specific 'seed' value is managed globally by sml::seed_mask and not stored here.
+}
 
 MatchHashEntry& MatchHashEntry::operator=(const MatchHashEntry& mhe) {
     Match::operator=(mhe);
@@ -42,7 +51,6 @@ bool MatchHashEntry::operator==(const MatchHashEntry& mhe) const {
     return true;
 }
 
-// NOTE: This function's declaration in MatchHashEntry.h MUST NOT have the 'override' specifier.
 void MatchHashEntry::CalculateOffset() {
     if (SeqCount() == 0) {
         m_offset = 0;
