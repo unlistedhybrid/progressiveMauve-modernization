@@ -289,7 +289,7 @@ MatchHashEntry* MemHash::AddHashEntry(MatchHashEntry& mhe){
 		ExtendMatch(mhe, subset_matches);
 
 	MatchHashEntry* new_mhe = allocator.Allocate();
-	new_mhe = new(new_mhe) MatchHashEntry(mhe); 
+	new_mhe = new(new_mhe) MatchHashEntry(mhe);
 //	*new_mhe = mhe;
 	allocated.push_back(new_mhe);
 	
@@ -314,7 +314,7 @@ MatchHashEntry* MemHash::AddHashEntry(MatchHashEntry& mhe){
 }
 
 void MemHash::PrintDistribution(std::ostream& os) const{
-    std::vector<MatchHashEntry*>::const_iterator mem_iter;
+	std::vector<MatchHashEntry*>::const_iterator mem_iter;
 	gnSeqI base_count;
 	for(std::uint32_t i=0; i < mem_table_count.size(); ++i){
 		mem_iter = mem_table[i].begin();
@@ -382,7 +382,7 @@ void MemHash::WriteFile(std::ostream& mem_file) const{
 	}
 	mem_file << "MatchCount" << '\t' << m_mem_count << endl;
 	//get all the mems out of the hash table and write them out
-    std::vector<MatchHashEntry*>::const_iterator mem_table_iter;
+	std::vector<MatchHashEntry*>::const_iterator mem_table_iter;
 	for(std::uint32_t i=0; i < table_size; i++){
 		mem_table_iter = mem_table[i].begin();
 		for(; mem_table_iter != mem_table[i].end(); mem_table_iter++)
@@ -392,4 +392,5 @@ void MemHash::WriteFile(std::ostream& mem_file) const{
 
 
 } // namespace mems
+
 
