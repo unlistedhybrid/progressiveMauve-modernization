@@ -39,12 +39,12 @@ DNAMemorySML* DNAMemorySML::Clone() const{
 	return new DNAMemorySML(*this);
 }
 
-std::uint64_t DNAMemorySML::GetMer(gnSeqI position) const{
-	return GetDnaMer( position );
+uint64 DNAMemorySML::GetMer(gnSeqI position) const{
+    return GetDnaMer( position );
 }
 
-std::uint64_t DNAMemorySML::GetSeedMer( gnSeqI offset ) const{
-	return GetDnaSeedMer( offset );
+uint64 DNAMemorySML::GetSeedMer( gnSeqI offset ) const{
+    return GetDnaSeedMer( offset );
 }
 
 void DNAMemorySML::FillSML(const gnSequence& seq, vector<bmer>& sml_array)
@@ -53,3 +53,4 @@ void DNAMemorySML::FillSML(const gnSequence& seq, vector<bmer>& sml_array)
 }
 
 } // namespace mems
+
