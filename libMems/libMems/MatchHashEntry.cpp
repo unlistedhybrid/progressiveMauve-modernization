@@ -7,14 +7,18 @@
 #include "config.h"
 #endif
 
+// Include MatchHashEntry.h for class definition
 #include "libMems/MatchHashEntry.h"
 #include <algorithm> // std::min, std::abs
+#include <cmath>     // std::abs (for floating point, though std::abs in <algorithm> may suffice)
+#include <cstdint>   // For int64_t
 
 namespace mems {
 
 MatchHashEntry::MatchHashEntry()
     : m_extended(false), m_mersize(0), m_offset(0) {}
 
+// FIX: Assuming the constructor that receives 'seed' was intended to receive 'mask_t seed'
 MatchHashEntry::MatchHashEntry(uint seq_count, gnSeqI mersize, MemType m_type)
     : m_extended(m_type == MemType::extended),
       m_mersize(mersize),
@@ -38,6 +42,7 @@ bool MatchHashEntry::operator==(const MatchHashEntry& mhe) const {
     return true;
 }
 
+// NOTE: This function's declaration in MatchHashEntry.h MUST NOT have the 'override' specifier.
 void MatchHashEntry::CalculateOffset() {
     if (SeqCount() == 0) {
         m_offset = 0;
