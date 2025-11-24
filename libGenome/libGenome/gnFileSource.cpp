@@ -43,7 +43,7 @@ gnFileSource::gnFileSource(const gnFileSource& gnfs){
 // Open, Close	
 void gnFileSource::Open( string openString )
 {
-	bool opened = true;
+	boolean opened = true;
 #pragma omp critical
 {
 	m_ifstream.open(openString.c_str(), ios::in | ios::binary );
@@ -86,7 +86,7 @@ void gnFileSource::Close()
 	m_ifstream.close();
 }
 
-bool gnFileSource::Read( const uint64 pos, char* buf, gnSeqI& bufLen) 
+boolean gnFileSource::Read( const uint64 pos, char* buf, gnSeqI& bufLen) 
 {
 	bool failure = false;
 #pragma omp critical
@@ -129,3 +129,4 @@ void gnFileSource::DetermineNewlineType()
 }
 
 }	// end namespace genome
+
