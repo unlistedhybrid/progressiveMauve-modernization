@@ -148,17 +148,6 @@ uint32 loc_binary_search(vector<genome::gnLocation>& loc_list, uint32 startI, ui
 		return loc_binary_search(loc_list, startI, midI, query_loc);
 }
 
-// --- abs(int64) Custom Function ---
-// FIX: Added 'noexcept' and wrapped in a conditional guard to prevent redefinition errors 
-// on modern compilers that already provide 64-bit abs().
-// NOTE: If the original library expects gnDefs.h to provide this, it should be moved there 
-// with the proper header guards. For this single file fix, we put it here.
-#ifndef HAVE_LLABS
-int64 abs( int64 a ) noexcept {
-	return a < 0 ? -a : a;
-}
-#endif
-
 
 int main(int argc, char* argv[]){
 	
