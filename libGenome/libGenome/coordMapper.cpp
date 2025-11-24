@@ -304,8 +304,8 @@ int main(int argc, char* argv[]){
 		
 		//we have the mappings, now map the coordinates
 		vector<uint32> ex_feat_index, in_feat_index;
-		vector<gnBaseFeature*> ex_feat_list;
-		vector<gnBaseFeature*> in_feat_list;
+		vector<genome::gnBaseFeature*> ex_feat_list;
+		vector<genome::gnBaseFeature*> in_feat_list;
 		gnSeqI cur_match_len = mem_list[memI].length;
 		
 		//find out how much of the first exon was matched
