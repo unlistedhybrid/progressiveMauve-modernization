@@ -14,6 +14,9 @@
 #include "libMems/dmSML/buffer.h"
 #include "libMems/dmSML/sorting.h"
 #include "libMems/dmSML/sml.h"
+// FIX: Include gnDefs.h directly for 'boolean' and related types, 
+// as it was included in the old sml.h but might be hidden now.
+#include "libGenome/gnDefs.h" 
 
 //#define ASCII_KEYBYTES
 //#define NNNNN_KEYBYTES
@@ -41,18 +44,20 @@ typedef struct device_s {
 #define BIN_SPECIAL     (-10000)
 
 typedef struct bin_s {
-    aFILE               *file;
-    int                 dev;
-    offset_t            nrecs;
-    buffer_list_t       bufs;
-    char*				fname;
+    aFILE           *file;
+    int             dev;
+    offset_t        nrecs;
+    buffer_list_t   bufs;
+    char*			fname;
 } bin_t;
 
 typedef struct seqbuf_s {
 	aFILE				*file;
 	int					dev;
 	offset_t			bufpos;
-	uint64				seq_pos;
+    // FIX: uint64 likely moved to sml::uint64 or is a standard C++ type.
+    // Assuming standard type, but if compilation fails, change to sml::uint64
+	sml::uint64			seq_pos; 
 	buffer_list_t		bufs;
 } seqbuf_t;
 
@@ -76,7 +81,8 @@ offset_t CalculateDataReadSize( buffer_t* b );
 #define ALPHA_BITS 2
 
 void RestructureReadSMLBins( void );
-int InitdmSML( long working_mb, long buffer_size, const char* input_filename, const char* output_filename, const char* const* scratch_paths, uint64 seed );
+// FIX: Update uint64 to sml::uint64 (or standard C++ uint64_t if available globally)
+int InitdmSML( long working_mb, long buffer_size, const char* input_filename, const char* output_filename, const char* const* scratch_paths, sml::uint64 seed );
 void DisplayStatusHeader( void );
 void DisplayStatus( void );
 void UpdateIOState( void );
@@ -118,7 +124,8 @@ int dmsort( void );
 extern "C" {
 #endif
 
-int dmSML( const char* input_file, const char* output_file, const char* const* scratch_paths, uint64 seed );
+// FIX: Update uint64 to sml::uint64
+int dmSML( const char* input_file, const char* output_file, const char* const* scratch_paths, sml::uint64 seed );
 
 #ifdef __cplusplus
 }
