@@ -1296,7 +1296,7 @@ int dmsort() {
 }
 
 extern "C" {
-int dmSML( const char* input_file, const char* output_file, const char* const* scratch_paths, uint64 seed ) {
+int dmSML( const char* input_file, const char* output_file, const char* const* scratch_paths, sml::uint64 seed ) {
 	int rval = 0;
 	int i = 0;
 	rval = InitdmSML( 0, 0, input_file, output_file, scratch_paths, seed );
