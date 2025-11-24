@@ -268,26 +268,26 @@ public:
 	 * @param contigI The index of the contig to use, or ALL_CONTIGS.
 	 * @throws FragmentIndexOutOfBounds will be propagated if contigI is invalid
 	 */
-	virtual void setReverseComplement( const bool revComp, const uint32 contigI=ALL_CONTIGS);
+	virtual void setReverseComplement( const boolean revComp, const uint32 contigI=ALL_CONTIGS);
 	/**
 	 * Returns true if a specified contig, or the entire sequence is reverse complement.
 	 * @param contigI The index of the contig to use, or ALL_CONTIGS for the whole sequence.
 	 * @throws FragmentIndexOutOfBounds will be propagated if contigI is invalid
 	 * @return True if the sequence is reverse complement, false otherwise.
 	 */
-	virtual bool isReverseComplement( const uint32 contigI=ALL_CONTIGS );
+	virtual boolean isReverseComplement( const uint32 contigI=ALL_CONTIGS );
 	/**
 	 * Returns true if this sequence is circular.
 	 * @return True if this sequence is circular.
 	 */
-	virtual bool isCircular() const;
+	virtual boolean isCircular() const;
 	/**
 	 * Sets whether this sequence should be read circular.
 	 * If circular is set, reads beyond the end of the sequence will pick up
 	 * at the beginning.
 	 * @param value True for circular, false otherwise.
 	 */
-	virtual void setCircular( const bool value );
+	virtual void setCircular( const boolean value );
 	
 	/**
 	 * Converts the global sequence coordinate baseI to a contig local coordinate.
@@ -362,12 +362,12 @@ public:
 	 * Assigns the sequence "seq" to this sequence.
 	 */
 	void operator=(gnSequence& seq);
-	bool operator==(const gnSequence& seq) const;
-	bool operator!=(const gnSequence& seq) const;
-	bool operator<(const gnSequence& seq) const;
-	bool operator<=(const gnSequence& seq) const;
-	bool operator>(const gnSequence& seq) const;
-	bool operator>=(const gnSequence& seq) const;
+	boolean operator==(const gnSequence& seq) const;
+	boolean operator!=(const gnSequence& seq) const;
+	boolean operator<(const gnSequence& seq) const;
+	boolean operator<=(const gnSequence& seq) const;
+	boolean operator>(const gnSequence& seq) const;
+	boolean operator>=(const gnSequence& seq) const;
 	/**
 	 * Appends the bases in "seq" to this sequence.
 	 */
@@ -462,7 +462,7 @@ public:
 	 * @param offset The base pair index to start converting.
 	 * @return True if successful, false otherwise.
 	 */
-	virtual bool ToString( std::string& str, const gnSeqI length=GNSEQI_END, const gnSeqI offset=1 ) const;
+	virtual boolean ToString( std::string& str, const gnSeqI length=GNSEQI_END, const gnSeqI offset=1 ) const;
 	/**
 	 * Converts the "length" bases starting at "offset" into the character array "pSeqC"..
 	 * After converting, "length" will be set to the actual length of the sequence.
@@ -472,7 +472,7 @@ public:
 	 * @param offset The base pair index to start converting.
 	 * @return True if successful, false otherwise.
 	 */
-	virtual bool ToArray( gnSeqC* pSeqC, gnSeqI length, const gnSeqI offset=1 ) const;
+	virtual boolean ToArray( gnSeqC* pSeqC, gnSeqI length, const gnSeqI offset=1 ) const;
 	/**
 	 * Returns the base at "offset".
 	 * @param offset The index of the base to get.
@@ -528,27 +528,27 @@ void gnSequence::assign(gnSequence& seq){
 	spec = seq.spec->Clone();
 }
 inline
-bool gnSequence::operator==(const gnSequence& seq) const{
+boolean gnSequence::operator==(const gnSequence& seq) const{
 	return (compare(seq)==0);
 }
 inline
-bool gnSequence::operator!=(const gnSequence& seq) const{
+boolean gnSequence::operator!=(const gnSequence& seq) const{
 	return (compare(seq)!=0);
 }
 inline
-bool gnSequence::operator<(const gnSequence& seq) const{
+boolean gnSequence::operator<(const gnSequence& seq) const{
 	return (compare(seq)<0);
 }
 inline
-bool gnSequence::operator<=(const gnSequence& seq) const{
+boolean gnSequence::operator<=(const gnSequence& seq) const{
 	return (compare(seq)<=0);
 }
 inline
-bool gnSequence::operator>(const gnSequence& seq) const{
+boolean gnSequence::operator>(const gnSequence& seq) const{
 	return (compare(seq)>0);
 }
 inline
-bool gnSequence::operator>=(const gnSequence& seq) const{
+boolean gnSequence::operator>=(const gnSequence& seq) const{
 	return (compare(seq)>=0);
 }
 // Append and Insert Operators
@@ -592,12 +592,12 @@ void gnSequence::getBrokenFeatures(const gnLocation& lt, std::vector<gnBaseFeatu
 }
 
 inline
-bool gnSequence::isCircular() const{
+boolean gnSequence::isCircular() const{
 	return spec->IsCircular();
 }
 
 inline
-void gnSequence::setCircular( const bool value ){
+void gnSequence::setCircular( const boolean value ){
 	spec->SetCircular(value);
 }
 inline

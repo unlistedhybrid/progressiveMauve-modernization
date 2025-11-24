@@ -28,7 +28,7 @@ gnStringSpec::gnStringSpec()
 	gnContigSpec::Clear();
 }
 
-gnStringSpec::gnStringSpec( const string& m_string, gnSeqI start, gnSeqI endI, bool revComp)
+gnStringSpec::gnStringSpec( const string& m_string, gnSeqI start, gnSeqI endI, boolean revComp)
 {
 	m_seqString = m_string;
 	m_start = start;
@@ -86,3 +86,4 @@ gnStringSpec* gnStringSpec::CloneRange( const gnSeqI startI, const gnSeqI len ) 
 }
 
 }	// end namespace genome
+

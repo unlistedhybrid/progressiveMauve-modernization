@@ -99,12 +99,12 @@ public:
 	 * @param value True for reverse complement, false otherwise.
 	 * @return True if successful.
 	 */
-	virtual void SetReverseComplement( const bool value );
+	virtual void SetReverseComplement( const boolean value );
 
 	virtual void CropStart( gnSeqI cropLen );
 	virtual void CropEnd( gnSeqI cropLen );
 
-	virtual bool SeqRead(const gnSeqI start, gnSeqC* buf, gnSeqI& bufLen, const uint32 contigI ) const;
+	virtual boolean SeqRead(const gnSeqI start, gnSeqC* buf, gnSeqI& bufLen, const uint32 contigI ) const;
 	virtual void Clear();
 protected:
 	gnSeqI m_start;  //start within the genome.
@@ -115,7 +115,7 @@ protected:
 	 * all derived classes must implement this!
 	 * it simply reads the specified bases into buf, disregarding circularity and reverse complement.
 	 */
-	virtual bool Read(const gnSeqI start, gnSeqC* buf, gnSeqI& bufLen ) const = 0;
+	virtual boolean Read(const gnSeqI start, gnSeqC* buf, gnSeqI& bufLen ) const = 0;
 
 private:
 

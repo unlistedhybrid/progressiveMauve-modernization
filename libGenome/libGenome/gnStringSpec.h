@@ -46,7 +46,7 @@ public:
 	 * @param endI The index to stop reading base pairs from the std::string.
 	 * @param revComp True if the sequence is read reverse complement.
 	 */
-	gnStringSpec( const std::string& m_string, const gnSeqI startI=0, const gnSeqI endI=GNSEQI_END, const bool revComp = false);
+	gnStringSpec( const std::string& m_string, const gnSeqI startI=0, const gnSeqI endI=GNSEQI_END, const boolean revComp = false);
 	/**
 	 * Copy constructor.
 	 * @param s the gnStringSpec to copy.
@@ -75,7 +75,7 @@ public:
 	virtual gnStringSpec* CloneRange( const gnSeqI startI, const gnSeqI len ) const;
 
 protected:
-	virtual bool Read(const gnSeqI start, gnSeqC* buf, gnSeqI& bufLen ) const;
+	virtual boolean Read(const gnSeqI start, gnSeqC* buf, gnSeqI& bufLen ) const;
 	std::string m_seqString;
 	
 }; // class gnStringSpec
@@ -92,11 +92,11 @@ gnSeqI gnStringSpec::GetSourceLength() const{
 inline
 gnBaseSource* gnStringSpec::GetSource() const
 {
-	return nullptr;
+	return NULL;
 }
 
 inline
-bool gnStringSpec::Read(const gnSeqI start, gnSeqC* buf, gnSeqI& bufLen) const{
+boolean gnStringSpec::Read(const gnSeqI start, gnSeqC* buf, gnSeqI& bufLen) const{
 	memcpy(buf, m_seqString.data() + start, bufLen);
 	return true;
 }

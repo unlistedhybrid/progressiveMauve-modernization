@@ -73,7 +73,7 @@ void gnPosSpecificTranslator::Filter( string &seq ) const{
 			string first_codon = seq.substr(0,3);
 			string original_sequence = seq;
 			filter->Filter( seq );
-			for(size_t charI = 0; charI < first_codon.length(); charI++ )
+			for(int charI = 0; charI < first_codon.length(); charI++ )
 				first_codon[charI] = tolower(first_codon[charI]);
 			if( first_codon == "ttg" || first_codon == "gtg" )
 				seq[0] = 'M';
@@ -95,3 +95,4 @@ void gnPosSpecificTranslator::Filter( string &seq ) const{
 }
 
 }	// end namespace genome
+

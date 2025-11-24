@@ -54,7 +54,7 @@ public:
 	virtual gnGenomeSpec* Clone() const;
 	virtual void Clear();
 // Base Spec stuff
-	virtual void SetReverseComplement( const bool value );
+	virtual void SetReverseComplement( const boolean value );
 
 //Multispec stuff
 /*	virtual uint32 GetSpecListLength() const;

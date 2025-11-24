@@ -38,7 +38,7 @@ gnSourceSpec::gnSourceSpec( const gnSourceSpec& s )
 	m_circular = s.m_circular;
 }
 
-gnSourceSpec::gnSourceSpec( gnBaseSource* source, const uint32 m_ContigIndex, const gnSeqI start, const gnSeqI endI, const bool revComp)
+gnSourceSpec::gnSourceSpec( gnBaseSource* source, const uint32 m_ContigIndex, const gnSeqI start, const gnSeqI endI, const boolean revComp)
 {
 	m_pSource = source;
 	m_SourceContigIndex = m_ContigIndex;

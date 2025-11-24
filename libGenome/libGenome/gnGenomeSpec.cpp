@@ -57,7 +57,7 @@ void gnGenomeSpec::Clear()
 	gnMultiSpec< gnFragmentSpec >::Clear();
 }
 
-void gnGenomeSpec::SetReverseComplement( const bool value )
+void gnGenomeSpec::SetReverseComplement( const boolean value )
 {
 	if(value == m_reverseComplement)
 		return;
@@ -90,7 +90,7 @@ gnGenomeSpec* gnGenomeSpec::CloneRange( const gnSeqI startI, const gnSeqI len ) 
 	//find their starting and ending bases
 	gnSeqI firstBase = startI - GetSpecStartBase(firstSpec);
 	gnSeqI firstSpecLen = GetSpec(firstSpec)->GetLength();
-	bool spans_specs = true;
+	boolean spans_specs = true;
 	gnSeqI firstCopyLen = firstSpecLen - firstBase;
 	if(firstCopyLen >= total_copylen){
 		spans_specs = false;

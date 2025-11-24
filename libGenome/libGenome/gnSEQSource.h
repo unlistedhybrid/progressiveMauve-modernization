@@ -59,12 +59,12 @@ public:
 	gnSEQSource* Clone() const;
 // Contig Access methods	
 	uint32 GetContigListLength() const;
-	bool HasContig( const std::string& name ) const;
+	boolean HasContig( const std::string& name ) const;
 	uint32 GetContigID( const std::string& name ) const;
 	std::string GetContigName( const uint32 i ) const;
 	gnSeqI GetContigSeqLength( const uint32 i ) const;
 
-	bool SeqRead( const gnSeqI start, char* buf, gnSeqI& bufLen, const uint32 contigI=ALL_CONTIGS );
+	boolean SeqRead( const gnSeqI start, char* buf, gnSeqI& bufLen, const uint32 contigI=ALL_CONTIGS );
 
 	/**
 	 * Writes the specified gnSequence to a .SEQ file named "filename".
@@ -72,27 +72,27 @@ public:
 	 * @param filename The name of the file to write.
 	 * @return True if successful, false otherwise.
 	 */
-	static bool Write(gnSequence& sequence, const std::string& filename);
+	static boolean Write(gnSequence& sequence, const std::string& filename);
 	/**
 	 * Writes the specified source to a .SEQ file named "filename".
 	 * @param source The source to write out.
 	 * @param filename The name of the file to write.
 	 * @return True if successful, false otherwise.
 	 */
-	static bool Write(gnBaseSource *source, const std::string& filename);
+	static boolean Write(gnBaseSource *source, const std::string& filename);
 	/**
 	 * Writes the given spec to a .SEQ file named "filename".
 	 * @param spec The spec to write out.
 	 * @param filename The name of the file to write.
 	 * @return True if successful, false otherwise.
 	 */
-	static bool Write(gnGenomeSpec *spec, const std::string& filename);
+	static boolean Write(gnGenomeSpec *spec, const std::string& filename);
 	gnGenomeSpec *GetSpec() const;
 	gnFileContig* GetFileContig( const uint32 contigI ) const;
 private:
-	bool SeqSeek( const gnSeqI start, const uint32& contigI, uint64& startPos, uint64& readableBytes );
-	bool SeqStartPos( const gnSeqI start, gnFileContig& contig, uint64& startPos, uint64& readableBytes );
-	bool ParseStream( std::istream& fin );
+	boolean SeqSeek( const gnSeqI start, const uint32& contigI, uint64& startPos, uint64& readableBytes );
+	boolean SeqStartPos( const gnSeqI start, gnFileContig& contig, uint64& startPos, uint64& readableBytes );
+	boolean ParseStream( std::istream& fin );
 
 	static std::string& Filler(uint32 length);
 	static void FormatString(std::string& data, uint32 offset, uint32 width);
@@ -115,11 +115,11 @@ uint32 gnSEQSource::GetContigListLength() const
 	return m_contigList.size();
 }
 inline
-bool gnSEQSource::Write(gnSequence& sequence, const std::string& filename){
+boolean gnSEQSource::Write(gnSequence& sequence, const std::string& filename){
 	return Write(sequence.GetSpec(), filename);
 }
 inline
-bool gnSEQSource::Write(gnBaseSource *source, const std::string& filename){
+boolean gnSEQSource::Write(gnBaseSource *source, const std::string& filename){
 	return Write(source->GetSpec(), filename);
 }
 inline
@@ -132,3 +132,4 @@ gnGenomeSpec *gnSEQSource::GetSpec() const{
 
 #endif
 	// _gnSEQSource_h_
+	

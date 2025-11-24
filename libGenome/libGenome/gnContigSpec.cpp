@@ -31,7 +31,7 @@ void gnContigSpec::CropEnd( gnSeqI cropLen ){
 	m_length -= cropLen;
 }
 
-void gnContigSpec::SetReverseComplement( const bool value )
+void gnContigSpec::SetReverseComplement( const boolean value )
 {
 	//translate coordinates if revComp has changed.
 	if((m_reverseComplement != value) && (m_length > 0))
@@ -39,8 +39,8 @@ void gnContigSpec::SetReverseComplement( const bool value )
 	m_reverseComplement = value;
 }
 
-bool gnContigSpec::SeqRead(const gnSeqI start, gnSeqC* buf, gnSeqI& bufLen, const uint32 contigI ) const{
-	bool success;
+boolean gnContigSpec::SeqRead(const gnSeqI start, gnSeqC* buf, gnSeqI& bufLen, const uint32 contigI ) const{
+	boolean success;
 	bufLen = bufLen < m_length - start? bufLen : m_length - start;	//trim the read down to size.
 	gnSeqI readable = bufLen;
 	gnSeqI read_start = start;	// coordinate translation
@@ -74,3 +74,4 @@ void gnContigSpec::Clear(){
 
 
 }	// end namespace genome
+

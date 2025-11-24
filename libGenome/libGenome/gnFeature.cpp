@@ -31,8 +31,8 @@ gnFeature::gnFeature()
 	m_locationType = gnLocation::LT_Nothing;
 	m_broken = false;
 */}
-gnFeature::gnFeature( string& name, uint32 id, gnLocation::gnLocationType lt, bool broken )
- : gnBaseFeature(name, id, nullptr, lt, broken)
+gnFeature::gnFeature( string& name, uint32 id, gnLocation::gnLocationType lt, boolean broken )
+ : gnBaseFeature(name, id, NULL, lt, broken)
 {
 }
 gnFeature::gnFeature( const gnFeature& s )
@@ -53,3 +53,4 @@ gnFeature::~gnFeature()
 }
 
 }	// end namespace genome
+

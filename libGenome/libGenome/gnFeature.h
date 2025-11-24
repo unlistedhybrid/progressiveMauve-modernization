@@ -45,7 +45,7 @@ public:
 	 * @param lt The type of sequence location covered by this feature
 	 * @param broken True if the feature was broken by some sequence manipulation, false otherwise.
 	 */
-	gnFeature( std::string& name, uint32 id = 0, gnLocation::gnLocationType lt = gnLocation::LT_Nothing, bool broken = false );
+	gnFeature( std::string& name, uint32 id = 0, gnLocation::gnLocationType lt = gnLocation::LT_Nothing, boolean broken = false );
 	/**
 	 * Copy constructor.
 	 * @param s The gnFeature to copy.

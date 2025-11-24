@@ -179,7 +179,7 @@ protected:
 	static void propogateChanges( IstNode* cur_node, int64 length_diff, int64 subtree_diff );
 	static IstNode* recursiveFind( size_type& point, IstNode* node );
 	static void increment( IstNode*& x);
-	static void decrement( IstNode*& x);
+	void decrement( IstNode*& x) const;
 	static void deleteSubtree( IstNode*& istn );
 	static void checkTree( node_pointer cur_node );
 };
@@ -404,9 +404,9 @@ IntervalSequenceTree< Key, Allocator >::insert(
 template< class Key, class Allocator >
 template <class InputIterator>
 void IntervalSequenceTree< Key, Allocator >::insert( 
-	[[maybe_unused]] InputIterator first, 
-	[[maybe_unused]] InputIterator last, 
-	[[maybe_unused]] typename IntervalSequenceTree< Key, Allocator >::size_type point )
+	InputIterator first, 
+	InputIterator last, 
+	typename IntervalSequenceTree< Key, Allocator >::size_type point )
 {
 
 }
@@ -537,8 +537,8 @@ void IntervalSequenceTree< Key, Allocator >::propogateChanges(
 
 template< class Key, class Allocator >
 void IntervalSequenceTree< Key, Allocator >::erase( 
-	[[maybe_unused]] typename IntervalSequenceTree< Key, Allocator >::iterator first, 
-	[[maybe_unused]] typename IntervalSequenceTree< Key, Allocator >::iterator last )
+	typename IntervalSequenceTree< Key, Allocator >::iterator first, 
+	typename IntervalSequenceTree< Key, Allocator >::iterator last )
 {
 
 }
@@ -636,33 +636,32 @@ void IntervalSequenceTree< Key, Allocator >::increment( IstNode*& x) {
 }
 
 template< class Key, class Allocator >
-void IntervalSequenceTree< Key, Allocator >::decrement( IstNode*& x){
-	if( x == NULL ){
-		throw "decrementing out of bounds!";
-	}
-	
-	// find the least-ancestor with another child to the left
-	// and set x to that child
-	while( x->parent != NULL ){
-		if( x == x->parent->right &&
-			x->parent->left != NULL){
-			x = x->parent->left;
-			break;
-		}else
-			x = x->parent;
-	}
-	// if there was no other children to the left then we're at the end
-	if( x->parent == NULL )
-		x = NULL;
-	
-	// find the right-most leaf node below x if needed
+void IntervalSequenceTree< Key, Allocator >::decrement( IstNode*& x) const{
 	if( x != NULL ){
-		while( x->key == NULL ){
-			if( x->right != NULL )
-				x = x->right;
-			else if( x->left != NULL )
-				x = x->left;
+		// find the least-ancestor with another child to the left
+		// and set x to that child
+		while( x->parent != NULL ){
+			if( x == x->parent->right &&
+				x->parent->left != NULL){
+				x = x->parent->left;
+				break;
+			}else
+				x = x->parent;
 		}
+		// if there was no other children to the left then we're at the end
+		// raise hell! (cause an access violation)
+		if( x->parent == NULL )
+			x = NULL;
+	}else{
+		x = root;
+	}
+	
+	// find the right-most leaf node below x
+	while( x->key == NULL ){
+		if( x->right != NULL )
+			x = x->right;
+		else if( x->left != NULL )
+			x = x->left;
 	}
 }
 

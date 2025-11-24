@@ -83,7 +83,7 @@ public:
 	 * @param name The name of the contig to look for.
 	 * @return True if the named contig exists, false otherwise.
 	 */
-	virtual bool HasContig( const std::string& name ) const = 0;
+	virtual boolean HasContig( const std::string& name ) const = 0;
 	/**
 	 * Get a contig index by name.
 	 * If the source does not contain a contig by the specified name
@@ -128,7 +128,7 @@ public:
 	 * @param bufLen The number of bytes to read.
 	 * @return True if the operation was successful.
 	 */
-	virtual bool Read( const uint64 pos, char* buf, gnSeqI& bufLen) = 0;
+	virtual boolean Read( const uint64 pos, char* buf, gnSeqI& bufLen) = 0;
 	/**
 	 * Gets sequence data from this source.
 	 * SeqRead will attempt to read "bufLen" base pairs starting at "start", an offset into the sequence.
@@ -142,7 +142,7 @@ public:
 	 * @param contigI The index of the contig to read or ALL_CONTIGS by default.
 	 * @return True if the operation was successful.
 	 */
-	virtual bool SeqRead( const gnSeqI start, char* buf, gnSeqI& bufLen, const uint32 contigI=ALL_CONTIGS ) = 0;
+	virtual boolean SeqRead( const gnSeqI start, char* buf, gnSeqI& bufLen, const uint32 contigI=ALL_CONTIGS ) = 0;
 	/**
 	 * Get the annotated sequence data as a gnGenomeSpec.
 	 * GetSpec returns a gnGenomeSpec which contains the sequence, header,

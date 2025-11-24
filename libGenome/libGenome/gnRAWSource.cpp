@@ -46,7 +46,7 @@ gnRAWSource::~gnRAWSource()
 	delete m_contig;
 }
 
-bool gnRAWSource::HasContig( const string& name ) const
+boolean gnRAWSource::HasContig( const string& name ) const
 {
 	if( name.length() == 0 )
 		return true;
@@ -70,7 +70,7 @@ gnSeqI gnRAWSource::GetContigSeqLength( const uint32 i ) const
 	return GNSEQI_ERROR;
 }
 
-bool gnRAWSource::SeqRead( const gnSeqI start, char* buf, gnSeqI& bufLen, const uint32 contigI ){
+boolean gnRAWSource::SeqRead( const gnSeqI start, char* buf, gnSeqI& bufLen, const uint32 contigI ){
 	return Read( start, buf, bufLen );
 }
 
@@ -78,7 +78,7 @@ gnGenomeSpec *gnRAWSource::GetSpec() const{
 	return m_spec->Clone();
 }
 
-bool gnRAWSource::Write(gnSequence& seq, const string& filename){
+boolean gnRAWSource::Write(gnSequence& seq, const string& filename){
 	ofstream m_ofstream(filename.c_str(), ios::out | ios::binary);
 	if(!m_ofstream.is_open())
 		return false;
@@ -107,7 +107,7 @@ gnFileContig* gnRAWSource::GetFileContig( const uint32 contigI ) const{
 }
 
 //File parsing access routine
-bool gnRAWSource::ParseStream( istream& fin )
+boolean gnRAWSource::ParseStream( istream& fin )
 {
 	// init variables
 	uint64 streamPos = 0;

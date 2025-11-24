@@ -60,12 +60,12 @@ public:
 	gnRAWSource* Clone() const;
 // Contig Access methods	
 	uint32 GetContigListLength() const;
-	bool HasContig( const std::string& name ) const;
+	boolean HasContig( const std::string& name ) const;
 	uint32 GetContigID( const std::string& name ) const;
 	std::string GetContigName( const uint32 i ) const;
 	gnSeqI GetContigSeqLength( const uint32 i ) const;
 
-	bool SeqRead( const gnSeqI start, char* buf, gnSeqI& bufLen, const uint32 contigI=ALL_CONTIGS );
+	boolean SeqRead( const gnSeqI start, char* buf, gnSeqI& bufLen, const uint32 contigI=ALL_CONTIGS );
 
 	/**
 	 * Writes the specified gnSequence to a raw file named "filename".
@@ -73,22 +73,22 @@ public:
 	 * @param filename The name of the file to write.
 	 * @return True if successful, false otherwise.
 	 */
-	static bool Write(gnSequence& sequence, const std::string& filename);
+	static boolean Write(gnSequence& sequence, const std::string& filename);
 	/**
 	 * Writes the specified source to a raw file named "filename".
 	 * @param source The source to write out.
 	 * @param filename The name of the file to write.
 	 * @return True if successful, false otherwise.
 	 */
-	static bool Write(gnBaseSource *source, const std::string& filename);
+	static boolean Write(gnBaseSource *source, const std::string& filename);
 	gnGenomeSpec *GetSpec() const;
 	gnFileContig* GetFileContig( const uint32 contigI ) const;
 
-	static bool CheckRawData( bool set = false, bool check = false );
+	static boolean CheckRawData( boolean set = false, boolean check = false );
 private:
-	bool SeqSeek( const gnSeqI start, const uint32& contigI, uint64& startPos, uint64& readableBytes );
-	bool SeqStartPos( const gnSeqI start, gnFileContig& contig, uint64& startPos, uint64& readableBytes );
-	bool ParseStream( std::istream& fin );
+	boolean SeqSeek( const gnSeqI start, const uint32& contigI, uint64& startPos, uint64& readableBytes );
+	boolean SeqStartPos( const gnSeqI start, gnFileContig& contig, uint64& startPos, uint64& readableBytes );
+	boolean ParseStream( std::istream& fin );
 	
 	gnFileContig* m_contig;	
 	gnGenomeSpec* m_spec;
@@ -106,14 +106,14 @@ uint32 gnRAWSource::GetContigListLength() const
 	return m_contig == NULL? 0 : 1;
 }
 inline
-bool gnRAWSource::Write(gnBaseSource *source, const std::string& filename){
+boolean gnRAWSource::Write(gnBaseSource *source, const std::string& filename){
 	gnSequence gns(*source->GetSpec());
 	return Write(gns, filename);
 }
 
 inline
-bool gnRAWSource::CheckRawData( bool set, bool check ){
-	static bool check_raw_data = false;
+boolean gnRAWSource::CheckRawData( boolean set, boolean check ){
+	static boolean check_raw_data = false;
 	if( set ){
 		check_raw_data = check;
 	}

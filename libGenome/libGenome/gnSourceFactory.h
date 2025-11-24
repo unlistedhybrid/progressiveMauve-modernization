@@ -61,7 +61,7 @@ public:
 	 * @param ext The extension to delete.
 	 * @return True if successful.
 	 */
-	bool DelSourceClass( const std::string& ext );
+	boolean DelSourceClass( const std::string& ext );
 	/**
 	 * Gets the source class which is mapped to the specified file extension.
 	 * @param ext The extension to delete.
@@ -79,7 +79,7 @@ public:
 	 * @param ext The extension to check.
 	 * @return True if the extension has a class.
 	 */
-	bool HasSourceClass( const std::string& ext ) const;
+	boolean HasSourceClass( const std::string& ext ) const;
 	/**
 	 * Maps the specified file extension to the given source class.
 	 * e.g. ".fas" to gnFASSource
@@ -87,13 +87,13 @@ public:
 	 * @param source The class to map
 	 * @return True if successful.
 	 */
-	bool SetSourceClass( const std::string& ext, const gnBaseSource& source );
+	boolean SetSourceClass( const std::string& ext, const gnBaseSource& source );
 	/**
 	 * Sets a source class to be the default class for unknown file extensions.
 	 * @param source The default class to map
 	 * @return True if successful.
 	 */
-	bool SetDefaultSourceClass( const gnBaseSource* source );
+	boolean SetDefaultSourceClass( const gnBaseSource* source );
 	/**
 	 * Gets the source class which is the default class for unknown file extensions.
 	 * @return The default class
@@ -110,20 +110,20 @@ public:
 	 * @param path The path to add.
 	 * @return True if successful.
 	 */
-	bool AddPath( const std::string& path );
+	boolean AddPath( const std::string& path );
 	/**
 	 * Deletes the directory path at index i from the search path list.
 	 * @param i The index of the path to delete.
 	 * @return True if successful, false if i is out of range.
 	 */
-	bool DelPath( uint32 i );
+	boolean DelPath( uint32 i );
 	/**
 	 * Inserts the directory path at index i in the search path list.
 	 * @param path The path to insert.
 	 * @param i The index of the path to insert before.
 	 * @return True if successful, false if i is out of range.
 	 */
-	bool InsPath( const std::string& path, uint32 i );
+	boolean InsPath( const std::string& path, uint32 i );
 	/**
 	 * Gets the directory path at index i in the path list.
 	 * @param i The index of the path to get.
@@ -135,7 +135,7 @@ public:
 	 * @param path The path to look for.
 	 * @return True if the path is in the path list.
 	 */
-	bool HasPath( std::string path ) const;
+	boolean HasPath( std::string path ) const;
 	  // Sources
 	/**
 	 * Returns the number of open data sources.
@@ -149,7 +149,7 @@ public:
 	 * @param searchPaths Should the path list be searched if the file can't be found.
 	 * @return A pointer to the source.
 	 */
-	gnBaseSource* AddSource( const std::string& sourceStr, bool searchPaths = true );
+	gnBaseSource* AddSource( const std::string& sourceStr, boolean searchPaths = true );
 	/**
 	 * Gets the source at index i in the source list.
 	 * @param i The index of the source to get.
@@ -169,22 +169,22 @@ public:
 	 * @param source The source to close.
 	 * @return True if successful.
 	 */
-	bool DelSource( const gnBaseSource* source );
+	boolean DelSource( const gnBaseSource* source );
 	/**
 	 * Gets the source if it has already been opened.
 	 * @param sourceStr The file name or URL where the source is located.
 	 * @param searchPaths Should the path list be searched if the file can't be found.
 	 * @return A pointer to the source.
 	 */
-	gnBaseSource* HasSource( std::string sourceStr, bool searchPaths = true ) const;
+	gnBaseSource* HasSource( std::string sourceStr, boolean searchPaths = true ) const;
 		
 private:
 	gnSourceFactory();
 	gnSourceFactory(gnSourceFactory& gnsf);
 	gnSourceFactory& operator=(gnSourceFactory& gnsf);
 
-	bool PathExists( std::string path ) const;
-	static bool GetURL( const std::string& urlStr, std::string& localFile );
+	boolean PathExists( std::string path ) const;
+	static boolean GetURL( const std::string& urlStr, std::string& localFile );
 	
 	std::vector< std::string > m_pathList;
 	std::vector< gnBaseSource* > m_sourceList;
@@ -199,7 +199,7 @@ uint32 gnSourceFactory::GetSourceClassListSize() const
 	return m_sourceClassList.size();
 }
 inline
-bool gnSourceFactory::SetDefaultSourceClass( const gnBaseSource* source )
+boolean gnSourceFactory::SetDefaultSourceClass( const gnBaseSource* source )
 {
 	if(m_pDefaultSourceClass != NULL){
 		delete m_pDefaultSourceClass;

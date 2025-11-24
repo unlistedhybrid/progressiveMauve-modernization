@@ -58,7 +58,7 @@ gnGBKSource::~gnGBKSource()
 		delete fg;
 	}
 }
-bool gnGBKSource::HasContig( const string& name ) const
+boolean gnGBKSource::HasContig( const string& name ) const
 {
 	for(uint32 i = 0 ; i <= m_contigList.size(); i++ )
 	{
@@ -95,14 +95,17 @@ gnSeqI gnGBKSource::GetContigSeqLength( const uint32 i ) const
 	return GNSEQI_ERROR;
 }
 
-bool gnGBKSource::SeqRead( const gnSeqI start, char* buf, gnSeqI& bufLen, const uint32 contigI )
+boolean gnGBKSource::SeqRead( const gnSeqI start, char* buf, gnSeqI& bufLen, const uint32 contigI )
 {
-	bool result = false;
+	boolean result = false;
+#pragma omp critical
+{
 	result = SeqReadImpl( start, buf, bufLen, contigI );
+}
 	return result;
 }
 
-bool gnGBKSource::SeqReadImpl( const gnSeqI start, char* buf, gnSeqI& bufLen, const uint32 contigI ){
+boolean gnGBKSource::SeqReadImpl( const gnSeqI start, char* buf, gnSeqI& bufLen, const uint32 contigI ){
 
 	uint64 startPos = 0;
 	uint64 readableBytes = 0;
@@ -186,7 +189,7 @@ bool gnGBKSource::SeqReadImpl( const gnSeqI start, char* buf, gnSeqI& bufLen, co
 // figures out which contig the sequence starts at then calls SeqStartPos to get the offset within that contig
 // returns startPos, the file offset where the sequence starts
 // returns true if successful, false otherwise
-bool gnGBKSource::SeqSeek( const gnSeqI start, const uint32& contigI, uint64& startPos, uint64& readableBytes )
+boolean gnGBKSource::SeqSeek( const gnSeqI start, const uint32& contigI, uint64& startPos, uint64& readableBytes )
 {
 	if( contigI == ALL_CONTIGS )
 	{
@@ -213,7 +216,7 @@ bool gnGBKSource::SeqSeek( const gnSeqI start, const uint32& contigI, uint64& st
 	return false;
 }
 //Returns startPos, the file offset where the sequence starts.
-bool gnGBKSource::SeqStartPos( const gnSeqI start, gnFileContig& contig, uint64& startPos, uint64& readableBytes )
+boolean gnGBKSource::SeqStartPos( const gnSeqI start, gnFileContig& contig, uint64& startPos, uint64& readableBytes )
 {
 	readableBytes = 0;
 	uint32 curLen = 0;
@@ -324,7 +327,7 @@ void WriteHeader(gnMultiSpec< SubSpec >* spec, const string& hdr, ofstream& m_of
 	}catch(gnException& gne){}
 }
 
-bool gnGBKSource::Write(gnSequence& seq, const string& filename){
+boolean gnGBKSource::Write(gnSequence& seq, const string& filename){
 	ofstream m_ofstream(filename.c_str(), ios::out | ios::binary);
 	if(!m_ofstream.is_open())
 		return false;
@@ -544,7 +547,7 @@ bool gnGBKSource::Write(gnSequence& seq, const string& filename){
 		gnSeqI contig_bases = 0;
 		while(readLength > 0){	//buffer the read/writes
 			gnSeqI writeLen = readLength < BUFFER_SIZE + 20 ? readLength : BUFFER_SIZE + 20;
-			bool success = seq.ToArray(bases, writeLen, readOffset);
+			boolean success = seq.ToArray(bases, writeLen, readOffset);
 			if(!success)
 				return false;
 			//print each 60 on their own lines...
@@ -579,7 +582,7 @@ gnFileContig* gnGBKSource::GetFileContig( const uint32 contigI ) const{
 }
 
 //File parsing access routine
-bool gnGBKSource::ParseStream( istream& fin )
+boolean gnGBKSource::ParseStream( istream& fin )
 {
 	// INIT temp varables
 	uint32 readState = 0;
@@ -606,7 +609,7 @@ bool gnGBKSource::ParseStream( istream& fin )
 	string curContigName = "";
 	gnSeqI seqLength = 0;
 	gnSeqI seqChunk, seqChunkCount, gapChunk;
-	bool corruptWarning = false;
+	boolean corruptWarning = false;
 	
 	//decide what type of newlines we have
 	DetermineNewlineType();
@@ -707,8 +710,7 @@ bool gnGBKSource::ParseStream( istream& fin )
 					}else if((i - lineStart == SEQ_SUBTAG_COLUMN)||((buf[lineStart]=='	')&&(i==lineStart+1))){
 						sectionStart = i;
 						readState = 2;
-					}
-					[[fallthrough]];
+					} //
 				case 2:  //Get the feature name.  stop on whitespace
 					if((ch == ' ')||(ch == '	')){
 						string featureName(buf+sectionStart, i - sectionStart);
@@ -726,7 +728,10 @@ bool gnGBKSource::ParseStream( istream& fin )
 						break;
 					}
 					sectionStart = i;
-					[[fallthrough]];
+					readState = 4;
+				// KNOWN BUG HERE!
+				// if JOIN is outside a group of complemented coordinates the feature type
+				// is incorrectly set to LT_COMPLEMENT.  Instead each location's type should be set to LT_COMPLEMENT 
 				case 4:		//Read a location start.  stop on (<.:^ and whitespace
 					if((ch == ' ')||(ch == '	')||(ch == '(')||(ch == '.')||(ch=='^')||(ch==':')){
 						string starter(buf+sectionStart, i - sectionStart);
@@ -779,7 +784,6 @@ bool gnGBKSource::ParseStream( istream& fin )
 						break;
 					}
 					curBaseLocationType = gnLocation::LT_OneOf;
-					[[fallthrough]];
 				case 6:	//see if there's a second location value.  stop on >, and whitespace
 					if(ch == '>'){
 						curEndLength = 1;
@@ -954,3 +958,4 @@ bool gnGBKSource::ParseStream( istream& fin )
 }
 
 }	// end namespace genome
+
