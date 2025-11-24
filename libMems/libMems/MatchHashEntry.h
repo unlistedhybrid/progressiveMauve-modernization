@@ -11,6 +11,7 @@
 
 #include "libGenome/gnClone.h"
 #include "libMems/Match.h"
+#include "libMems/dmSML/sml.h" // Needed for sml::mask_t
 
 #include <set>
 #include <cstdint>
@@ -18,12 +19,6 @@
 
 namespace mems {
 
-/**
- * MatchHashEntry stores the location of a fixed-size matching block ("MEM")
- * that occurs across multiple sequences.
- *
- * It extends Match and adds bookkeeping for offset computation and extension.
- */
 class MatchHashEntry : public Match {
 public:
     enum class MemType {
@@ -34,18 +29,19 @@ public:
 public:
     MatchHashEntry();
 
+    // The primary constructor for MemHash (using MemType)
     MatchHashEntry(uint seq_count,
                    gnSeqI mersize,
                    MemType m_type = MemType::seed);
 
+    MatchHashEntry(uint seq_count,
+                   gnSeqI mersize,
+                   sml::mask_t seed);
+                   
     MatchHashEntry(const MatchHashEntry& mhe) : Match(mhe) { }
     MatchHashEntry& operator=(const MatchHashEntry& mhe);
 
     MatchHashEntry* Clone() const { return new MatchHashEntry(*this); }
-
-    // SlotAllocator-based clone/free interface
-    MatchHashEntry* Copy() const { return m_allocateAndCopy(*this); }
-    void Free() { m_free(this); }
 
     // Whether this seed has been extended to a full MEM
     bool Extended() const { return m_extended; }
@@ -64,7 +60,7 @@ public:
     bool operator==(const MatchHashEntry& mhe) const;
 
     static bool offset_lessthan(const MatchHashEntry& a,
-                                const MatchHashEntry& b);
+                                 const MatchHashEntry& b);
 
     static bool start_lessthan(const MatchHashEntry& a,
                                const MatchHashEntry& b);
@@ -129,4 +125,3 @@ public:
 };
 
 } // namespace mems
-
