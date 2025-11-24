@@ -55,7 +55,7 @@ public:
     uint MerSize() const { return m_mersize; }
 
     // Required: recompute offset after changing coordinates
-    void CalculateOffset() override;
+    void CalculateOffset();
 
     int64_t Offset() const { return m_offset; }
     void SetOffset(int64_t offset) { m_offset = offset; }
@@ -129,3 +129,4 @@ public:
 };
 
 } // namespace mems
+
