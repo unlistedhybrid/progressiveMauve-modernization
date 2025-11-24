@@ -8,6 +8,9 @@
 #endif
 
 #include "libMems/MemorySML.h"
+#include "libMems/dmSML/sml.h"
+#include "libMems/SortedMerList.h"
+#include "libGenome/gnSequence.h"
 #include <algorithm>
 #include <cstring>
 #include <limits>
@@ -95,3 +98,4 @@ bmer MemorySML::operator[](gnSeqI index) {
 }
 
 }
+
