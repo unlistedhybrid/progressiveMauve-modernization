@@ -110,7 +110,7 @@ bool MemHash::CreateMatches(){
 
 void MemHash::FindMatches( MatchList& ml ) {
 	std::vector<gnSeqI> start_points;
-	for( std::uint332_t seqI = 0; seqI < ml.seq_table.size(); ++seqI ){
+	for( std::uint32_t seqI = 0; seqI < ml.seq_table.size(); ++seqI ){
 		start_points.push_back( 0 );
 	}
 	FindMatchesFromPosition( ml, start_points );
@@ -273,7 +273,7 @@ MatchHashEntry* MemHash::AddHashEntry(MatchHashEntry& mhe){
 	//first compute which hash table bucket this is going into
 	int64_t offset = mhe.Offset();
 
-	std::uint332_t bucketI = ((offset % table_size) + table_size) % table_size;
+	std::uint32_t bucketI = ((offset % table_size) + table_size) % table_size;
 	std::vector<MatchHashEntry*>::iterator insert_he;
 	insert_he = std::lower_bound(mem_table[bucketI].begin(), mem_table[bucketI].end(), &mhe, mhecomp);
 //	insert_he = mem_table[bucketI].find(&mhe);
@@ -392,3 +392,4 @@ void MemHash::WriteFile(std::ostream& mem_file) const{
 
 
 } // namespace mems
+
