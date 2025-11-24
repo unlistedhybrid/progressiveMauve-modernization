@@ -246,20 +246,22 @@ void SingleCopyDistanceMatrix( MatchVector& iv_list, std::vector< genome::gnSequ
 							pair_comp[seqI][seqJ].second.set(seqJ_pos-1,true);
 						}
 					}
+					// FIX 1: Add braces for the outer if block to prevent dangling else (Line 253 area in full file)
 					if( aln_table[seqI].test(colI) )
-					{ // FIX 1: Start brace for 'if' (Line 253 area in full file)
+					{
 						if( o_i == AbstractMatch::forward )
 							seqI_pos++;
 						else
 							seqI_pos--;
-					} // FIX 1: End brace
+					}
+					// FIX 2: Add braces for the outer if block to prevent dangling else (Line 258 area in full file)
 					if( aln_table[seqJ].test(colI) )
-					{ // FIX 2: Start brace for 'if' (Line 258 area in full file)
+					{
 						if( o_j == AbstractMatch::forward )
 							seqJ_pos++;
 						else
 							seqJ_pos--;
-					} // FIX 2: End brace
+					}
 				}
 			}
 		}
