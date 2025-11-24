@@ -115,7 +115,7 @@ void map_list_coordinates(list<genome::gnLocation>& loc_list, list<genome::gnLoc
 	}
 }
 
-void print_feature(ostream& os, gnBaseFeature* cur_feat){
+void print_feature(ostream& os, genome::gnBaseFeature* cur_feat){
 	os << cur_feat->GetName() << ": \n";
 	for(uint32 i=0; i < cur_feat->GetQualifierListLength(); i++)
 		os << cur_feat->GetQualifierName(i) << "\t" << cur_feat->GetQualifierValue(i) << "\n";
