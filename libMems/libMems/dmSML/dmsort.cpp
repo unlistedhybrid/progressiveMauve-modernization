@@ -397,7 +397,7 @@ void RestructureReadSMLBins( void ) {
 				}
 				bit >>= 1;
 			}
-			mer <<= 64 - (2 * mask_weight);
+			mer <<= 64 - (2 * sml::mask_weight);
 			if( little_endian ){
 				for( i = 0; i < sml::sml::MASK_T_BYTES; i++ )
 					forward.key[i] = (reinterpret_cast<char*>(&mer))[ sizeof( mer ) - i - 1 ];
@@ -413,7 +413,7 @@ void RestructureReadSMLBins( void ) {
 				rc_mer |= mer & 3;
 				mer >>= 2;
 			}
-			rc_mer <<= 64 - (2 * mask_weight);
+			rc_mer <<= 64 - (2 * sml::mask_weight);
 			if( little_endian ){
 				for( i = 0; i < sml::sml::MASK_T_BYTES; i++ )
 					reverse.key[i] = (reinterpret_cast<char*>(&rc_mer))[ sizeof( mer ) - i - 1 ];
@@ -616,7 +616,7 @@ int InitdmSML( long working_mb, long buffer_size, const char* input_filename, co
 	header = InitSML( Output, NumRecs, seed );
 	sml::seed_mask = header.seed;
 	sml::mask_length = header.seed_length;
-	mask_weight = header.seed_weight;
+	sml::mask_weight = header.seed_weight;
 	
 	if( NumRecs <= static_cast<offset_t>(sml::mask_length) - 1 ){
 	        printf( "Sequence must be at least %d characters in length\n", sml::mask_length );
