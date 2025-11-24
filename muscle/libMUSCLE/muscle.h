@@ -1,4 +1,3 @@
-
 #if	DEBUG && !_DEBUG
 #define _DEBUG	1
 #endif
@@ -15,13 +14,13 @@
 
 #ifdef	_MSC_VER	// Miscrosoft compiler
 #pragma warning(disable : 4800)	// disable int-bool conversion warning
-#pragma warning(disable : 4996)       // deprecated names like strdup, isatty.
+#pragma warning(disable : 4996)	// deprecated names like strdup, isatty.
 #if defined(_WIN32) && !defined(_WIN32_WINNT)
 #define _WIN32_WINNT 0x0400 // AED 9/27/5: fix for missing IsDebuggerPresent() in VS 2005
 #endif
 #endif
 
-#define MUSCLE_LONG_VERSION           "MUSCLE v3.7 by Robert C. Edgar"
+#define MUSCLE_LONG_VERSION	 	 	 	"MUSCLE v3.7 by Robert C. Edgar"
 #define MUSCLE_MAJOR_VERSION	"3"
 #define MUSCLE_MINOR_VERSION	"7"
 
@@ -48,12 +47,18 @@
 #define _fsopen(name, mode, share)	fopen((name), (mode))
 #endif
 
+// FIX: Added guard around the assert definition to prevent macro redefinition warnings/errors.
+// This ensures the standard library's assert is used if it was included first.
 #if	DEBUG
 #undef	assert
+#ifndef assert 
 #define assert(b)	Call_MY_ASSERT(__FILE__, __LINE__, b, #b)
 void Call_MY_ASSERT(const char *file, int line, bool b, const char *msg);
+#endif
 #else
-#define assert(exp)     ((void)0)
+#ifndef assert
+#define assert(exp)	 	 	((void)0)
+#endif
 #endif
 
 namespace muscle {
@@ -122,9 +127,9 @@ bool isident(char c);
 bool isidentf(char c);
 
 void TreeFromSeqVect(const SeqVect &c, Tree &tree, CLUSTER Cluster,
-  DISTANCE Distance, ROOT Root, const char *SaveFileName = 0);
+	 DISTANCE Distance, ROOT Root, const char *SaveFileName = 0);
 void TreeFromMSA(const MSA &msa, Tree &tree, CLUSTER Cluster,
-  DISTANCE Distance, ROOT Root, const char *SaveFileName = 0);
+	 DISTANCE Distance, ROOT Root, const char *SaveFileName = 0);
 
 void StripGaps(char szStr[]);
 void StripWhitespace(char szStr[]);
@@ -166,7 +171,7 @@ void NormalizeUnlessZero(PROB p[], unsigned n);
 void DebugPrintf(const char szFormat[], ...);
 void SetListFileName(const char *ptrListFileName, bool bAppend);
 void ModelFromAlign(const char *strInputFileName, const char *strModelFileName,
-  double dMaxNIC);
+	 double dMaxNIC);
 double GetMemUseMB();
 double GetRAMSizeMB();
 double GetPeakMemUseMB();
@@ -197,46 +202,46 @@ double PctIdToMAFFTDist(double dPctId);
 double KimuraDist(double dPctId);
 void SetFastParams();
 void AssertProfsEq(const ProfPos *PA, unsigned uLengthA, const ProfPos *PB,
-  unsigned uLengthB);
+	 unsigned uLengthB);
 void ValidateMuscleIds(const MSA &msa);
 void ValidateMuscleIds(const Tree &tree);
 void TraceBackToPath(int **TraceBack, unsigned uLengthA,
-  unsigned uLengthB, PWPath &Path);
+	 unsigned uLengthB, PWPath &Path);
 void BitTraceBack(char **TraceBack, unsigned uLengthA, unsigned uLengthB,
-  char LastEdge, PWPath &Path);
+	 char LastEdge, PWPath &Path);
 SCORE AlignTwoMSAs(const MSA &msa1, const MSA &msa2, MSA &msaOut, PWPath &Path,
-  bool bLockLeft = false, bool bLockRight = false);
+	 bool bLockLeft = false, bool bLockRight = false);
 SCORE AlignTwoProfs(
-  const ProfPos *PA, unsigned uLengthA, WEIGHT wA,
-  const ProfPos *PB, unsigned uLengthB, WEIGHT wB,
-  PWPath &Path, ProfPos **ptrPout, unsigned *ptruLengthOut);
+	 const ProfPos *PA, unsigned uLengthA, WEIGHT wA,
+	 const ProfPos *PB, unsigned uLengthB, WEIGHT wB,
+	 PWPath &Path, ProfPos **ptrPout, unsigned *ptruLengthOut);
 void AlignTwoProfsGivenPath(const PWPath &Path,
-  const ProfPos *PA, unsigned uLengthA, WEIGHT wA,
-  const ProfPos *PB, unsigned uLengthB, WEIGHT wB,
-  ProfPos **ptrPOut, unsigned *ptruLengthOut);
+	 const ProfPos *PA, unsigned uLengthA, WEIGHT wA,
+	 const ProfPos *PB, unsigned uLengthB, WEIGHT wB,
+	 ProfPos **ptrPOut, unsigned *ptruLengthOut);
 void AlignTwoMSAsGivenPathSW(const PWPath &Path, const MSA &msaA, const MSA &msaB,
-  MSA &msaCombined);
+	 MSA &msaCombined);
 void AlignTwoMSAsGivenPath(const PWPath &Path, const MSA &msaA, const MSA &msaB,
-  MSA &msaCombined);
+	 MSA &msaCombined);
 SCORE FastScorePath2(const ProfPos *PA, unsigned uLengthA,
-  const ProfPos *PB, unsigned uLengthB, const PWPath &Path);
+	 const ProfPos *PB, unsigned uLengthB, const PWPath &Path);
 SCORE GlobalAlignDiags(const ProfPos *PA, unsigned uLengthA, const ProfPos *PB,
-  unsigned uLengthB, PWPath &Path);
+	 unsigned uLengthB, PWPath &Path);
 SCORE GlobalAlignSimple(const ProfPos *PA, unsigned uLengthA, const ProfPos *PB,
-  unsigned uLengthB, PWPath &Path);
+	 unsigned uLengthB, PWPath &Path);
 SCORE GlobalAlignSP(const ProfPos *PA, unsigned uLengthA, const ProfPos *PB,
-  unsigned uLengthB, PWPath &Path);
+	 unsigned uLengthB, PWPath &Path);
 SCORE GlobalAlignSPN(const ProfPos *PA, unsigned uLengthA, const ProfPos *PB,
-  unsigned uLengthB, PWPath &Path);
+	 unsigned uLengthB, PWPath &Path);
 SCORE GlobalAlignLE(const ProfPos *PA, unsigned uLengthA, const ProfPos *PB,
-  unsigned uLengthB, PWPath &Path);
+	 unsigned uLengthB, PWPath &Path);
 void CalcThreeWayWeights(const Tree &tree, unsigned uNode1, unsigned uNode2,
-  WEIGHT *Weights);
+	 WEIGHT *Weights);
 SCORE GlobalAlignSS(const Seq &seqA, const Seq &seqB, PWPath &Path);
 bool RefineHoriz(MSA &msaIn, const Tree &tree, unsigned uIters, bool bLockLeft, bool bLockRight);
 bool RefineVert(MSA &msaIn, const Tree &tree, unsigned uIters);
 SCORE GlobalAlignNoDiags(const ProfPos *PA, unsigned uLengthA, const ProfPos *PB,
-  unsigned uLengthB, PWPath &Path);
+	 unsigned uLengthB, PWPath &Path);
 
 void SetInputFileName(const char *pstrFileName);
 void SetIter(unsigned uIter);
@@ -310,18 +315,18 @@ void PPScore();
 void UPGMA2(const DistCalc &DC, Tree &tree, LINKAGE Linkage);
 
 char *GetFastaSeq(FILE *f, unsigned *ptrSeqLength, char **ptrLabel,
-  bool DeleteGaps = true);
+	 bool DeleteGaps = true);
 SCORE SW(const ProfPos *PA, unsigned uLengthA, const ProfPos *PB,
-  unsigned uLengthB, PWPath &Path);
+	 unsigned uLengthB, PWPath &Path);
 void TraceBackSW(const ProfPos *PA, unsigned uLengthA, const ProfPos *PB,
-  unsigned uLengthB, const SCORE *DPM_, const SCORE *DPD_, const SCORE *DPI_,
-  unsigned uPrefixLengthAMax, unsigned uPrefixLengthBMax, PWPath &Path);
+	 unsigned uLengthB, const SCORE *DPM_, const SCORE *DPD_, const SCORE *DPI_,
+	 unsigned uPrefixLengthAMax, unsigned uPrefixLengthBMax, PWPath &Path);
 void DiffPaths(const PWPath &p1, const PWPath &p2, unsigned Edges1[],
-  unsigned *ptruDiffCount1, unsigned Edges2[], unsigned *ptruDiffCount2);
+	 unsigned *ptruDiffCount1, unsigned Edges2[], unsigned *ptruDiffCount2);
 void SetPPScore(bool bRespectFlagOpts = true);
 void SetPPScore(PPSCORE p);
 SCORE GlobalAlignDimer(const ProfPos *PA, unsigned uLengthA, const ProfPos *PB,
-  unsigned uLengthB, PWPath &Path);
+	 unsigned uLengthB, PWPath &Path);
 bool MissingCommand();
 void Credits();
 void ProfileProfile(MSA &msa1, MSA &msa2, MSA &msaOut);
@@ -336,4 +341,3 @@ void MemPlus(size_t Bytes, char *Where);
 void MemMinus(size_t Bytes, char *Where);
 
 } // namespace muscle
-
