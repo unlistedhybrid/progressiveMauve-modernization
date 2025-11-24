@@ -8,15 +8,14 @@
 #include <cstdlib>
 #include <cstdio>
 #include <cstring>
+#include <cstdint> // Added for standard integer types
 #include "libMems/dmSML/util.h"
 #include "libMems/dmSML/timing.h"
 #include "libMems/dmSML/asyncio.h"
 #include "libMems/dmSML/buffer.h"
 #include "libMems/dmSML/sorting.h"
 #include "libMems/dmSML/sml.h"
-// FIX: Include gnDefs.h directly for 'boolean' and related types, 
-// as it was included in the old sml.h but might be hidden now.
-#include "libGenome/gnDefs.h" 
+#include "libGenome/gnDefs.h"
 
 //#define ASCII_KEYBYTES
 //#define NNNNN_KEYBYTES
@@ -55,9 +54,7 @@ typedef struct seqbuf_s {
 	aFILE				*file;
 	int					dev;
 	offset_t			bufpos;
-    // FIX: uint64 likely moved to sml::uint64 or is a standard C++ type.
-    // Assuming standard type, but if compilation fails, change to sml::uint64
-	sml::uint64			seq_pos; 
+    sml::uint64			seq_pos;
 	buffer_list_t		bufs;
 } seqbuf_t;
 
@@ -81,7 +78,7 @@ offset_t CalculateDataReadSize( buffer_t* b );
 #define ALPHA_BITS 2
 
 void RestructureReadSMLBins( void );
-// FIX: Update uint64 to sml::uint64 (or standard C++ uint64_t if available globally)
+// FIX: Use sml::uint64 for the seed argument
 int InitdmSML( long working_mb, long buffer_size, const char* input_filename, const char* output_filename, const char* const* scratch_paths, sml::uint64 seed );
 void DisplayStatusHeader( void );
 void DisplayStatus( void );
@@ -124,7 +121,7 @@ int dmsort( void );
 extern "C" {
 #endif
 
-// FIX: Update uint64 to sml::uint64
+// FIX: Use sml::uint64 for the seed argument in the C interface
 int dmSML( const char* input_file, const char* output_file, const char* const* scratch_paths, sml::uint64 seed );
 
 #ifdef __cplusplus
