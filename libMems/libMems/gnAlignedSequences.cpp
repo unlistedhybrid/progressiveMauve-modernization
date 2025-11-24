@@ -123,7 +123,7 @@ const vector< string >& gnAlignedSequences::getSupportedFormats()
 	return formats;
 }
 
-boolean gnAlignedSequences::isSupportedFormat( const string& format_name )
+bool mems::gnAlignedSequences::isSupportedFormat( const std::string& format_name )
 {
 	const vector< string >& formats = getSupportedFormats();
 	for( size_t formatI = 0; formatI < formats.size(); formatI++ ){
@@ -1478,4 +1478,5 @@ bool gnAlignedSequences::coordinates(string line)
 }
 
 }
+
 
