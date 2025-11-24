@@ -12,9 +12,11 @@
 
 #include "libMems/MemHash.h"
 #include "libGenome/gnFilter.h"
+#include "libMems/dmSML/sml.h" // FIX: Include sml.h to get access to sml::seed_mask
 #include <list>
 #include <map>
 #include <sstream>
+#include <cstdint> // Needed for std::uint32_t, etc.
 
 using namespace std;
 using namespace genome;
@@ -32,7 +34,7 @@ namespace mems {
 	//allocate the hash table
 	mem_table.resize(table_size);
 	mem_table_count.reserve( table_size );
-	for(uint32_t i=0; i < table_size; ++i)
+	for(std::uint32_t i=0; i < table_size; ++i)
 		mem_table_count.push_back(0);
 	match_log = NULL;
 }
@@ -56,7 +58,7 @@ MemHash& MemHash::operator=( const MemHash& mh ){
 	m_repeat_tolerance = mh.m_repeat_tolerance;
 	m_enumeration_tolerance = mh.m_enumeration_tolerance;
 	mem_table.resize(table_size);
-	for(uint32_t i=0; i < table_size; ++i){
+	for(std::uint32_t i=0; i < table_size; ++i){
 		mem_table_count.push_back(mh.mem_table_count[i]);
 		mem_table[i] = mh.mem_table[i];
 	}
@@ -81,7 +83,7 @@ void MemHash::Clear()
 	m_repeat_tolerance = DEFAULT_REPEAT_TOLERANCE;
 	m_enumeration_tolerance = DEFAULT_ENUMERATION_TOLERANCE;
 	//clear the hash table
-	for(uint32_t listI = 0; listI < table_size; ++listI){
+	for(std::uint32_t listI = 0; listI < table_size; ++listI){
 		mem_table[listI].clear();
 		mem_table_count[ listI ] = 0;
 	}
@@ -92,7 +94,7 @@ void MemHash::Clear()
 //	allocator.Purge();
 }
 
-void MemHash::SetTableSize(uint32_t new_table_size){
+void MemHash::SetTableSize(std::uint32_t new_table_size){
 	//allocate the hash table
 	table_size = new_table_size;
 	mem_table.clear();
@@ -108,14 +110,14 @@ bool MemHash::CreateMatches(){
 
 void MemHash::FindMatches( MatchList& ml ) {
 	std::vector<gnSeqI> start_points;
-	for( uint32_t seqI = 0; seqI < ml.seq_table.size(); ++seqI ){
+	for( std::uint332_t seqI = 0; seqI < ml.seq_table.size(); ++seqI ){
 		start_points.push_back( 0 );
 	}
 	FindMatchesFromPosition( ml, start_points );
 }
 
 void MemHash::FindMatchesFromPosition( MatchList& ml, const std::vector<gnSeqI>& start_points ){
-	for( uint32_t seqI = 0; seqI < ml.seq_table.size(); ++seqI ){
+	for( std::uint32_t seqI = 0; seqI < ml.seq_table.size(); ++seqI ){
 		if( !AddSequence( ml.sml_table[ seqI ], ml.seq_table[ seqI ] ) ){
 			ErrorMsg( "Error adding " + ml.seq_filename[seqI] + "\n");
 			return;
@@ -138,7 +140,7 @@ MatchList MemHash::GetMatchList() const{
 // an attempt to do this without sorting, which appears to be very slow...
 bool MemHash::EnumerateMatches( IdmerList& match_list )
 {
-	std::vector< uint32_t > enum_tally(seq_count, 0);
+	std::vector< std::uint32_t > enum_tally(seq_count, 0);
 	IdmerList::iterator iter = match_list.begin();
 	IdmerList hash_list;
 	for(; iter != match_list.end(); ++iter)
@@ -161,9 +163,9 @@ bool MemHash::EnumerateMatches( IdmerList& match_list )
 	return true;
 }
 
-//why have separate hash tables? dunno.  no reason.  what was i thinking
+//why have separate hash tables? dunno.  no reason.  what was i thinking
 // at that coffeehouse in portland when i wrote this crappy code?
-// MemHashEntries use GENETICIST coordinates.  They start at 1, not 0.
+// MemHashEntries use GENETICIST coordinates.  They start at 1, not 0.
 bool MemHash::HashMatch(IdmerList& match_list){
 	std::cerr << "DEBUG: HashMatch called with " << match_list.size() << " items, seq_count=" << seq_count << "\n";
 	
@@ -188,7 +190,7 @@ bool MemHash::HashMatch(IdmerList& match_list){
 	
 	// Verify all sequence IDs in match_list are valid
 	for(auto& idmer : match_list){
-		if(static_cast<uint32_t>(idmer.id) >= seq_count){
+		if(static_cast<std::uint32_t>(idmer.id) >= seq_count){
 			std::cerr << "ERROR: Invalid sequence ID " << idmer.id << " (seq_count=" << seq_count << ")\n";
 			return false;
 		}
@@ -237,7 +239,7 @@ void MemHash::SetDirection(MatchHashEntry& mhe){
 	
 	//get the reference direction
 	bool ref_forward = false;
-	uint32_t seqI=0;
+	std::uint32_t seqI=0;
 	for(; seqI < mhe.SeqCount(); ++seqI){
 		if(mhe[seqI] != NO_MATCH){
 			if(GetSar(seqI) == NULL){
@@ -265,13 +267,13 @@ void MemHash::SetDirection(MatchHashEntry& mhe){
 
 // Tries to add a new mem to the mem hash table
 // If the mem already exists in the table, a pointer to it
-// is returned.  Otherwise mhe is added and a pointer to
+// is returned.  Otherwise mhe is added and a pointer to
 // it is returned.
 MatchHashEntry* MemHash::AddHashEntry(MatchHashEntry& mhe){
 	//first compute which hash table bucket this is going into
 	int64_t offset = mhe.Offset();
 
-	uint32_t bucketI = ((offset % table_size) + table_size) % table_size;
+	std::uint332_t bucketI = ((offset % table_size) + table_size) % table_size;
 	std::vector<MatchHashEntry*>::iterator insert_he;
 	insert_he = std::lower_bound(mem_table[bucketI].begin(), mem_table[bucketI].end(), &mhe, mhecomp);
 //	insert_he = mem_table[bucketI].find(&mhe);
@@ -287,7 +289,7 @@ MatchHashEntry* MemHash::AddHashEntry(MatchHashEntry& mhe){
 		ExtendMatch(mhe, subset_matches);
 
 	MatchHashEntry* new_mhe = allocator.Allocate();
-	new_mhe = new(new_mhe) MatchHashEntry(mhe); 
+	new_mhe = new(new_mhe) MatchHashEntry(mhe); 
 //	*new_mhe = mhe;
 	allocated.push_back(new_mhe);
 	
@@ -302,7 +304,7 @@ MatchHashEntry* MemHash::AddHashEntry(MatchHashEntry& mhe){
 	}
 	
 	// link up the subset matches
-	for(uint32_t subsetI = 0; subsetI < subset_matches.size(); ++subsetI){
+	for(std::uint32_t subsetI = 0; subsetI < subset_matches.size(); ++subsetI){
 		AddHashEntry( subset_matches[ subsetI ] );
 	}
 	
@@ -312,9 +314,9 @@ MatchHashEntry* MemHash::AddHashEntry(MatchHashEntry& mhe){
 }
 
 void MemHash::PrintDistribution(std::ostream& os) const{
-    std::vector<MatchHashEntry*>::const_iterator mem_iter;
+    std::vector<MatchHashEntry*>::const_iterator mem_iter;
 	gnSeqI base_count;
-	for(uint32_t i=0; i < mem_table_count.size(); ++i){
+	for(std::uint32_t i=0; i < mem_table_count.size(); ++i){
 		mem_iter = mem_table[i].begin();
 		base_count = 0;
 		for(; mem_iter != mem_table[i].end(); ++mem_iter){
@@ -336,10 +338,11 @@ void MemHash::LoadFile(std::istream& mem_file){
 	while( first_mum >> start ){
 		seq_count++;
 	}
-	mhe = MatchHashEntry(seq_count, mer_size, MatchHashEntry::seed);
+    // FIX: Replace MatchHashEntry::seed with sml::seed_mask
+	mhe = MatchHashEntry(seq_count, mer_size, sml::seed_mask);
 	first_mum.str( tag );
 	first_mum.clear();
-	for(uint32_t seqI = 0; seqI < seq_count; seqI++){
+	for(std::uint32_t seqI = 0; seqI < seq_count; seqI++){
 		first_mum >> start;
 		mhe.SetStart(seqI, start);
 	}
@@ -352,7 +355,7 @@ void MemHash::LoadFile(std::istream& mem_file){
 		if(!mem_file.good())
 			break;
 		mhe.SetLength(len);
-		for(uint32_t seqI = 0; seqI < seq_count; seqI++){
+		for(std::uint32_t seqI = 0; seqI < seq_count; seqI++){
 			mem_file >> start;
 			mhe.SetStart(seqI, start);
 		}
@@ -379,8 +382,8 @@ void MemHash::WriteFile(std::ostream& mem_file) const{
 	}
 	mem_file << "MatchCount" << '\t' << m_mem_count << endl;
 	//get all the mems out of the hash table and write them out
-    std::vector<MatchHashEntry*>::const_iterator mem_table_iter;
-	for(uint32_t i=0; i < table_size; i++){
+    std::vector<MatchHashEntry*>::const_iterator mem_table_iter;
+	for(std::uint32_t i=0; i < table_size; i++){
 		mem_table_iter = mem_table[i].begin();
 		for(; mem_table_iter != mem_table[i].end(); mem_table_iter++)
 			mem_file << **mem_table_iter << "\n";
