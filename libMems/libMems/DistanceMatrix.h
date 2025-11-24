@@ -150,7 +150,6 @@ void MatchIdentityMatrix( const AbstractMatchType& amt, const std::vector< genom
 }
 
 
-
 template<class AbstractMatchType>
 void AddToMatchIdentityMatrix( const AbstractMatchType& amt, const std::vector< genome::gnSequence* >& seq_table, NumericMatrix<double>& identity)
 {
@@ -248,15 +247,19 @@ void SingleCopyDistanceMatrix( MatchVector& iv_list, std::vector< genome::gnSequ
 						}
 					}
 					if( aln_table[seqI].test(colI) )
+					{ // FIX 1: Start brace for 'if' (Line 253 area in full file)
 						if( o_i == AbstractMatch::forward )
 							seqI_pos++;
 						else
 							seqI_pos--;
+					} // FIX 1: End brace
 					if( aln_table[seqJ].test(colI) )
+					{ // FIX 2: Start brace for 'if' (Line 258 area in full file)
 						if( o_j == AbstractMatch::forward )
 							seqJ_pos++;
 						else
 							seqJ_pos--;
+					} // FIX 2: End brace
 				}
 			}
 		}
