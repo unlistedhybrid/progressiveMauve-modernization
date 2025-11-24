@@ -288,14 +288,14 @@ static void Translate32(uint32* dest, const char* src, const unsigned len){
 
 void RestructureReadSMLBins( void ) {
 	char little_endian = 1;
-	mask_t bit;
-	mask_t mer, rc_mer;
+	sml::mask_t bit;
+	sml::mask_t mer, rc_mer;
 	record_t forward, reverse;
 	record_t begin[6];
 	int i;
 	offset_t seqI, extras;
 	char* sequence;
-	sml_t *sml;
+	sml::sml_t *sml;
 
     buffer_t *b, *tmpnext;
 	
@@ -317,7 +317,7 @@ void RestructureReadSMLBins( void ) {
 		
         tmpnext = b->next;
 		sequence = reinterpret_cast<char*>(b->recs);
-		sml = reinterpret_cast<sml_t*>(b->recs);
+		sml = reinterpret_cast<sml::sml_t*>(b->recs);
 
         headbuf = Seqbuf.bufs.head;
         if( !headbuf || 
@@ -391,7 +391,7 @@ void RestructureReadSMLBins( void ) {
 			bit <<= sml::mask_length - 1;
 			mer = 0;
 			for( i = 0; i < sml::mask_length; i++ ){
-				if( bit & seed_mask ){
+				if( bit & sml::seed_mask ){
 					mer <<= 2;
 					mer |= DNA_TABLE[static_cast<unsigned char>(sequence[ seqI + i - 1 ])];
 				}
@@ -399,11 +399,11 @@ void RestructureReadSMLBins( void ) {
 			}
 			mer <<= 64 - (2 * mask_weight);
 			if( little_endian ){
-				for( i = 0; i < MASK_T_BYTES; i++ )
+				for( i = 0; i < sml::sml::MASK_T_BYTES; i++ )
 					forward.key[i] = (reinterpret_cast<char*>(&mer))[ sizeof( mer ) - i - 1 ];
 
 			}else{
-				for( i = 0; i < MASK_T_BYTES; i++ )
+				for( i = 0; i < sml::sml::MASK_T_BYTES; i++ )
 					forward.key[i] = (reinterpret_cast<char*>(&mer))[ i ];
 			}
 
@@ -415,10 +415,10 @@ void RestructureReadSMLBins( void ) {
 			}
 			rc_mer <<= 64 - (2 * mask_weight);
 			if( little_endian ){
-				for( i = 0; i < MASK_T_BYTES; i++ )
+				for( i = 0; i < sml::sml::MASK_T_BYTES; i++ )
 					reverse.key[i] = (reinterpret_cast<char*>(&rc_mer))[ sizeof( mer ) - i - 1 ];
 			}else{
-				for( i = 0; i < MASK_T_BYTES; i++ )
+				for( i = 0; i < sml::sml::MASK_T_BYTES; i++ )
 					reverse.key[i] = (reinterpret_cast<char*>(&rc_mer))[i];
 			}
 			if( COMPARE_KEYS( forward, reverse ) > 0)
@@ -614,7 +614,7 @@ int InitdmSML( long working_mb, long buffer_size, const char* input_filename, co
     }
 	
 	header = InitSML( Output, NumRecs, seed );
-	seed_mask = header.seed;
+	sml::seed_mask = header.seed;
 	sml::mask_length = header.seed_length;
 	mask_weight = header.seed_weight;
 	
@@ -1021,13 +1021,13 @@ void RestructureSMLBinsForWrite( void ) {
     int i;
     offset_t j;
 	position_t* positions;
-	sml_t *sml;
+	sml::sml_t *sml;
 
     for( i = 0; i < NSortBufs; i++ ) {
         if( SortBufs[i].state == WRITE_RESTRUCTURE ) {
             printf( "restructuring bin %d\n", SortBufs[i].bin );
             positions = reinterpret_cast<position_t*>(SortBufs[i].buf->recs);
-            sml = reinterpret_cast<sml_t*>(SortBufs[i].buf->recs);
+            sml = reinterpret_cast<sml::sml_t*>(SortBufs[i].buf->recs);
             for( j = 0; j < Bins[SortBufs[i].bin].nrecs; j++ ){
             	positions[ j ] = sml[ j ].pos;
             }
