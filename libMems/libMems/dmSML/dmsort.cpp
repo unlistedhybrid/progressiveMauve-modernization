@@ -504,8 +504,8 @@ static void HandleReadingCompletions( void ) {
     } while( b != Reading.head && Reading.nitems );
 }
 
-
-int InitdmSML( long working_mb, long buffer_size, const char* input_filename, const char* output_filename, const char* const* scratch_paths, uint64 seed ) {
+extern "C" {
+int InitdmSML( long working_mb, long buffer_size, const char* input_filename, const char* output_filename, const char* const* scratch_paths, sml::uint64 seed ) {
     int i, j;
     offset_t desired_ws_size, actual_ws_size;
     // FIX: Use sml::SMLHeader_t
@@ -726,6 +726,7 @@ int InitdmSML( long working_mb, long buffer_size, const char* input_filename, co
     }
 	
 	return 0;
+}
 }
 
 void DisplayStatusHeader( void ) {
