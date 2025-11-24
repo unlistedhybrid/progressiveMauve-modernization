@@ -11,12 +11,13 @@
 #include <algorithm>
 #include <cstring>
 #include <limits>
+#include "libMems/dmSML/sml.h"
 
 namespace mems {
 
-MemorySML::MemorySML(const uint8_t* table, uint32_t alpha_bits) {
+MemorySML::MemorySML(const std::uint8_t* table, std::uint32_t alpha_bits) {
     header.alphabet_bits = alpha_bits;
-    std::memcpy(header.translation_table, table, UINT8_MAX_VALUE);
+    std::memcpy(header.translation_table, table, sml::UINT8_MAX_VALUE);
     header.version = 0;
 }
 
