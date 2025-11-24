@@ -43,7 +43,7 @@ gnFileSource::gnFileSource(const gnFileSource& gnfs){
 // Open, Close	
 void gnFileSource::Open( string openString )
 {
-	boolean opened = true;
+	bool opened = true;
 #pragma omp critical
 {
 	m_ifstream.open(openString.c_str(), ios::in | ios::binary );
@@ -86,7 +86,7 @@ void gnFileSource::Close()
 	m_ifstream.close();
 }
 
-boolean gnFileSource::Read( const uint64 pos, char* buf, gnSeqI& bufLen) 
+bool gnFileSource::Read( const uint64 pos, char* buf, gnSeqI& bufLen) 
 {
 	bool failure = false;
 #pragma omp critical
