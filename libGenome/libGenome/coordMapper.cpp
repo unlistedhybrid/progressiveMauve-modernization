@@ -28,9 +28,6 @@ using std::sort;
 
 // Type Aliases (Standard practice to improve code clarity)
 typedef unsigned int uint32;
-// 'boolean' is often 'bool' in modern C++. We'll use 'bool' to match C++ standard.
-// If 'boolean' is a typedef in libGenome, you may need to revert this.
-typedef bool boolean;
 
 // ExMem structure definition
 struct ExMem{
