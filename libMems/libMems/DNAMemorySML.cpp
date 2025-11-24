@@ -12,13 +12,21 @@
 
 #include "libGenome/gnSequence.h"
 #include "libMems/DNAMemorySML.h"
+#include <vector> // Ensure vector is included
+#include <cstdint> // For standard integer types
 
+// Keep original using directives, but use qualified names for safety
 using namespace std;
 using namespace genome;
+
 namespace mems {
 
-DNAMemorySML::DNAMemorySML(const uint8* table, const uint32 alpha_bits) : 
+DNAMemorySML::DNAMemorySML(const std::uint8_t* table, const std::uint32_t alpha_bits) : 
 MemorySML( table, alpha_bits )
+{}
+
+DNAMemorySML::DNAMemorySML(const DNAMemorySML& msa) : 
+MemorySML( msa )
 {}
 
 DNAMemorySML& DNAMemorySML::operator=(const DNAMemorySML& msa ){
@@ -27,16 +35,15 @@ DNAMemorySML& DNAMemorySML::operator=(const DNAMemorySML& msa ){
 }
 
 DNAMemorySML* DNAMemorySML::Clone() const{
-	DNAMemorySML *bdsa = new DNAMemorySML();
-	(*bdsa) = *this;
-	return bdsa;
+	// FIX: Use copy constructor instead of default constructor + assignment
+	return new DNAMemorySML(*this);
 }
 
-uint64 DNAMemorySML::GetMer(gnSeqI position) const{
+std::uint64_t DNAMemorySML::GetMer(gnSeqI position) const{
 	return GetDnaMer( position );
 }
 
-uint64 DNAMemorySML::GetSeedMer( gnSeqI offset ) const{
+std::uint64_t DNAMemorySML::GetSeedMer( gnSeqI offset ) const{
 	return GetDnaSeedMer( offset );
 }
 
