@@ -351,10 +351,10 @@ int main(int argc, char* argv[]){
 			genome::gnLocation cur_intron_loc(intron_list[intron_mapEnd].GetStart() - 1, intron_list[intron_mapEnd].GetEnd() + 1);
 			seq_file.getIntersectingFeatures(cur_intron_loc, in_feat_list, in_feat_index);
 		}
-		vector<gnBaseFeature*> ex_forward;
-		vector<gnBaseFeature*> ex_reverse;
-		vector<gnBaseFeature*> in_forward;
-		vector<gnBaseFeature*> in_reverse;
+		vector<genome::gnBaseFeature*> ex_forward;
+		vector<genome::gnBaseFeature*> ex_reverse;
+		vector<genome::gnBaseFeature*> in_forward;
+		vector<genome::gnBaseFeature*> in_reverse;
 
 		for(uint32 featI = 0; featI < ex_feat_list.size(); featI++){
 			string featName = ex_feat_list[featI]->GetName();
