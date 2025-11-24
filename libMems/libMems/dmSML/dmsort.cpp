@@ -399,11 +399,11 @@ void RestructureReadSMLBins( void ) {
 			}
 			mer <<= 64 - (2 * sml::mask_weight);
 			if( little_endian ){
-				for( i = 0; i < sml::sml::MASK_T_BYTES; i++ )
+				for( i = 0; i < sml::MASK_T_BYTES; i++ )
 					forward.key[i] = (reinterpret_cast<char*>(&mer))[ sizeof( mer ) - i - 1 ];
 
 			}else{
-				for( i = 0; i < sml::sml::MASK_T_BYTES; i++ )
+				for( i = 0; i < sml::MASK_T_BYTES; i++ )
 					forward.key[i] = (reinterpret_cast<char*>(&mer))[ i ];
 			}
 
@@ -415,10 +415,10 @@ void RestructureReadSMLBins( void ) {
 			}
 			rc_mer <<= 64 - (2 * sml::mask_weight);
 			if( little_endian ){
-				for( i = 0; i < sml::sml::MASK_T_BYTES; i++ )
+				for( i = 0; i < sml::MASK_T_BYTES; i++ )
 					reverse.key[i] = (reinterpret_cast<char*>(&rc_mer))[ sizeof( mer ) - i - 1 ];
 			}else{
-				for( i = 0; i < sml::sml::MASK_T_BYTES; i++ )
+				for( i = 0; i < sml::MASK_T_BYTES; i++ )
 					reverse.key[i] = (reinterpret_cast<char*>(&rc_mer))[i];
 			}
 			if( COMPARE_KEYS( forward, reverse ) > 0)
@@ -486,7 +486,7 @@ static void HandleReadingCompletions( void ) {
 int InitdmSML( long working_mb, long buffer_size, const char* input_filename, const char* output_filename, const char* const* scratch_paths, uint64 seed ) {
     int i, j;
     offset_t desired_ws_size, actual_ws_size;
-    SMLHeader_t header;
+    sml::SMLHeader_t header;
     struct {
         const char * bin_dev;
         int devnum;
