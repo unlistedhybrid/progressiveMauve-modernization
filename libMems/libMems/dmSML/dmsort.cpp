@@ -195,7 +195,7 @@ void FinishBinning() {
 }
 
 offset_t CalculateDataReadSize( buffer_t* b ){
-	return (b->totalrecs + mask_length - 1) < (RecsUnread + mask_length - 1) ? (b->totalrecs + mask_length - 1) : (RecsUnread + mask_length - 1);
+	return (b->totalrecs + sml::mask_length - 1) < (RecsUnread + sml::mask_length - 1) ? (b->totalrecs + sml::mask_length - 1) : (RecsUnread + sml::mask_length - 1);
 }
 
 static void DoReading( void ) {
@@ -344,9 +344,9 @@ void RestructureReadSMLBins( void ) {
 			seq_word++;
 		}
 		
-		translate_length = b->io_size - static_cast<offset_t>(mask_length) + 1 - (word_remainder / 2);
+		translate_length = b->io_size - static_cast<offset_t>(sml::mask_length) + 1 - (word_remainder / 2);
 		if( b->io_size + b->input_pos >= NumRecs ){
-			translate_length += static_cast<offset_t>(mask_length) - 1;
+			translate_length += static_cast<offset_t>(sml::mask_length) - 1;
 		}
 		
 #ifndef NO_RESTRUCTURE_PERF_TEST
@@ -386,11 +386,11 @@ void RestructureReadSMLBins( void ) {
         }
 
 #ifndef NO_RESTRUCTURE_PERF_TEST
-		for( seqI = b->io_size - static_cast<offset_t>(mask_length) + 1; seqI > 0; seqI-- ){
+		for( seqI = b->io_size - static_cast<offset_t>(sml::mask_length) + 1; seqI > 0; seqI-- ){
 			bit = 1;
-			bit <<= mask_length - 1;
+			bit <<= sml::mask_length - 1;
 			mer = 0;
-			for( i = 0; i < mask_length; i++ ){
+			for( i = 0; i < sml::mask_length; i++ ){
 				if( bit & seed_mask ){
 					mer <<= 2;
 					mer |= DNA_TABLE[static_cast<unsigned char>(sequence[ seqI + i - 1 ])];
@@ -432,7 +432,7 @@ void RestructureReadSMLBins( void ) {
 			}
 		}
 
-		extras = b->io_size - static_cast<offset_t>(mask_length) + 1 < 6 ? b->io_size - static_cast<offset_t>(mask_length) + 1 : 6;
+		extras = b->io_size - static_cast<offset_t>(sml::mask_length) + 1 < 6 ? b->io_size - static_cast<offset_t>(sml::mask_length) + 1 : 6;
 		
 		for(; seqI < static_cast<offset_t>(extras); seqI++ ){
 			b->recs[ seqI ] = begin[ seqI ];
@@ -615,15 +615,15 @@ int InitdmSML( long working_mb, long buffer_size, const char* input_filename, co
 	
 	header = InitSML( Output, NumRecs, seed );
 	seed_mask = header.seed;
-	mask_length = header.seed_length;
+	sml::mask_length = header.seed_length;
 	mask_weight = header.seed_weight;
 	
-	if( NumRecs <= static_cast<offset_t>(mask_length) - 1 ){
-	        printf( "Sequence must be at least %d characters in length\n", mask_length );
+	if( NumRecs <= static_cast<offset_t>(sml::mask_length) - 1 ){
+	        printf( "Sequence must be at least %d characters in length\n", sml::mask_length );
 		return SEQUENCE_TOO_SHORT;
 	}
 
-	NumRecs -= static_cast<offset_t>(mask_length) - 1;
+	NumRecs -= static_cast<offset_t>(sml::mask_length) - 1;
 	printf( "NumRecs is: %llu \n", NumRecs );
     RecsProcessed = 0;
     RecsUnread = NumRecs;
