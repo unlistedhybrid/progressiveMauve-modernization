@@ -6,16 +6,14 @@ on:
   pull_request:
     branches: [ "main", "master" ]
 
-# Use a single version variable to ensure consistency across all platforms
 env:
   BOOST_VERSION: 1.89.0
   BOOST_URL: https://archives.boost.io/release/1.89.0/source/boost_1_89_0.tar.gz
-  # Mapping URL structure for extraction
   BOOST_DIR: boost_1_89_0
 
 jobs:
   # ==============================================================================
-  # 1. LINUX BUILD (Replicates your build.sh logic exactly)
+  # 1. LINUX BUILD
   # ==============================================================================
   build-linux:
     runs-on: ubuntu-24.04
@@ -41,30 +39,30 @@ jobs:
           tar xzf ${{ env.BOOST_DIR }}.tar.gz
           cd ${{ env.BOOST_DIR }}
           ./bootstrap.sh --prefix=${{ github.workspace }}/boost-install --with-libraries=filesystem,iostreams,program_options,regex,system
-          ./b2 install link=static threading=multi variant=release -j$(nproc)
+          # ADDED --prefix here to strictly enforce install location
+          ./b2 install --prefix=${{ github.workspace }}/boost-install link=static threading=multi variant=release -j$(nproc)
 
       - name: Configure CMake
-        # Setting flags exactly as requested in build.sh
         env:
           CXXFLAGS: "-O3 -fno-fast-math -DCOMMAND_LINE -fno-strict-aliasing"
         run: |
           mkdir -p build
           mkdir -p build_logs
-          # We pass BOOST_ROOT so CMake finds our custom build
+          # FIX: Use CMAKE_PREFIX_PATH instead of BOOST_ROOT
           cmake -S . -B build \
             -DCMAKE_BUILD_TYPE=Release \
-            -DBOOST_ROOT=${{ github.workspace }}/boost-install \
+            -DCMAKE_PREFIX_PATH=${{ github.workspace }}/boost-install \
             -DBoost_NO_SYSTEM_PATHS=ON \
             -DENABLE_ZLIB=OFF \
             -DENABLE_SANITIZERS=OFF 2>&1 | tee build_logs/configure.log
 
       - name: Build
+        # Uses --build which works for both Makefiles and Ninja
         run: |
           cmake --build build --config Release -j$(nproc) 2>&1 | tee -a build_logs/build.log
 
-      - name: Generate addr2line map (Debug Step)
+      - name: Generate addr2line map
         run: |
-          # Failsafe generation of symbol map
           nm -an build/progressiveMauve | grep " [tTwW] " | awk '{print $1}' \
           | xargs -I{} addr2line -Cf -e build/progressiveMauve {} \
           > build_logs/addr2line_map.txt 2>/dev/null || true
@@ -81,14 +79,13 @@ jobs:
   # 2. MACOS BUILD (Apple Silicon / ARM64)
   # ==============================================================================
   build-macos:
-    runs-on: macos-14 # This is M1/ARM64
+    runs-on: macos-14
     steps:
       - uses: actions/checkout@v4
 
       - name: Install Dependencies
         run: |
           brew install cmake icu4c libomp
-          # Link libomp so CMake finds it easily
           brew link --force libomp
 
       - name: Cache Boost
@@ -104,23 +101,21 @@ jobs:
           curl -L -o boost.tar.gz ${{ env.BOOST_URL }}
           tar xzf boost.tar.gz
           cd ${{ env.BOOST_DIR }}
-          # Note: address-model=64 architecture=arm are crucial for M1
           ./bootstrap.sh --prefix=${{ github.workspace }}/boost-install --with-libraries=filesystem,iostreams,program_options,regex,system
-          ./b2 install link=static threading=multi variant=release address-model=64 architecture=arm -j$(sysctl -n hw.ncpu)
+          ./b2 install --prefix=${{ github.workspace }}/boost-install link=static threading=multi variant=release address-model=64 architecture=arm -j$(sysctl -n hw.ncpu)
 
       - name: Configure CMake
         env:
-          # Point to Homebrew ICU and our custom Boost
           ICU_ROOT: /opt/homebrew/opt/icu4c
           CXXFLAGS: "-O3 -fno-fast-math -DCOMMAND_LINE -fno-strict-aliasing"
         run: |
           mkdir -p build
           mkdir -p build_logs
+          # FIX: Use CMAKE_PREFIX_PATH instead of BOOST_ROOT
           cmake -S . -B build \
             -DCMAKE_BUILD_TYPE=Release \
-            -DBOOST_ROOT=${{ github.workspace }}/boost-install \
+            -DCMAKE_PREFIX_PATH="${{ github.workspace }}/boost-install;/opt/homebrew/opt/icu4c" \
             -DBoost_NO_SYSTEM_PATHS=ON \
-            -DICU_ROOT=/opt/homebrew/opt/icu4c \
             -DENABLE_ZLIB=OFF 2>&1 | tee build_logs/configure.log
 
       - name: Build
@@ -143,7 +138,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Install ICU via VCPKG (Pre-installed on runner)
       - name: Install ICU via vcpkg
         run: vcpkg install icu:x64-windows-static
         shell: bash
@@ -163,20 +157,18 @@ jobs:
           tar xzf boost.tar.gz
           cd ${{ env.BOOST_DIR }}
           call bootstrap.bat
-          REM runtime-link=static is CRITICAL for a portable .exe
           b2 install --prefix=${{ github.workspace }}/boost-install --with-filesystem --with-iostreams --with-program_options --with-regex --with-system toolset=msvc address-model=64 link=static threading=multi runtime-link=static variant=release
 
       - name: Configure CMake
         shell: bash
-        # Note: MSVC doesn't accept -fno-fast-math. We rely on the CMakeLists.txt 
-        # logic I provided earlier to map this to /fp:precise or /fp:fast
         run: |
           mkdir -p build
           mkdir -p build_logs
+          # FIX: Use CMAKE_PREFIX_PATH instead of BOOST_ROOT
           cmake -S . -B build \
             -DCMAKE_TOOLCHAIN_FILE="$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" \
             -DVCPKG_TARGET_TRIPLET=x64-windows-static \
-            -DBOOST_ROOT="${{ github.workspace }}/boost-install" \
+            -DCMAKE_PREFIX_PATH="${{ github.workspace }}/boost-install" \
             -DBoost_NO_SYSTEM_PATHS=ON \
             -DENABLE_ZLIB=OFF \
             -DCMAKE_BUILD_TYPE=Release > build_logs/configure.log 2>&1
