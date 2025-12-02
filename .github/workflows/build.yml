@@ -30,7 +30,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ github.workspace }}/boost-install
-          key: ${{ runner.os }}-boost-${{ env.BOOST_VERSION }}-v7
+          key: ${{ runner.os }}-boost-${{ env.BOOST_VERSION }}-v8
 
       - name: Build Boost ${{ env.BOOST_VERSION }}
         if: steps.cache-boost-linux.outputs.cache-hit != 'true'
@@ -92,7 +92,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ github.workspace }}/boost-install
-          key: ${{ runner.os }}-boost-${{ env.BOOST_VERSION }}-arm64-v7
+          key: ${{ runner.os }}-boost-${{ env.BOOST_VERSION }}-arm64-v8
 
       - name: Build Boost ${{ env.BOOST_VERSION }}
         if: steps.cache-boost-mac.outputs.cache-hit != 'true'
@@ -115,14 +115,19 @@ jobs:
 
       - name: Configure CMake
         env:
-          ICU_ROOT: /opt/homebrew/opt/icu4c
           CXXFLAGS: "-O3 -fno-fast-math -fno-strict-aliasing -DCOMMAND_LINE"
+          OpenMP_ROOT: /opt/homebrew/opt/libomp
         run: |
           mkdir -p build build_logs
 
           cmake -S . -B build \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_PREFIX_PATH="${{ github.workspace }}/boost-install;/opt/homebrew/opt/icu4c" \
+            -DOpenMP_C_FLAGS="-Xclang -fopenmp -I/opt/homebrew/opt/libomp/include" \
+            -DOpenMP_CXX_FLAGS="-Xclang -fopenmp -I/opt/homebrew/opt/libomp/include" \
+            -DOpenMP_C_LIB_NAMES="omp" \
+            -DOpenMP_CXX_LIB_NAMES="omp" \
+            -DOpenMP_omp_LIBRARY="/opt/homebrew/opt/libomp/lib/libomp.dylib" \
             -DENABLE_ZLIB=OFF 2>&1 | tee build_logs/configure.log
 
       - name: Build
@@ -155,7 +160,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ github.workspace }}/boost-install
-          key: ${{ runner.os }}-boost-${{ env.BOOST_VERSION }}-msvc-v7
+          key: ${{ runner.os }}-boost-${{ env.BOOST_VERSION }}-msvc-v8
 
       - name: Build Boost ${{ env.BOOST_VERSION }}
         if: steps.cache-boost-win.outputs.cache-hit != 'true'

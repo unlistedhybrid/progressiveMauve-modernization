@@ -9,7 +9,6 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-# Use modern BoostConfig.cmake from b2 install
 set(Boost_USE_STATIC_LIBS ON)
 
 # ============================================================
@@ -22,7 +21,9 @@ if(MSVC)
     add_compile_options(/O2 /fp:precise /DCOMMAND_LINE)
 else()
     add_compile_options(-O3 -fno-fast-math -fno-strict-aliasing -DCOMMAND_LINE)
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++")
+    if(NOT APPLE)
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++")
+    endif()
 endif()
 
 option(ENABLE_SANITIZERS "Enable ASAN/UBSAN" OFF)
@@ -67,8 +68,23 @@ if(ENABLE_ZLIB)
 endif()
 
 if(ENABLE_OPENMP)
-    find_package(OpenMP REQUIRED)
-    target_link_libraries(BoostInterface INTERFACE OpenMP::OpenMP_CXX)
+    if(APPLE)
+        # macOS with Homebrew libomp
+        if(EXISTS "/opt/homebrew/opt/libomp")
+            set(OpenMP_ROOT "/opt/homebrew/opt/libomp")
+        elseif(EXISTS "/usr/local/opt/libomp")
+            set(OpenMP_ROOT "/usr/local/opt/libomp")
+        endif()
+        find_package(OpenMP)
+        if(OpenMP_FOUND)
+            target_link_libraries(BoostInterface INTERFACE OpenMP::OpenMP_CXX)
+        else()
+            message(WARNING "OpenMP not found on macOS, building without OpenMP support")
+        endif()
+    else()
+        find_package(OpenMP REQUIRED)
+        target_link_libraries(BoostInterface INTERFACE OpenMP::OpenMP_CXX)
+    endif()
 endif()
 
 # ============================================================
