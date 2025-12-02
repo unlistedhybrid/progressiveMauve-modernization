@@ -39,7 +39,7 @@ endif()
 # ============================================================
 
 find_package(Boost 1.89 REQUIRED COMPONENTS
-    filesystem iostreams program_options regex system
+    filesystem iostreams program_options regex
 )
 find_package(ICU REQUIRED COMPONENTS uc data i18n)
 
@@ -59,7 +59,6 @@ target_link_libraries(BoostInterface INTERFACE
     Boost::iostreams
     Boost::program_options
     Boost::regex
-    Boost::system
     ICU::uc ICU::data ICU::i18n
 )
 
