@@ -30,7 +30,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ github.workspace }}/boost-install
-          key: ${{ runner.os }}-boost-${{ env.BOOST_VERSION }}-v6
+          key: ${{ runner.os }}-boost-${{ env.BOOST_VERSION }}-v7
 
       - name: Build Boost ${{ env.BOOST_VERSION }}
         if: steps.cache-boost-linux.outputs.cache-hit != 'true'
@@ -42,6 +42,7 @@ jobs:
           ./bootstrap.sh --prefix=${{ github.workspace }}/boost-install
 
           ./b2 install \
+            --prefix=${{ github.workspace }}/boost-install \
             --with-system \
             --with-filesystem \
             --with-iostreams \
@@ -57,9 +58,7 @@ jobs:
           mkdir -p build build_logs
           cmake -S . -B build \
             -DCMAKE_BUILD_TYPE=Release \
-            -DBOOST_ROOT="${{ github.workspace }}/boost-install" \
-            -DBoost_NO_SYSTEM_PATHS=ON \
-            -DBoost_NO_BOOST_CMAKE=ON \
+            -DCMAKE_PREFIX_PATH="${{ github.workspace }}/boost-install" \
             -DENABLE_ZLIB=OFF \
             -DENABLE_SANITIZERS=OFF 2>&1 | tee build_logs/configure.log
 
@@ -94,7 +93,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ github.workspace }}/boost-install
-          key: ${{ runner.os }}-boost-${{ env.BOOST_VERSION }}-arm64-v6
+          key: ${{ runner.os }}-boost-${{ env.BOOST_VERSION }}-arm64-v7
 
       - name: Build Boost ${{ env.BOOST_VERSION }}
         if: steps.cache-boost-mac.outputs.cache-hit != 'true'
@@ -106,6 +105,7 @@ jobs:
           ./bootstrap.sh --prefix=${{ github.workspace }}/boost-install
 
           ./b2 install \
+            --prefix=${{ github.workspace }}/boost-install \
             --with-system \
             --with-filesystem \
             --with-iostreams \
@@ -124,10 +124,7 @@ jobs:
 
           cmake -S . -B build \
             -DCMAKE_BUILD_TYPE=Release \
-            -DBOOST_ROOT="${{ github.workspace }}/boost-install" \
-            -DBoost_NO_SYSTEM_PATHS=ON \
-            -DBoost_NO_BOOST_CMAKE=ON \
-            -DCMAKE_PREFIX_PATH="/opt/homebrew/opt/icu4c" \
+            -DCMAKE_PREFIX_PATH="${{ github.workspace }}/boost-install;/opt/homebrew/opt/icu4c" \
             -DENABLE_ZLIB=OFF 2>&1 | tee build_logs/configure.log
 
       - name: Build
@@ -160,7 +157,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ github.workspace }}/boost-install
-          key: ${{ runner.os }}-boost-${{ env.BOOST_VERSION }}-msvc-v6
+          key: ${{ runner.os }}-boost-${{ env.BOOST_VERSION }}-msvc-v7
 
       - name: Build Boost ${{ env.BOOST_VERSION }}
         if: steps.cache-boost-win.outputs.cache-hit != 'true'
@@ -189,9 +186,7 @@ jobs:
           cmake -S . -B build \
             -DCMAKE_TOOLCHAIN_FILE="$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" \
             -DVCPKG_TARGET_TRIPLET=x64-windows-static \
-            -DBOOST_ROOT="${{ github.workspace }}/boost-install" \
-            -DBoost_NO_SYSTEM_PATHS=ON \
-            -DBoost_NO_BOOST_CMAKE=ON \
+            -DCMAKE_PREFIX_PATH="${{ github.workspace }}/boost-install" \
             -DENABLE_ZLIB=OFF \
             -DCMAKE_BUILD_TYPE=Release > build_logs/configure.log 2>&1
 

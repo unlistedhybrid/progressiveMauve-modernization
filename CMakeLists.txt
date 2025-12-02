@@ -9,10 +9,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-# Force classic FindBoost module instead of BoostConfig.cmake
-cmake_policy(SET CMP0167 OLD)
-set(Boost_NO_BOOST_CMAKE ON)
-set(Boost_NO_SYSTEM_PATHS ON)
+# Use modern BoostConfig.cmake from b2 install
 set(Boost_USE_STATIC_LIBS ON)
 
 # ============================================================
@@ -57,9 +54,12 @@ endif()
 # ============================================================
 
 add_library(BoostInterface INTERFACE)
-target_include_directories(BoostInterface INTERFACE ${Boost_INCLUDE_DIRS})
 target_link_libraries(BoostInterface INTERFACE
-    ${Boost_LIBRARIES}
+    Boost::filesystem
+    Boost::iostreams
+    Boost::program_options
+    Boost::regex
+    Boost::system
     ICU::uc ICU::data ICU::i18n
 )
 
