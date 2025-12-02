@@ -9,7 +9,7 @@ file(GLOB LIBGENOME_SRC
 add_library(libGenome STATIC ${LIBGENOME_SRC})
 
 target_include_directories(libGenome PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/libGenome        # headers in nested folder
+    ${CMAKE_CURRENT_SOURCE_DIR}/libGenome
 )
 
 target_link_libraries(libGenome PUBLIC

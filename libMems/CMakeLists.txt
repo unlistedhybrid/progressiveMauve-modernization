@@ -1,17 +1,24 @@
 # ============================================================
-# libGenome
+# libMems
 # ============================================================
 
-file(GLOB LIBGENOME_SRC
-    "${CMAKE_CURRENT_SOURCE_DIR}/libGenome/*.cpp"
+file(GLOB LIBMEMS_SRC
+    "${CMAKE_CURRENT_SOURCE_DIR}/libMems/*.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/libMems/*.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/libMems/HomologyHMM/*.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/libMems/dmSML/*.c"
 )
 
-add_library(libGenome STATIC ${LIBGENOME_SRC})
+add_library(libMems STATIC ${LIBMEMS_SRC})
 
-target_include_directories(libGenome PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/libGenome        # headers in nested folder
+target_include_directories(libMems PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/libMems
+    ${PROJECT_SOURCE_DIR}/libGenome/libGenome
+    ${PROJECT_SOURCE_DIR}/muscle/libMUSCLE
 )
 
-target_link_libraries(libGenome PUBLIC
+target_link_libraries(libMems PUBLIC
+    libGenome
+    libMUSCLE
     BoostInterface
 )

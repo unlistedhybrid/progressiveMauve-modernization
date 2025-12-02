@@ -5,16 +5,21 @@ project(ProgressiveMauveModern LANGUAGES C CXX)
 # GLOBAL SETTINGS
 # ============================================================
 
-# ProgressiveMauve requires C++17 now
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-# Force the NEW Boost discovery model (no FindBoost)
-cmake_policy(SET CMP0167 NEW)
+# Disable BoostConfig.cmake (b2 does NOT generate per-component config files)
+set(Boost_NO_BOOST_CMAKE ON)
 
-# Static Boost everywhere
+# NEVER use system Boost — always use our boost-install
+set(Boost_NO_SYSTEM_PATHS ON)
+
+# Static libs everywhere
 set(Boost_USE_STATIC_LIBS ON)
+
+# Avoid CMake policy issues
+cmake_policy(SET CMP0167 NEW)
 
 # ============================================================
 # COMPILER FLAGS
@@ -22,17 +27,12 @@ set(Boost_USE_STATIC_LIBS ON)
 
 if(MSVC)
     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded")
-    add_compile_definitions(NOMINMAX WIN32_LEAN_AND_MEAN)
+    add_compile_definitions(NOMINMAX WIN32_LEAN_AND_MEAN _CRT_SECURE_NO_WARNINGS)
     add_compile_options(/O2 /fp:precise /DCOMMAND_LINE)
-    add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
 else()
     add_compile_options(-O3 -fno-fast-math -fno-strict-aliasing -DCOMMAND_LINE)
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++")
 endif()
-
-# ============================================================
-# OPTIONS
-# ============================================================
 
 option(ENABLE_SANITIZERS "Enable ASAN/UBSAN" OFF)
 option(ENABLE_OPENMP "Enable OpenMP" ON)
@@ -47,23 +47,7 @@ endif()
 # DEPENDENCIES
 # ============================================================
 
-# Your build.yml already sets CMAKE_PREFIX_PATH, so:
-#   ${workspace}/boost-install/lib/cmake/Boost-1.89.0/BoostConfig.cmake is found.
-#
-# We disable system paths to FORCE using your local Boost installation.
-set(Boost_NO_SYSTEM_PATHS ON)
-
-find_package(Boost 1.89 REQUIRED COMPONENTS
-    filesystem
-    iostreams
-    program_options
-    regex
-    system
-)
-
-# ICU discovery:
-# macOS Homebrew installs ICU here:
-#   /opt/homebrew/opt/icu4c/lib/cmake/icu4c
+find_package(Boost 1.89 REQUIRED COMPONENTS filesystem iostreams program_options regex system)
 find_package(ICU REQUIRED COMPONENTS uc data i18n)
 
 if(ENABLE_ZLIB)
@@ -73,11 +57,10 @@ if(ENABLE_ZLIB)
 endif()
 
 # ============================================================
-# BOOST + ICU INTERFACE LIB
+# BOOST + ICU INTERFACE
 # ============================================================
 
 add_library(BoostInterface INTERFACE)
-
 target_link_libraries(BoostInterface INTERFACE
     Boost::filesystem
     Boost::iostreams
@@ -88,10 +71,7 @@ target_link_libraries(BoostInterface INTERFACE
 )
 
 if(ENABLE_ZLIB)
-    target_link_libraries(BoostInterface INTERFACE
-        ZLIB::ZLIB
-        BZip2::BZip2
-    )
+    target_link_libraries(BoostInterface INTERFACE ZLIB::ZLIB BZip2::BZip2)
 endif()
 
 if(ENABLE_OPENMP)
@@ -116,18 +96,16 @@ set(PM_SRC
     mauveAligner/src/UniqueMatchFinder.cpp
 )
 
-if(WIN32)
-    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/mauveAligner/src/win_getopt.cpp")
-        list(APPEND PM_SRC mauveAligner/src/win_getopt.cpp)
-    endif()
+if(WIN32 AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/mauveAligner/src/win_getopt.cpp")
+    list(APPEND PM_SRC mauveAligner/src/win_getopt.cpp)
 endif()
 
 add_executable(progressiveMauve ${PM_SRC})
 
 target_include_directories(progressiveMauve PRIVATE
-    ${PROJECT_SOURCE_DIR}/libGenome
-    ${PROJECT_SOURCE_DIR}/libMems
-    ${PROJECT_SOURCE_DIR}/muscle
+    ${PROJECT_SOURCE_DIR}/libGenome/libGenome
+    ${PROJECT_SOURCE_DIR}/libMems/libMems
+    ${PROJECT_SOURCE_DIR}/muscle/libMUSCLE
     ${PROJECT_SOURCE_DIR}/mauveAligner/src
 )
 
