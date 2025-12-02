@@ -30,7 +30,8 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ github.workspace }}/boost-install
-          key: ${{ runner.os }}-boost-${{ env.BOOST_VERSION }}
+          # CHANGED: Added -v2 to force a clean rebuild of Boost
+          key: ${{ runner.os }}-boost-${{ env.BOOST_VERSION }}-v2
 
       - name: Build Boost ${{ env.BOOST_VERSION }} from Source
         if: steps.cache-boost-linux.outputs.cache-hit != 'true'
@@ -38,8 +39,8 @@ jobs:
           wget ${{ env.BOOST_URL }}
           tar xzf ${{ env.BOOST_DIR }}.tar.gz
           cd ${{ env.BOOST_DIR }}
+          # --prefix is CRITICAL here to organize the libs correctly for CMake
           ./bootstrap.sh --prefix=${{ github.workspace }}/boost-install --with-libraries=filesystem,iostreams,program_options,regex,system
-          # ADDED --prefix here to strictly enforce install location
           ./b2 install --prefix=${{ github.workspace }}/boost-install link=static threading=multi variant=release -j$(nproc)
 
       - name: Configure CMake
@@ -48,7 +49,7 @@ jobs:
         run: |
           mkdir -p build
           mkdir -p build_logs
-          # FIX: Use CMAKE_PREFIX_PATH instead of BOOST_ROOT
+          # CMAKE_PREFIX_PATH must point to the folder containing 'lib' and 'include'
           cmake -S . -B build \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_PREFIX_PATH=${{ github.workspace }}/boost-install \
@@ -57,15 +58,8 @@ jobs:
             -DENABLE_SANITIZERS=OFF 2>&1 | tee build_logs/configure.log
 
       - name: Build
-        # Uses --build which works for both Makefiles and Ninja
         run: |
           cmake --build build --config Release -j$(nproc) 2>&1 | tee -a build_logs/build.log
-
-      - name: Generate addr2line map
-        run: |
-          nm -an build/progressiveMauve | grep " [tTwW] " | awk '{print $1}' \
-          | xargs -I{} addr2line -Cf -e build/progressiveMauve {} \
-          > build_logs/addr2line_map.txt 2>/dev/null || true
 
       - name: Upload Artifacts (Linux)
         uses: actions/upload-artifact@v4
@@ -93,7 +87,8 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ github.workspace }}/boost-install
-          key: ${{ runner.os }}-boost-${{ env.BOOST_VERSION }}-arm64
+          # CHANGED: Added -v2 to force a clean rebuild
+          key: ${{ runner.os }}-boost-${{ env.BOOST_VERSION }}-arm64-v2
 
       - name: Build Boost ${{ env.BOOST_VERSION }} from Source
         if: steps.cache-boost-mac.outputs.cache-hit != 'true'
@@ -111,7 +106,6 @@ jobs:
         run: |
           mkdir -p build
           mkdir -p build_logs
-          # FIX: Use CMAKE_PREFIX_PATH instead of BOOST_ROOT
           cmake -S . -B build \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_PREFIX_PATH="${{ github.workspace }}/boost-install;/opt/homebrew/opt/icu4c" \
@@ -147,7 +141,8 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ github.workspace }}/boost-install
-          key: ${{ runner.os }}-boost-${{ env.BOOST_VERSION }}-msvc
+          # CHANGED: Added -v2 to force a clean rebuild
+          key: ${{ runner.os }}-boost-${{ env.BOOST_VERSION }}-msvc-v2
 
       - name: Build Boost ${{ env.BOOST_VERSION }} from Source
         if: steps.cache-boost-win.outputs.cache-hit != 'true'
@@ -164,7 +159,6 @@ jobs:
         run: |
           mkdir -p build
           mkdir -p build_logs
-          # FIX: Use CMAKE_PREFIX_PATH instead of BOOST_ROOT
           cmake -S . -B build \
             -DCMAKE_TOOLCHAIN_FILE="$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" \
             -DVCPKG_TARGET_TRIPLET=x64-windows-static \
