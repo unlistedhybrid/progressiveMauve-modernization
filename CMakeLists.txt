@@ -9,23 +9,11 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-# Disable BoostConfig.cmake (b2 does NOT generate per-component config files)
-set(Boost_NO_BOOST_CMAKE ON)
-
-# Static libs everywhere
-set(Boost_USE_STATIC_LIBS ON)
-
-# Disable the new BoostConfig.cmake lookup (b2 does NOT create component configs)
+# Force classic FindBoost module instead of BoostConfig.cmake
 cmake_policy(SET CMP0167 OLD)
-
-# Force classic FindBoost mode
 set(Boost_NO_BOOST_CMAKE ON)
-
-# DO NOT search system Boost
 set(Boost_NO_SYSTEM_PATHS ON)
-
-find_package(Boost 1.89 REQUIRED COMPONENTS filesystem iostreams program_options regex system)
-
+set(Boost_USE_STATIC_LIBS ON)
 
 # ============================================================
 # COMPILER FLAGS
@@ -54,7 +42,7 @@ endif()
 # ============================================================
 
 find_package(Boost 1.89 REQUIRED COMPONENTS
-    filesystem iostreams program_options regex
+    filesystem iostreams program_options regex system
 )
 find_package(ICU REQUIRED COMPONENTS uc data i18n)
 
@@ -69,11 +57,9 @@ endif()
 # ============================================================
 
 add_library(BoostInterface INTERFACE)
+target_include_directories(BoostInterface INTERFACE ${Boost_INCLUDE_DIRS})
 target_link_libraries(BoostInterface INTERFACE
-    Boost::filesystem
-    Boost::iostreams
-    Boost::program_options
-    Boost::regex
+    ${Boost_LIBRARIES}
     ICU::uc ICU::data ICU::i18n
 )
 
