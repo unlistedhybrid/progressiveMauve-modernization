@@ -30,8 +30,8 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ github.workspace }}/boost-install
-          # CHANGED: Added -v2 to force a clean rebuild of Boost
-          key: ${{ runner.os }}-boost-${{ env.BOOST_VERSION }}-v2
+          # CRITICAL: -v3 forces a fresh, correct build
+          key: ${{ runner.os }}-boost-${{ env.BOOST_VERSION }}-v3
 
       - name: Build Boost ${{ env.BOOST_VERSION }} from Source
         if: steps.cache-boost-linux.outputs.cache-hit != 'true'
@@ -39,7 +39,7 @@ jobs:
           wget ${{ env.BOOST_URL }}
           tar xzf ${{ env.BOOST_DIR }}.tar.gz
           cd ${{ env.BOOST_DIR }}
-          # --prefix is CRITICAL here to organize the libs correctly for CMake
+          # --prefix ensures files land exactly where we expect them
           ./bootstrap.sh --prefix=${{ github.workspace }}/boost-install --with-libraries=filesystem,iostreams,program_options,regex,system
           ./b2 install --prefix=${{ github.workspace }}/boost-install link=static threading=multi variant=release -j$(nproc)
 
@@ -49,10 +49,10 @@ jobs:
         run: |
           mkdir -p build
           mkdir -p build_logs
-          # CMAKE_PREFIX_PATH must point to the folder containing 'lib' and 'include'
+          # CMAKE_PREFIX_PATH fixes the "Could not find boost_system" error
           cmake -S . -B build \
             -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_PREFIX_PATH=${{ github.workspace }}/boost-install \
+            -DCMAKE_PREFIX_PATH="${{ github.workspace }}/boost-install;${{ github.workspace }}/boost-install/lib/cmake" \
             -DBoost_NO_SYSTEM_PATHS=ON \
             -DENABLE_ZLIB=OFF \
             -DENABLE_SANITIZERS=OFF 2>&1 | tee build_logs/configure.log
@@ -60,6 +60,12 @@ jobs:
       - name: Build
         run: |
           cmake --build build --config Release -j$(nproc) 2>&1 | tee -a build_logs/build.log
+
+      - name: Generate addr2line map
+        run: |
+          nm -an build/progressiveMauve | grep " [tTwW] " | awk '{print $1}' \
+          | xargs -I{} addr2line -Cf -e build/progressiveMauve {} \
+          > build_logs/addr2line_map.txt 2>/dev/null || true
 
       - name: Upload Artifacts (Linux)
         uses: actions/upload-artifact@v4
@@ -87,8 +93,8 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ github.workspace }}/boost-install
-          # CHANGED: Added -v2 to force a clean rebuild
-          key: ${{ runner.os }}-boost-${{ env.BOOST_VERSION }}-arm64-v2
+          # CRITICAL: -v3 forces a fresh, correct build
+          key: ${{ runner.os }}-boost-${{ env.BOOST_VERSION }}-arm64-v3
 
       - name: Build Boost ${{ env.BOOST_VERSION }} from Source
         if: steps.cache-boost-mac.outputs.cache-hit != 'true'
@@ -108,7 +114,7 @@ jobs:
           mkdir -p build_logs
           cmake -S . -B build \
             -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_PREFIX_PATH="${{ github.workspace }}/boost-install;/opt/homebrew/opt/icu4c" \
+            -DCMAKE_PREFIX_PATH="${{ github.workspace }}/boost-install;${{ github.workspace }}/boost-install/lib/cmake;/opt/homebrew/opt/icu4c;/opt/homebrew/opt/icu4c/lib/cmake/icu4c" \
             -DBoost_NO_SYSTEM_PATHS=ON \
             -DENABLE_ZLIB=OFF 2>&1 | tee build_logs/configure.log
 
@@ -141,8 +147,8 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ github.workspace }}/boost-install
-          # CHANGED: Added -v2 to force a clean rebuild
-          key: ${{ runner.os }}-boost-${{ env.BOOST_VERSION }}-msvc-v2
+          # CRITICAL: -v3 forces a fresh, correct build
+          key: ${{ runner.os }}-boost-${{ env.BOOST_VERSION }}-msvc-v3
 
       - name: Build Boost ${{ env.BOOST_VERSION }} from Source
         if: steps.cache-boost-win.outputs.cache-hit != 'true'
@@ -162,7 +168,7 @@ jobs:
           cmake -S . -B build \
             -DCMAKE_TOOLCHAIN_FILE="$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" \
             -DVCPKG_TARGET_TRIPLET=x64-windows-static \
-            -DCMAKE_PREFIX_PATH="${{ github.workspace }}/boost-install" \
+            -DCMAKE_PREFIX_PATH="${{ github.workspace }}/boost-install;${{ github.workspace }}/boost-install/lib/cmake" \
             -DBoost_NO_SYSTEM_PATHS=ON \
             -DENABLE_ZLIB=OFF \
             -DCMAKE_BUILD_TYPE=Release > build_logs/configure.log 2>&1
