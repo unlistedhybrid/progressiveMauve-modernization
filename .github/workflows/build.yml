@@ -2,177 +2,194 @@ name: Build ProgressiveMauve Multi-Platform
 
 on:
   push:
-    branches: [ "master", "main" ]
+    branches: [ "main", "master" ]
   pull_request:
-    branches: [ "master", "main" ]
-  workflow_dispatch: # Allows manual triggering button
+    branches: [ "main", "master" ]
+
+# Use a single version variable to ensure consistency across all platforms
+env:
+  BOOST_VERSION: 1.89.0
+  BOOST_URL: https://archives.boost.io/release/1.89.0/source/boost_1_89_0.tar.gz
+  # Mapping URL structure for extraction
+  BOOST_DIR: boost_1_89_0
 
 jobs:
-  # =========================================================
-  # JOB 1: LINUX BUILD (GCC)
-  # =========================================================
+  # ==============================================================================
+  # 1. LINUX BUILD (Replicates your build.sh logic exactly)
+  # ==============================================================================
   build-linux:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Install Dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y build-essential cmake wget
+      - name: Install System Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake libbz2-dev liblzma-dev libicu-dev zlib1g-dev
 
-    - name: Cache Boost Source
-      id: cache-boost-src
-      uses: actions/cache@v3
-      with:
-        path: boost_1_57_0.tar.bz2
-        key: boost-1.57-source
+      - name: Cache Boost
+        id: cache-boost-linux
+        uses: actions/cache@v4
+        with:
+          path: ${{ github.workspace }}/boost-install
+          key: ${{ runner.os }}-boost-${{ env.BOOST_VERSION }}
 
-    - name: Download Boost 1.57
-      if: steps.cache-boost-src.outputs.cache-hit != 'true'
-      run: |
-        wget -c https://sourceforge.net/projects/boost/files/boost/1.57.0/boost_1_57_0.tar.bz2
+      - name: Build Boost ${{ env.BOOST_VERSION }} from Source
+        if: steps.cache-boost-linux.outputs.cache-hit != 'true'
+        run: |
+          wget ${{ env.BOOST_URL }}
+          tar xzf ${{ env.BOOST_DIR }}.tar.gz
+          cd ${{ env.BOOST_DIR }}
+          ./bootstrap.sh --prefix=${{ github.workspace }}/boost-install --with-libraries=filesystem,iostreams,program_options,regex,system
+          ./b2 install link=static threading=multi variant=release -j$(nproc)
 
-    - name: Build Boost (Linux)
-      run: |
-        tar --bzip2 -xf boost_1_57_0.tar.bz2
-        cd boost_1_57_0
-        ./bootstrap.sh --with-libraries=filesystem,iostreams,program_options,system,regex
-        # -fPIC is crucial for static linking
-        ./b2 -j$(nproc) link=static threading=multi cxxflags="-fPIC -std=c++14" install --prefix=$(pwd)/../boost_install_linux
+      - name: Configure CMake
+        # Setting flags exactly as requested in build.sh
+        env:
+          CXXFLAGS: "-O3 -fno-fast-math -DCOMMAND_LINE -fno-strict-aliasing"
+        run: |
+          mkdir -p build
+          mkdir -p build_logs
+          # We pass BOOST_ROOT so CMake finds our custom build
+          cmake -S . -B build \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DBOOST_ROOT=${{ github.workspace }}/boost-install \
+            -DBoost_NO_SYSTEM_PATHS=ON \
+            -DENABLE_ZLIB=OFF \
+            -DENABLE_SANITIZERS=OFF 2>&1 | tee build_logs/configure.log
 
-    - name: Build ProgressiveMauve (Linux)
-      run: |
-        mkdir build_linux
-        cd build_linux
-        cmake .. \
-          -DCMAKE_BUILD_TYPE=Release \
-          -DENABLE_ZLIB=OFF \
-          -DENABLE_SANITIZERS=OFF \
-          -DENABLE_CCACHE=OFF \
-          -DBOOST_ROOT="../boost_install_linux" \
-          -DBoost_NO_SYSTEM_PATHS=ON
-        make -j$(nproc)
-        # Rename for clarity
-        mv progressiveMauve progressiveMauve_linux_x64
+      - name: Build
+        run: |
+          cmake --build build --config Release -j$(nproc) 2>&1 | tee -a build_logs/build.log
 
-    - name: Upload Linux Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: progressiveMauve_linux_x64
-        path: build_linux/progressiveMauve_linux_x64
+      - name: Generate addr2line map (Debug Step)
+        run: |
+          # Failsafe generation of symbol map
+          nm -an build/progressiveMauve | grep " [tTwW] " | awk '{print $1}' \
+          | xargs -I{} addr2line -Cf -e build/progressiveMauve {} \
+          > build_logs/addr2line_map.txt 2>/dev/null || true
 
-  # =========================================================
-  # JOB 2: WINDOWS BUILD (Cross-Compile via MinGW on Linux)
-  # =========================================================
-  build-windows:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
+      - name: Upload Artifacts (Linux)
+        uses: actions/upload-artifact@v4
+        with:
+          name: progressiveMauve-Linux
+          path: |
+            build/progressiveMauve
+            build_logs/
 
-    - name: Install MinGW-w64
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y build-essential cmake wget mingw-w64 g++-mingw-w64
-
-    - name: Cache Boost Source
-      id: cache-boost-src
-      uses: actions/cache@v3
-      with:
-        path: boost_1_57_0.tar.bz2
-        key: boost-1.57-source
-
-    - name: Download Boost 1.57
-      if: steps.cache-boost-src.outputs.cache-hit != 'true'
-      run: |
-        wget -c https://sourceforge.net/projects/boost/files/boost/1.57.0/boost_1_57_0.tar.bz2
-
-    - name: Build Boost (Windows/MinGW)
-      run: |
-        tar --bzip2 -xf boost_1_57_0.tar.bz2
-        cd boost_1_57_0
-        
-        # Configure Boost to use the MinGW cross-compiler
-        echo "using gcc : mingw : x86_64-w64-mingw32-g++ ;" > ~/user-config.jam
-        
-        ./bootstrap.sh --with-libraries=filesystem,iostreams,program_options,system,regex
-        
-        # Build for Windows target
-        ./b2 -j$(nproc) toolset=gcc-mingw target-os=windows link=static threading=multi \
-           cxxflags="-fPIC -std=c++14 -Wno-deprecated-register" \
-           install --prefix=$(pwd)/../boost_install_win
-
-    - name: Build ProgressiveMauve (Windows)
-      run: |
-        mkdir build_win
-        cd build_win
-        
-        # Create Toolchain File for CMake
-        echo "set(CMAKE_SYSTEM_NAME Windows)" > toolchain.cmake
-        echo "set(CMAKE_C_COMPILER x86_64-w64-mingw32-gcc)" >> toolchain.cmake
-        echo "set(CMAKE_CXX_COMPILER x86_64-w64-mingw32-g++)" >> toolchain.cmake
-        echo "set(CMAKE_RC_COMPILER x86_64-w64-mingw32-windres)" >> toolchain.cmake
-        
-        cmake .. \
-          -DCMAKE_TOOLCHAIN_FILE=toolchain.cmake \
-          -DCMAKE_BUILD_TYPE=Release \
-          -DENABLE_ZLIB=OFF \
-          -DENABLE_SANITIZERS=OFF \
-          -DENABLE_CCACHE=OFF \
-          -DBOOST_ROOT="../boost_install_win" \
-          -DBoost_NO_SYSTEM_PATHS=ON
-          
-        make -j$(nproc)
-        # Rename for clarity
-        mv progressiveMauve.exe progressiveMauve_windows_x64.exe
-
-    - name: Upload Windows Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: progressiveMauve_windows_x64
-        path: build_win/progressiveMauve_windows_x64.exe
-
-  # =========================================================
-  # JOB 3: macOS ARM64 (Native M1/M2 Build)
-  # =========================================================
+  # ==============================================================================
+  # 2. MACOS BUILD (Apple Silicon / ARM64)
+  # ==============================================================================
   build-macos:
-    runs-on: macos-14 # Native Apple Silicon Runner
+    runs-on: macos-14 # This is M1/ARM64
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Install Tools
-      run: brew install cmake wget
+      - name: Install Dependencies
+        run: |
+          brew install cmake icu4c libomp
+          # Link libomp so CMake finds it easily
+          brew link --force libomp
 
-    - name: Download Boost 1.57
-      run: |
-        curl -L -o boost_1_57_0.tar.bz2 https://sourceforge.net/projects/boost/files/boost/1.57.0/boost_1_57_0.tar.bz2
-        tar -xjf boost_1_57_0.tar.bz2
+      - name: Cache Boost
+        id: cache-boost-mac
+        uses: actions/cache@v4
+        with:
+          path: ${{ github.workspace }}/boost-install
+          key: ${{ runner.os }}-boost-${{ env.BOOST_VERSION }}-arm64
 
-    - name: Build Boost (macOS)
-      run: |
-        cd boost_1_57_0
-        ./bootstrap.sh --with-libraries=filesystem,iostreams,program_options,system,regex
-        # Build using Clang (default on Mac)
-        ./b2 -j$(sysctl -n hw.ncpu) link=static threading=multi cxxflags="-std=c++14 -fPIC" install --prefix=$(pwd)/../boost_install_mac
+      - name: Build Boost ${{ env.BOOST_VERSION }} from Source
+        if: steps.cache-boost-mac.outputs.cache-hit != 'true'
+        run: |
+          curl -L -o boost.tar.gz ${{ env.BOOST_URL }}
+          tar xzf boost.tar.gz
+          cd ${{ env.BOOST_DIR }}
+          # Note: address-model=64 architecture=arm are crucial for M1
+          ./bootstrap.sh --prefix=${{ github.workspace }}/boost-install --with-libraries=filesystem,iostreams,program_options,regex,system
+          ./b2 install link=static threading=multi variant=release address-model=64 architecture=arm -j$(sysctl -n hw.ncpu)
 
-    - name: Build ProgressiveMauve (macOS)
-      run: |
-        mkdir build_mac
-        cd build_mac
-        cmake .. \
-          -DCMAKE_BUILD_TYPE=Release \
-          -DENABLE_ZLIB=OFF \
-          -DENABLE_SANITIZERS=OFF \
-          -DENABLE_CCACHE=OFF \
-          -DBOOST_ROOT="../boost_install_mac" \
-          -DBoost_NO_SYSTEM_PATHS=ON
-          
-        make -j$(sysctl -n hw.ncpu)
-        # Rename for clarity
-        mv progressiveMauve progressiveMauve_macos_arm64
+      - name: Configure CMake
+        env:
+          # Point to Homebrew ICU and our custom Boost
+          ICU_ROOT: /opt/homebrew/opt/icu4c
+          CXXFLAGS: "-O3 -fno-fast-math -DCOMMAND_LINE -fno-strict-aliasing"
+        run: |
+          mkdir -p build
+          mkdir -p build_logs
+          cmake -S . -B build \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DBOOST_ROOT=${{ github.workspace }}/boost-install \
+            -DBoost_NO_SYSTEM_PATHS=ON \
+            -DICU_ROOT=/opt/homebrew/opt/icu4c \
+            -DENABLE_ZLIB=OFF 2>&1 | tee build_logs/configure.log
 
-    - name: Upload macOS Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: progressiveMauve_macos_arm64
-        path: build_mac/progressiveMauve_macos_arm64
+      - name: Build
+        run: |
+          cmake --build build --config Release -j$(sysctl -n hw.ncpu) 2>&1 | tee -a build_logs/build.log
+
+      - name: Upload Artifacts (MacOS)
+        uses: actions/upload-artifact@v4
+        with:
+          name: progressiveMauve-MacOS-ARM64
+          path: |
+            build/progressiveMauve
+            build_logs/
+
+  # ==============================================================================
+  # 3. WINDOWS BUILD (MSVC)
+  # ==============================================================================
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Install ICU via VCPKG (Pre-installed on runner)
+      - name: Install ICU via vcpkg
+        run: vcpkg install icu:x64-windows-static
+        shell: bash
+
+      - name: Cache Boost
+        id: cache-boost-win
+        uses: actions/cache@v4
+        with:
+          path: ${{ github.workspace }}/boost-install
+          key: ${{ runner.os }}-boost-${{ env.BOOST_VERSION }}-msvc
+
+      - name: Build Boost ${{ env.BOOST_VERSION }} from Source
+        if: steps.cache-boost-win.outputs.cache-hit != 'true'
+        shell: cmd
+        run: |
+          curl -L -o boost.tar.gz ${{ env.BOOST_URL }}
+          tar xzf boost.tar.gz
+          cd ${{ env.BOOST_DIR }}
+          call bootstrap.bat
+          REM runtime-link=static is CRITICAL for a portable .exe
+          b2 install --prefix=${{ github.workspace }}/boost-install --with-filesystem --with-iostreams --with-program_options --with-regex --with-system toolset=msvc address-model=64 link=static threading=multi runtime-link=static variant=release
+
+      - name: Configure CMake
+        shell: bash
+        # Note: MSVC doesn't accept -fno-fast-math. We rely on the CMakeLists.txt 
+        # logic I provided earlier to map this to /fp:precise or /fp:fast
+        run: |
+          mkdir -p build
+          mkdir -p build_logs
+          cmake -S . -B build \
+            -DCMAKE_TOOLCHAIN_FILE="$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" \
+            -DVCPKG_TARGET_TRIPLET=x64-windows-static \
+            -DBOOST_ROOT="${{ github.workspace }}/boost-install" \
+            -DBoost_NO_SYSTEM_PATHS=ON \
+            -DENABLE_ZLIB=OFF \
+            -DCMAKE_BUILD_TYPE=Release > build_logs/configure.log 2>&1
+
+      - name: Build
+        shell: bash
+        run: |
+          cmake --build build --config Release --verbose >> build_logs/build.log 2>&1
+
+      - name: Upload Artifacts (Windows)
+        uses: actions/upload-artifact@v4
+        with:
+          name: progressiveMauve-Windows
+          path: |
+            build/Release/progressiveMauve.exe
+            build_logs/

@@ -5,49 +5,59 @@ project(ProgressiveMauveModern LANGUAGES C CXX)
 # 1. GLOBAL BUILD SETTINGS
 # ============================================================
 
-# Modern Boost (1.89) requires modern C++
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-# ACCURACY CONFIGURATION:
-# -O3: High optimization.
-# -fno-fast-math: STRICT math. Prevents reordering. Ensures 1859 matches result.
-# -DCOMMAND_LINE: Logic flag.
-add_compile_options(-O3 -fno-fast-math -DCOMMAND_LINE -fno-strict-aliasing)
+# --------------------------------------------------------
+# STATIC LINKING CONFIGURATION (CRITICAL)
+# --------------------------------------------------------
 
-# Link standard libraries statically
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++")
+# 1. Force CMake to look for static Boost libraries (.a / .lib)
+#    This ensures Boost code is copied into your executable.
+set(Boost_USE_STATIC_LIBS ON)
+
+# 2. Windows-Specific: Force Static Runtime (/MT)
+#    This ensures users don't need "VCRUNTIME140.dll" installed.
+if(MSVC)
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded")
+    add_compile_definitions(NOMINMAX)       # Fixes the min/max build error
+    add_compile_definitions(WIN32_LEAN_AND_MEAN)
+endif()
+
+# --------------------------------------------------------
+# COMPILER FLAGS
+# --------------------------------------------------------
+if(MSVC)
+    # Windows Visual Studio Flags
+    # /O2 = -O3 equivalent
+    # /fp:precise = Strict math (prevents unsafe optimizations)
+    add_compile_options(/O2 /fp:precise /DCOMMAND_LINE)
+    add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
+else()
+    # GCC / Clang Flags
+    add_compile_options(-O3 -fno-fast-math -DCOMMAND_LINE -fno-strict-aliasing)
+    
+    # Linux: Link system libraries statically
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++")
+endif()
 
 # ============================================================
 # 2. OPTIONS
 # ============================================================
 
 option(ENABLE_SANITIZERS "Enable ASAN + UBSAN" OFF)
-option(ENABLE_CCACHE "Enable CCache" OFF)
 option(ENABLE_OPENMP "Enable OpenMP" ON)
-
-# Disable ZLIB to match original logic
 option(ENABLE_ZLIB "Enable ZLIB compression" OFF) 
 
-if(WIN32)
-    # Prevents windows.h from defining min() and max() macros
-    # that conflict with std::min() and std::max()
-    add_compile_definitions(NOMINMAX)
-    add_compile_definitions(WIN32_LEAN_AND_MEAN)
-endif()
-
 # ============================================================
-# 3. DEPENDENCIES (SYSTEM BOOST 1.89)
+# 3. DEPENDENCIES
 # ============================================================
 
-# We use the System Boost (1.89)
-set(Boost_USE_STATIC_LIBS ON)
-
-# Allow CMake to search system paths (/usr/lib, etc.)
+# Allow CMake to search system paths or custom paths provided by build.yml
 set(Boost_NO_SYSTEM_PATHS OFF)
 
-# Find version 1.89 or higher
+# STRICT REQUIREMENT: BOOST 1.89 or newer
 find_package(Boost 1.89 REQUIRED COMPONENTS filesystem iostreams program_options regex system)
 
 if(ENABLE_ZLIB)
@@ -99,7 +109,10 @@ set(PM_SRC
 )
 
 if(WIN32)
-    list(APPEND PM_SRC mauveAligner/src/win_getopt.cpp)
+    # Ensure this file exists in your source tree, or remove this block
+    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/mauveAligner/src/win_getopt.cpp")
+        list(APPEND PM_SRC mauveAligner/src/win_getopt.cpp)
+    endif()
 endif()
 
 add_executable(progressiveMauve ${PM_SRC})

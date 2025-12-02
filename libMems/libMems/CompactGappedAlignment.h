@@ -23,8 +23,9 @@
 
 #include <algorithm>
 
-#ifdef WIN32
-#include "windows.h"
+#ifdef _WIN32      // Better check than WIN32
+#define NOMINMAX
+#include <windows.h>
 #endif
 
 namespace mems {
