@@ -2,6 +2,7 @@
 #include "config.h"
 #endif
 
+
 #include "libMems/GreedyBreakpointElimination.h"
 #include "libMems/ProgressiveAligner.h"
 #include "libMems/Aligner.h"
@@ -17,7 +18,7 @@
 #include "libMems/PairwiseMatchAdapter.h"
 
 #include <boost/dynamic_bitset.hpp>
-#include <tuple>
+#include <boost/tuple/tuple.hpp>
 
 #include <map>
 #include <fstream>	// for debugging
@@ -45,6 +46,8 @@ void printProgress( uint prev_prog, uint cur_prog, ostream& os )
 		os.flush();
 	}
 }
+
+
 
 
 void getPairwiseLCBs( 
@@ -158,9 +161,9 @@ uint RemoveLCBandCoalesce( size_t lcbI, uint seq_count, LcbVector& adjacencies, 
 	for( seqI = 0; seqI < seq_count; seqI++ ){
 		left_adj = adjacencies[ lcbI ].left_adjacency[ seqI ];
 		right_adj = adjacencies[ lcbI ].right_adjacency[ seqI ];
-		if( left_adj != static_cast<uint>(-1) )
+		if( left_adj != -1 )
 			adjacencies[ left_adj ].right_adjacency[ seqI ] = right_adj;
-		if( right_adj != static_cast<uint>(-1) && right_adj != adjacencies.size() )
+		if( right_adj != -1 && right_adj != adjacencies.size() )
 			adjacencies[ right_adj ].left_adjacency[ seqI ] = left_adj;
 	}
 
@@ -171,12 +174,12 @@ uint RemoveLCBandCoalesce( size_t lcbI, uint seq_count, LcbVector& adjacencies, 
 		impact_list[impactI++] = left_adj;
 		impact_list[impactI++] = right_adj;
 		for( uint seqJ = 0; seqJ < seq_count; seqJ++ ){
-			if( left_adj != static_cast<uint>(-1) )
+			if( left_adj != -1 )
 			{
 				impact_list[impactI++] = adjacencies[ left_adj ].left_adjacency[ seqJ ];
 				impact_list[impactI++] = adjacencies[ left_adj ].right_adjacency[ seqJ ];
 			}
-			if( right_adj != static_cast<uint>(-1) )
+			if( right_adj != -1 )
 			{
 				impact_list[impactI++] = adjacencies[ right_adj ].left_adjacency[ seqJ ];
 				impact_list[impactI++] = adjacencies[ right_adj ].right_adjacency[ seqJ ];
@@ -193,25 +196,24 @@ uint RemoveLCBandCoalesce( size_t lcbI, uint seq_count, LcbVector& adjacencies, 
 		left_adj = adjacencies[ lcbI ].left_adjacency[ seqI ];
 		right_adj = adjacencies[ lcbI ].right_adjacency[ seqI ];
 		// find the real slim shady
-		while( left_adj != static_cast<uint>(-1) && adjacencies[ left_adj ].lcb_id != static_cast<int>(left_adj) )
+		while( left_adj != -1 && adjacencies[ left_adj ].lcb_id != left_adj )
 			left_adj = adjacencies[ left_adj ].left_adjacency[ seqI ];
-		while( right_adj != static_cast<uint>(-1) && adjacencies[ right_adj ].lcb_id != static_cast<int>(right_adj) )
+		while( right_adj != -1 && adjacencies[ right_adj ].lcb_id != right_adj )
 			right_adj = adjacencies[ right_adj ].right_adjacency[ seqI ];
-		if( left_adj == static_cast<uint>(-1) || right_adj == static_cast<uint>(-1) )
+		if( left_adj == -1 || right_adj == -1 )
 			continue;	// can't collapse with a non-existant LCB!
-		if( adjacencies[ left_adj ].lcb_id != static_cast<int>(left_adj) ||
-			adjacencies[ right_adj ].lcb_id != static_cast<int>(right_adj) ) {
-			if( seqI > 0 ) {
+		if( adjacencies[ left_adj ].lcb_id != left_adj ||
+			adjacencies[ right_adj ].lcb_id != right_adj )
+			if( seqI > 0 )
 				continue;	// already coalesced
-			} else {
+			else
 				cerr << "trouble on down street\n";
-			}
-		}
+
 		// check whether the two LCBs are adjacent in each sequence
-		bool orientation = adjacencies[ left_adj ].left_end[ seqI ] > 0 ? true : false;
+		boolean orientation = adjacencies[ left_adj ].left_end[ seqI ] > 0 ? true : false;
 		uint seqJ;
 		for( seqJ = 0; seqJ < seq_count; seqJ++ ){
-			bool j_orientation = adjacencies[ left_adj ].left_end[ seqJ ] > 0;
+			boolean j_orientation = adjacencies[ left_adj ].left_end[ seqJ ] > 0;
 			if( j_orientation == orientation &&
 				adjacencies[ left_adj ].right_adjacency[ seqJ ] != right_adj )
 				break;
@@ -219,7 +221,7 @@ uint RemoveLCBandCoalesce( size_t lcbI, uint seq_count, LcbVector& adjacencies, 
 				adjacencies[ left_adj ].left_adjacency[ seqJ ] != right_adj )
 				break;
 			// check that they are both in the same orientation
-			if( (adjacencies[ right_adj ].left_end[ seqJ ] > 0) != j_orientation )
+			if( adjacencies[ right_adj ].left_end[ seqJ ] > 0 != j_orientation )
 				break;
 		}
 
@@ -239,18 +241,18 @@ uint RemoveLCBandCoalesce( size_t lcbI, uint seq_count, LcbVector& adjacencies, 
 		// unlink right_adj from the adjacency list and
 		// update left and right ends of left_adj
 		for( seqJ = 0; seqJ < seq_count; seqJ++ ){
-			bool j_orientation = adjacencies[ left_adj ].left_end[ seqJ ] > 0;
+			boolean j_orientation = adjacencies[ left_adj ].left_end[ seqJ ] > 0;
 			uint rr_adj = adjacencies[ right_adj ].right_adjacency[ seqJ ];
 			uint rl_adj = adjacencies[ right_adj ].left_adjacency[ seqJ ];
 			if( j_orientation == orientation ){
 				adjacencies[ left_adj ].right_end[ seqJ ] = adjacencies[ right_adj ].right_end[ seqJ ];
 				adjacencies[ left_adj ].right_adjacency[ seqJ ] = rr_adj;
-				if( rr_adj != static_cast<uint>(-1) )
+				if( rr_adj != -1 )
 					adjacencies[ rr_adj ].left_adjacency[ seqJ ] = left_adj;
 			}else{
 				adjacencies[ left_adj ].left_end[ seqJ ] = adjacencies[ right_adj ].left_end[ seqJ ];
 				adjacencies[ left_adj ].left_adjacency[ seqJ ] = rl_adj;
-				if( rl_adj != static_cast<uint>(-1) )
+				if( rl_adj != -1 )
 					adjacencies[ rl_adj ].right_adjacency[ seqJ ] = left_adj;
 			}
 		}
@@ -272,7 +274,7 @@ void undoLcbRemoval( uint seq_count, LcbVector& adjs, std::vector< std::pair< ui
 {
 	for( size_t rI = id_remaps.size(); rI > 0; --rI )
 	{
-		if( id_remaps[rI-1].second == static_cast<uint>(-1) )
+		if( id_remaps[rI-1].second == -1 )
 		{
 			// this one was deleted
 			// revert adjacencies
@@ -281,9 +283,9 @@ void undoLcbRemoval( uint seq_count, LcbVector& adjs, std::vector< std::pair< ui
 			{
 				uint left_adj = adjs[ lcbI ].left_adjacency[ seqI ];
 				uint right_adj = adjs[ lcbI ].right_adjacency[ seqI ];
-				if( left_adj != static_cast<uint>(-1) )
+				if( left_adj != -1 )
 					adjs[ left_adj ].right_adjacency[ seqI ] = lcbI;
-				if( right_adj != static_cast<uint>(-1) && right_adj != adjs.size() )
+				if( right_adj != -1 && right_adj != adjs.size() )
 					adjs[ right_adj ].left_adjacency[ seqI ] = lcbI;
 			}
 			adjs[lcbI].lcb_id = lcbI;	// reset the lcb id
@@ -304,13 +306,13 @@ void undoLcbRemoval( uint seq_count, LcbVector& adjs, std::vector< std::pair< ui
 				if(  ladj == lcbJ )
 				{
 					adjs[lcbJ].right_adjacency[seqI] = lcbI;
-					if( radj != static_cast<uint>(-1) && radj != adjs.size())
+					if( radj != -1 && radj != adjs.size())
 						adjs[radj].left_adjacency[seqI] = lcbI;
 				}else
 				if(  radj == lcbJ )
 				{
 					adjs[lcbJ].left_adjacency[seqI] = lcbI;
-					if( ladj != static_cast<uint>(-1) && ladj != adjs.size())
+					if( ladj != -1 && ladj != adjs.size())
 						adjs[ladj].right_adjacency[seqI] = lcbI;
 				}
 			}
@@ -335,23 +337,20 @@ EvenFasterSumOfPairsBreakpointScorer::EvenFasterSumOfPairsBreakpointScorer(
 	size_t seqJ_end
 	) :
   bp_penalty( breakpoint_penalty ),
+  min_breakpoint_penalty( minimum_breakpoint_penalty ),
   bp_weights( bp_weight_matrix ), 
   conservation_weights( conservation_weight_matrix ),
   tracking_matches( tracking_match ),
   pairwise_adjacencies( pairwise_adjacency_matrix ),
   n1_des(n1_descendants),
   n2_des(n2_descendants),
-  pairwise_lcb_count(),
-  pairwise_lcb_score(),
-  deleted_tracking_matches(),
-  seqI_count(pairwise_adjacencies.shape()[0]),
-  seqJ_count(pairwise_adjacencies.shape()[1]),
-  min_breakpoint_penalty( minimum_breakpoint_penalty ),
   tm_score_array(tm_score_array),
   tm_lcb_id_array(tm_lcb_id_array),
+  seqI_count(pairwise_adjacencies.shape()[0]),
+  seqJ_count(pairwise_adjacencies.shape()[1]),
   seqI_first(seqI_begin),
-  seqJ_first(seqJ_begin),
   seqI_last(seqI_end),
+  seqJ_first(seqJ_begin),
   seqJ_last(seqJ_end),
   first_time(true)
 {
@@ -559,13 +558,13 @@ bool EvenFasterSumOfPairsBreakpointScorer::remove( pair< double, size_t >& the_m
 	}
 	// score deletion of the LCB at (moveI - move_base) from the pairwise alignment of seqI and seqJ
 	size_t del_lcb = moveI - move_base;
-	if( pairwise_adjacencies[seqI][seqJ][del_lcb].lcb_id != static_cast<int>(del_lcb) && really_remove )
+	if( pairwise_adjacencies[seqI][seqJ][del_lcb].lcb_id != del_lcb && really_remove )
 	{
-		if( pairwise_adjacencies[seqI][seqJ][del_lcb].lcb_id == static_cast<int>(LCB_UNASSIGNED) )
+		if( pairwise_adjacencies[seqI][seqJ][del_lcb].lcb_id == LCB_UNASSIGNED )
 			cerr << "bad movement, dirty dancing\n";
 		return false;	// this is an invalid move -- already deleted or coalesced with another
 	}
-	if( pairwise_adjacencies[seqI][seqJ][del_lcb].lcb_id != static_cast<int>(del_lcb) )
+	if( pairwise_adjacencies[seqI][seqJ][del_lcb].lcb_id != del_lcb )
 	{
 		return false;	// this is an invalid move -- already deleted
 	}
@@ -586,7 +585,7 @@ bool EvenFasterSumOfPairsBreakpointScorer::remove( pair< double, size_t >& the_m
 			vector< TrackingLCB< TrackingMatch* > >& adjs = pairwise_adjacencies[i][j];
 			// create a list of LCBs affected by deletion of this match
 			// check whether any of them will have all of their matches removed
-			if( lcb_ids.size() < static_cast<size_t>(matches.size()) )
+			if( lcb_ids.size() < matches.size() )
 				lcb_ids.resize( matches.size() + 100 );
 			for( size_t mI = 0; mI < matches.size(); ++mI )
 				lcb_ids[mI] = tm_lcb_id_array[matches[mI]->match_id][i][j];
@@ -659,7 +658,7 @@ bool EvenFasterSumOfPairsBreakpointScorer::remove( pair< double, size_t >& the_m
 			std::vector< uint >& fimp_list = full_impact_list[i][j];
 			for( size_t delI = 0; delI < my_del_count; ++delI )
 			{
-				if( adjs[my_del_lcbs[delI]].lcb_id != static_cast<int>(my_del_lcbs[delI]) )
+				if( adjs[my_del_lcbs[delI]].lcb_id != my_del_lcbs[delI] )
 					continue;	// skip this one if it's already been deleted
 
 				std::vector< std::pair< uint, uint > > id_remaps;
@@ -675,7 +674,7 @@ bool EvenFasterSumOfPairsBreakpointScorer::remove( pair< double, size_t >& the_m
 					// move all matches to the new LCB
 					for( size_t rI = 0; rI < id_remaps.size(); ++rI )
 					{
-						if( id_remaps[rI].second == static_cast<uint>(-1) )
+						if( id_remaps[rI].second == -1 )
 							continue;	// deletion
 						vector< TrackingMatch* >& src_matches = adjs[id_remaps[rI].first].matches;
 						vector< TrackingMatch* >& dest_matches = adjs[id_remaps[rI].second].matches;
@@ -708,7 +707,7 @@ bool EvenFasterSumOfPairsBreakpointScorer::remove( pair< double, size_t >& the_m
 				fimp_list.erase( iter, fimp_list.end() );
 				for( size_t fI = 0; fI < fimp_list.size(); fI++ )
 				{
-					if( adjs[fimp_list[fI]].lcb_id != static_cast<int>(fimp_list[fI]) )
+					if( adjs[fimp_list[fI]].lcb_id != fimp_list[fI] )
 					{
 						new_move_list[new_move_count++] = make_pair( -(std::numeric_limits<double>::max)(), mbase + fimp_list[fI] );
 						continue;	// this one got trashed
@@ -822,7 +821,7 @@ vector< TrackingMatch* > EvenFasterSumOfPairsBreakpointScorer::getResults()
 	for( size_t lcbI = 0; lcbI < LCB_list.size(); ++lcbI )
 	{
 		// make sure each LCB exists...
-		while( adjI != static_cast<size_t>(-1) && adjI != static_cast<size_t>(adjs[adjI].lcb_id) )
+		while( adjI != -1 && adjI != adjs[adjI].lcb_id )
 			adjI++;
 
 		// compare matches...
@@ -900,7 +899,7 @@ double SimpleBreakpointScorer::score()
 
 bool SimpleBreakpointScorer::isValid( size_t lcbI, double move_score )
 {
-	if( adjs[lcbI].lcb_id != static_cast<int>(lcbI) )
+	if( adjs[lcbI].lcb_id != lcbI )
 		return false;
 	return (*this)(lcbI) == move_score;
 }
@@ -926,12 +925,12 @@ void SimpleBreakpointScorer::remove( uint lcbI, vector< pair< double, size_t > >
 {
 	std::vector< std::pair< uint, uint > > id_remaps;
 	std::vector< uint > impact_list;
-	RemoveLCBandCoalesce( lcbI, adjs[0].left_adjacency.size(), adjs, scores, id_remaps, impact_list );
+	uint bp_removed = RemoveLCBandCoalesce( lcbI, adjs[0].left_adjacency.size(), adjs, scores, id_remaps, impact_list );
 	total_weight -= adjs[lcbI].weight;
-	bp_count -= RemoveLCBandCoalesce( lcbI, adjs[0].left_adjacency.size(), adjs, scores, id_remaps, impact_list );
+	bp_count -= bp_removed;
 	for( size_t impI = 0; impI < impact_list.size(); impI++ )
 	{
-		if( adjs[impact_list[impI]].lcb_id != static_cast<int>(impact_list[impI]) )
+		if( adjs[impact_list[impI]].lcb_id != impact_list[impI] )
 			continue;
 		double scorediff = (*this)(impact_list[impI]);
 		new_moves.push_back(make_pair(scorediff, impact_list[impI]));
@@ -961,7 +960,7 @@ double GreedyRemovalScorer::score()
 
 bool GreedyRemovalScorer::isValid( size_t lcbI, double move_score )
 {
-	if( adjs[lcbI].lcb_id != static_cast<int>(lcbI) )
+	if( adjs[lcbI].lcb_id != lcbI )
 		return false;
 	return (*this)(lcbI) == move_score;
 }
@@ -977,16 +976,19 @@ void GreedyRemovalScorer::remove( uint lcbI, vector< pair< double, size_t > >& n
 {
 	std::vector< std::pair< uint, uint > > id_remaps;
 	std::vector< uint > impact_list;
-	RemoveLCBandCoalesce( lcbI, adjs[0].left_adjacency.size(), adjs, scores, id_remaps, impact_list );
+	uint bp_removed = RemoveLCBandCoalesce( lcbI, adjs[0].left_adjacency.size(), adjs, scores, id_remaps, impact_list );
 	total_weight -= (adjs[lcbI].weight-min_weight);
 	for( size_t impI = 0; impI < impact_list.size(); impI++ )
 	{
-		if( adjs[impact_list[impI]].lcb_id != static_cast<int>(impact_list[impI]) )
+		if( adjs[impact_list[impI]].lcb_id != impact_list[impI] )
 			continue;
 		double scorediff = (*this)(impact_list[impI]);
 		new_moves.push_back(make_pair(scorediff, impact_list[impI]));
 	}
 }
+
+
+
 
 }	// namespace mems
 

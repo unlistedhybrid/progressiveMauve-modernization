@@ -7,6 +7,10 @@
 
 #include "libMems/dmSML/asyncio.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 int OpenWIN32( aFILE * file, const char *path, int mode );
 int CloseWIN32( aFILE * file );
 
@@ -14,5 +18,9 @@ int WriteWIN32( aFILE * file, aIORec * rec );
 int ReadWIN32( aFILE * file, aIORec * rec );
 
 int QueryLastCompleteWIN32( aFILE * file );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _awin32_h_ */

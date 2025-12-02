@@ -13,7 +13,6 @@
 #endif
 
 #include "libMems/SubstitutionMatrix.h"
-#include <iostream>
 #include <string>
 #include <vector>
 
@@ -43,7 +42,7 @@ void computeConsensusScore( const std::vector<std::string>& alignment, const Pai
 
 	score =	INVALID_SCORE;
 
-	std::vector< std::string > nucleotides;
+	std::vector< string > nucleotides;
 	nucleotides.push_back(std::string(alignment.at(0).size(),'A'));
 	nucleotides.push_back(std::string(alignment.at(0).size(),'G'));
 	nucleotides.push_back(std::string(alignment.at(0).size(),'C'));
@@ -131,8 +130,8 @@ void computeMatchScores( const std::string& seq1, const std::string& seq2,
 		char c2 = seq2[uColIndex];
 		if( c1 == '-' || c2 == '-' )
 			continue;
-		unsigned uLetter1 = table[static_cast<unsigned char>(c1)];
-		unsigned uLetter2 = table[static_cast<unsigned char>(c2)];
+		unsigned uLetter1 = table[c1];
+		unsigned uLetter2 = table[c2];
 
 		score_t scoreMatch = scoring.matrix[uLetter1][uLetter2];
 		scores[uColIndex] = scoreMatch;
@@ -153,33 +152,39 @@ void computeGapScores( const std::string& seq1, const std::string& seq2, const P
 
 	unsigned uColCount = seq1.size();
 	unsigned uColStart = 0;
+	bool bLeftTermGap = false;
 	for (unsigned uColIndex = 0; uColIndex < seq1.size(); ++uColIndex)
 	{
 		bool bGap1 = seq1[uColIndex] == '-';
 		bool bGap2 = seq2[uColIndex] == '-';
 		if (!bGap1 || !bGap2)
-		{
+			{
+			if (bGap1 || bGap2)
+				bLeftTermGap = true;
 			uColStart = uColIndex;
 			break;
+			}
 		}
-	}
 
 	unsigned uColEnd = uColCount - 1;
+	bool bRightTermGap = false;
 	for (int iColIndex = (int) uColCount - 1; iColIndex >= 0; --iColIndex)
-	{
+		{
 		bool bGap1 = seq1[iColIndex] == '-';
 		bool bGap2 = seq2[iColIndex] == '-';
 		if (!bGap1 || !bGap2)
-		{
+			{
+			if (bGap1 || bGap2)
+				bRightTermGap = true;
 			uColEnd = (unsigned) iColIndex;
 			break;
+			}
 		}
-	}
 
 	unsigned gap_left_col = 0;
 	score_t cur_gap_score = 0;
 	for (unsigned uColIndex = uColStart; uColIndex <= uColEnd; ++uColIndex)
-	{
+		{
 		bool bGap1 = seq1[uColIndex] == '-';
 		bool bGap2 = seq2[uColIndex] == '-';
 
@@ -187,44 +192,44 @@ void computeGapScores( const std::string& seq1, const std::string& seq2, const P
 			continue;
 
 		if (bGap1)
-		{
-			if (!bGapping1)
 			{
+			if (!bGapping1)
+				{
 				gap_left_col = uColIndex;
 				if (uColIndex == uColStart)
-				{
+					{
 					cur_gap_score += term_gap_score;
-				} else {
+				}else{
 					cur_gap_score += gap_open_score;
-				}
+					}
 				bGapping1 = true;
-			}
+				}
 			else
-			{
+				{
 				cur_gap_score += gap_extend_score;
-			}
+				}
 			continue;
-		}
+			}
 
 		else if (bGap2)
-		{
-			if (!bGapping2)
 			{
+			if (!bGapping2)
+				{
 				gap_left_col = uColIndex;
 				if (uColIndex == uColStart)
-				{
+					{
 					cur_gap_score += term_gap_score;
-				} else {
+				}else{
 					cur_gap_score += gap_open_score;
-				}
+					}
 				bGapping2 = true;
-			}
+				}
 			else
-			{
+				{
 				cur_gap_score += gap_extend_score;
-			}
+				}
 			continue;
-		}
+			}
 
 		if( (bGapping1 || bGapping2) )
 		{
@@ -242,13 +247,13 @@ void computeGapScores( const std::string& seq1, const std::string& seq2, const P
 				if( scores[uGapIndex] != INVALID_SCORE )
 				{
 					genome::breakHere();
-					std::cerr << "asdgohasdoghasodgh\n";
+					cerr << "asdgohasdoghasodgh\n";
 				}
 				scores[uGapIndex] = per_site_penalty;
 			}
 			if( scores[gap_left_col] == INVALID_SCORE )
 			{
-				std::cerr << "crap!\n";
+				cerr << "crap!\n";
 				genome::breakHere();
 			}
 			scores[gap_left_col] += extra;
@@ -257,10 +262,10 @@ void computeGapScores( const std::string& seq1, const std::string& seq2, const P
 		}
 		bGapping1 = false;
 		bGapping2 = false;
-	}
+		}
 
 	if (bGapping1 || bGapping2)
-	{
+		{
 		cur_gap_score -= gap_open_score;
 		cur_gap_score += term_gap_score;
 
@@ -281,7 +286,7 @@ void computeGapScores( const std::string& seq1, const std::string& seq2, const P
 		{
 			if( scores[gap_left_col] == INVALID_SCORE )
 			{
-				std::cerr << "crap!\n";
+				cerr << "crap!\n";
 				genome::breakHere();
 			}
 			scores[gap_left_col] += extra;
@@ -290,7 +295,7 @@ void computeGapScores( const std::string& seq1, const std::string& seq2, const P
 }
 
 inline
-void computeSPScore( const std::vector<std::string>& alignment, const PairwiseScoringScheme& pss, 
+void computeSPScore( const std::vector<string>& alignment, const PairwiseScoringScheme& pss, 
 					std::vector<score_t>& scores, score_t& score )
 {
 	std::vector< score_t > cur_m_scores( alignment[0].size(), INVALID_SCORE );
@@ -327,3 +332,4 @@ void computeSPScore( const std::vector<std::string>& alignment, const PairwiseSc
 
 
 #endif	// __Scoring_h__
+

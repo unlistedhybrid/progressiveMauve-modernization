@@ -22,7 +22,7 @@ RepeatHash* RepeatHash::Clone() const{
 	return new RepeatHash(*this);
 }
 
-bool RepeatHash::CreateMatches(){
+boolean RepeatHash::CreateMatches(){
 	if(seq_count == 1){
 		MatchFinder::FindMatchSeeds();
 		return true;
@@ -31,13 +31,13 @@ bool RepeatHash::CreateMatches(){
 	return false;
 }
 
-bool RepeatHash::EnumerateMatches( IdmerList& match_list ){
+boolean RepeatHash::EnumerateMatches( IdmerList& match_list ){
 	return HashMatch(match_list);
 }
 
 //why have separate hash tables?
 // RepeatHashEntries use GENETICIST coordinates.  They start at 1, not 0.
-bool RepeatHash::HashMatch(IdmerList& match_list){
+boolean RepeatHash::HashMatch(IdmerList& match_list){
 	//check that there is at least one forward component
 	match_list.sort(&idmer_position_lessthan);
 	// initialize the hash entry

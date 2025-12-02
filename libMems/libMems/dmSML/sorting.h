@@ -7,6 +7,10 @@
 
 #include "libMems/dmSML/buffer.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 
 // define this if you want to use the qsort only version
 // of dmsort.
@@ -77,5 +81,9 @@ void InitRadixSort( sort_buf_t* sortbuf, buffer_t* scratch_buffer );
  * call until state is set to WriteData
  */
 void RadixSort( sort_buf_t* sortbuffer );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _sorting_h_ */

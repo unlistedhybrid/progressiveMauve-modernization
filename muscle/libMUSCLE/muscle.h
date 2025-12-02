@@ -16,9 +16,7 @@
 #ifdef	_MSC_VER	// Miscrosoft compiler
 #pragma warning(disable : 4800)	// disable int-bool conversion warning
 #pragma warning(disable : 4996)       // deprecated names like strdup, isatty.
-#if defined(_WIN32) && !defined(_WIN32_WINNT)
 #define _WIN32_WINNT 0x0400 // AED 9/27/5: fix for missing IsDebuggerPresent() in VS 2005
-#endif
 #endif
 
 #define MUSCLE_LONG_VERSION           "MUSCLE v3.7 by Robert C. Edgar"
@@ -336,4 +334,3 @@ void MemPlus(size_t Bytes, char *Where);
 void MemMinus(size_t Bytes, char *Where);
 
 } // namespace muscle
-

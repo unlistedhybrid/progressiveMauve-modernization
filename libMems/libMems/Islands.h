@@ -132,9 +132,9 @@ void findHssHomologyHMM( std::vector< std::string >& aln_table, hss_list_t& hss_
 	size_t refI = 0;
 	for( size_t colI = 0; colI < column_states.size(); colI++ )
 	{
-		char a = charmap[static_cast<unsigned char>(aln_table[seqI][colI])];
-		char b = charmap[static_cast<unsigned char>(aln_table[seqJ][colI])];
-		column_states[colI] = colmap[static_cast<unsigned char>(a)][static_cast<unsigned char>(b)];
+		char a = charmap[aln_table[seqI][colI]];
+		char b = charmap[aln_table[seqJ][colI]];
+		column_states[colI] = colmap[a][b];
 		if(column_states[colI] != 0 )
 			col_reference[refI++] = colI;
 	}
@@ -197,12 +197,13 @@ void findHssHomologyHMM( std::vector< std::string >& aln_table, hss_list_t& hss_
 template< typename MatchVector >
 void findHssHomologyHMM( const MatchVector& iv_list, std::vector< genome::gnSequence* >& seq_table,  hss_array_t& hss_array, const Params& hmm_params, boolean left_homologous, boolean right_homologous )
 {
+	typedef typename MatchVector::value_type MatchType;
 	if( iv_list.size() == 0 )
 		return;
 	uint seq_count = seq_table.size();
 	hss_array.resize( boost::extents[seq_count][seq_count][iv_list.size()] );
 	for( uint iv_listI = 0; iv_listI < iv_list.size(); iv_listI++ ){
-		const auto& iv = iv_list[ iv_listI ];
+		const MatchType& iv = iv_list[ iv_listI ];
 		std::vector< std::string > aln_table;
 		GetAlignment( *iv, seq_table, aln_table );
 		
@@ -223,9 +224,11 @@ template< typename MatchVector >
 void HssColsToIslandCols( const MatchVector& iv_list, std::vector< genome::gnSequence* >& seq_table, hss_array_t& hss_array, hss_array_t& island_col_array )
 {
 
+	typedef typename MatchVector::value_type MatchType;
 	uint seq_count = seq_table.size();
 	island_col_array.resize( boost::extents[seq_count][seq_count][iv_list.size()] );
 	for( uint iv_listI = 0; iv_listI < iv_list.size(); iv_listI++ ){
+		const MatchType& iv = iv_list[ iv_listI ];
 		for( uint seqI = 0; seqI < seq_count; seqI++ ){
 			uint seqJ;
 			for( seqJ = seqI + 1; seqJ < seq_count; seqJ++ ){
@@ -274,9 +277,10 @@ void ComplementHss( const size_t alignment_length, hss_list_t& hss_list, hss_lis
 template< typename MatchVector >
 void HssArrayToCga( const MatchVector& iv_list, std::vector< genome::gnSequence* >& seq_table, hss_array_t& hss_array, std::vector< CompactGappedAlignment<>* >& cga_list )
 {
+	typedef typename MatchVector::value_type MatchType;
 	uint seq_count = seq_table.size();
 	for( uint iv_listI = 0; iv_listI < iv_list.size(); iv_listI++ ){
-		const auto& iv = iv_list[ iv_listI ];
+		const MatchType& iv = iv_list[ iv_listI ];
 		
 		CompactGappedAlignment<>* iv_cga = dynamic_cast< CompactGappedAlignment<>* >(iv);
 		bool allocated = false;
@@ -359,12 +363,13 @@ void addUnalignedRegions( IntervalListType& iv_list)
 template< typename MatchVector >
 void findBigGaps( const MatchVector& iv_list, std::vector< genome::gnSequence* >& seq_table,  hss_array_t& hss_array, size_t big_gap_size  )
 {
+	typedef typename MatchVector::value_type MatchType;
 	if( iv_list.size() == 0 )
 		return;
 	uint seq_count = seq_table.size();
 	hss_array.resize( boost::extents[seq_count][seq_count][iv_list.size()] );
 	for( uint iv_listI = 0; iv_listI < iv_list.size(); iv_listI++ ){
-		const auto& iv = iv_list[ iv_listI ];
+		const MatchType& iv = iv_list[ iv_listI ];
 		std::vector< std::string > aln_table;
 		GetAlignment( *iv, seq_table, aln_table );
 		
@@ -383,7 +388,7 @@ void findBigGaps( const MatchVector& iv_list, std::vector< genome::gnSequence* >
 				{
 					if( aln_table[seqI][cI] == '-' || aln_table[seqJ][cI] == '-' )
 					{
-						if( (aln_table[seqI][cI] == '-') ^ (aln_table[seqJ][cI] == '-') )
+						if( aln_table[seqI][cI] == '-' ^ aln_table[seqJ][cI] == '-' )
 						{
 							if( gap_count == 0 )
 								gap_lend = cI;

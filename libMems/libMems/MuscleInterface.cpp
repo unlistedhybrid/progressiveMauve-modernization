@@ -57,7 +57,7 @@ char** parseCommand( const string& cmd ){
 	// tokenize on "
 	stringstream qs( cmd );
 	string cur_str;
-	bool in_quote = true;
+	boolean in_quote = true;
 	int token_count = 0;
 	vector< string > cmd_tokens;
 	while( getline( qs, cur_str, '"' ) ){
@@ -93,7 +93,7 @@ char** parseCommand( const string& cmd ){
 // unix pipelined execution code
 bool pipeExec( char** cmd_argv, const string& command, const string& input, string& output, string& error ){
 	int stdin_pipe[2], stdout_pipe[2], stderr_pipe[2];
-	bool success = false;
+	boolean success = false;
 	pid_t sid;
 	pid_t pid1;
 	const char* fail;
@@ -212,7 +212,7 @@ bool pipeExec( char** cmd_argv, const string& command, const string& input, stri
 	PROCESS_INFORMATION pi;
 	HANDLE newstdin_w,newstdout_w,newstderr_w,newstdin_r,newstdout_r,newstderr_r;
 	HANDLE read_stdout,read_stderr,write_stdin;  //pipe handles
-	bool success = false;
+	boolean success = false;
 
 	if (IsWinNT())        //initialize security descriptor (Windows NT)
 	{
@@ -241,7 +241,7 @@ bool pipeExec( char** cmd_argv, const string& command, const string& input, stri
 		goto finito;
 	}
 	// Duplicate the write handle to the pipe so it is not inherited. 
-	bool fSuccess = DuplicateHandle(GetCurrentProcess(), newstdin_w, 
+	boolean fSuccess = DuplicateHandle(GetCurrentProcess(), newstdin_w, 
 		GetCurrentProcess(), &write_stdin, 0, 
 		FALSE,                  // not inherited 
 		DUPLICATE_SAME_ACCESS); 
@@ -425,9 +425,9 @@ MuscleInterface& MuscleInterface::operator=( const MuscleInterface& ci ){
 	//     Such a change would involve changes to GappedAligner, and would require some additional care taken
 	//     with SeqCount & Multiplicity, as well as seq_table[ seqI ]->length()/seq_table[ 0 ]->length(i),
 	//     for now, leave like this. hopefully sooner than later, make pretty!
-bool MuscleInterface::Align( GappedAlignment& cr, Match* r_begin, Match* r_end, vector< gnSequence* >& seq_table ){
+boolean MuscleInterface::Align( GappedAlignment& cr, Match* r_begin, Match* r_end, vector< gnSequence* >& seq_table ){
 	gnSeqI gap_size = 0;
-	bool create_ok = true;
+	boolean create_ok = true;
 	uint seq_count = seq_table.size();
 	//seq_count = r_begin->Multiplicity();
 	uint seqI;
@@ -520,9 +520,9 @@ try{
 
 static int failure_count = 0;
 
-bool MuscleInterface::Align( GappedAlignment& cr, AbstractMatch* r_begin, AbstractMatch* r_end, vector< gnSequence* >& seq_table){
+boolean MuscleInterface::Align( GappedAlignment& cr, AbstractMatch* r_begin, AbstractMatch* r_end, vector< gnSequence* >& seq_table){
 	gnSeqI gap_size = 0;
-	bool create_ok = true;
+	boolean create_ok = true;
 	//tjt: set the seq_count to a match m's multiplicity
 	//     even though all components n of match m could be 
 	//     less than the k sequences
@@ -671,7 +671,7 @@ try{
 	return false;
 }
 
-bool MuscleInterface::CallMuscle( vector< string >& aln_matrix, const vector< string >& seq_table )
+boolean MuscleInterface::CallMuscle( vector< string >& aln_matrix, const vector< string >& seq_table )
 {
 	gnSequence seq;
 
@@ -687,7 +687,7 @@ bool MuscleInterface::CallMuscle( vector< string >& aln_matrix, const vector< st
 		string muscle_cmd = muscle_path + " " + muscle_arguments;
 		string output;
 		string error;
-		bool success = pipeExec( muscle_cmdline, muscle_cmd, input_seq_stream.str(), output, error );
+		boolean success = pipeExec( muscle_cmdline, muscle_cmd, input_seq_stream.str(), output, error );
 		if( !success || output.size() == 0 )
 		{
 			throw "b0rk3d";
@@ -724,7 +724,7 @@ bool MuscleInterface::CallMuscle( vector< string >& aln_matrix, const vector< st
 }
 
 // version 2 of this code: attempt to call muscle without performing costly disk I/O!!
-bool MuscleInterface::CallMuscleFast( vector< string >& aln_matrix, const vector< string >& seq_table, int gap_open, int gap_extend )
+boolean MuscleInterface::CallMuscleFast( vector< string >& aln_matrix, const vector< string >& seq_table, int gap_open, int gap_extend )
 {
 	if (gap_open != 0)
 		g_scoreGapOpen.get() = gap_open;
@@ -822,7 +822,6 @@ void msaFromSeqTable(MSA& msa, const vector< string >& seq_table, unsigned id_ba
 
 bool MuscleInterface::RefineFast( GappedAlignment& ga, size_t windowsize )
 {
-	std::cerr << "DEBUG RefineFast: Starting, ga.SeqCount()=" << ga.SeqCount() << ", windowsize=" << windowsize << std::endl;
 	const vector< string >& seq_table = GetAlignment( ga, vector< gnSequence* >() );
 	vector< string > aln_table;
 	for( uint seqI = 0; seqI < ga.SeqCount(); seqI++ )
@@ -845,12 +844,11 @@ bool MuscleInterface::RefineFast( GappedAlignment& ga, size_t windowsize )
 	SetMaxIters(g_uMaxIters.get());
 	SetSeqWeightMethod(g_SeqWeight1.get());
 
-	MSA::SetIdCount(aln_table.size());
+	MSA::SetIdCount(seq_table.size());
 
 	// create an MSA
 	MSA msa;
-	std::cerr << "DEBUG RefineFast: Calling msaFromSeqTable, aln_table.size()=" << aln_table.size() << std::endl;
-	msaFromSeqTable(msa, aln_table);
+	msaFromSeqTable(msa, seq_table);
 
 	SetAlpha(ALPHA_DNA);
 	msa.FixAlpha();
@@ -858,18 +856,12 @@ bool MuscleInterface::RefineFast( GappedAlignment& ga, size_t windowsize )
 	SetMuscleInputMSA(msa);
 
 	Tree GuideTree;
-	std::cerr << "DEBUG RefineFast: Calling TreeFromMSA" << std::endl;
-	TreeFromMSA(msa, GuideTree, g_Cluster2.get(), g_Distance2.get(), g_Root2.get(), NULL);
-	std::cerr << "DEBUG RefineFast: TreeFromMSA completed" << std::endl;
-	std::cerr << "DEBUG RefineFast: Calling SetMuscleTree" << std::endl;
+	TreeFromMSA(msa, GuideTree, g_Cluster2.get(), g_Distance2.get(), g_Root2.get());
 	SetMuscleTree(GuideTree);
-	std::cerr << "DEBUG RefineFast: SetMuscleTree completed" << std::endl;
 
-	std::cerr << "DEBUG RefineFast: Creating msaOut" << std::endl;
 	MSA msaOut;
 	MSA* finalMsa;
 
-	std::cerr << "DEBUG RefineFast: windowsize=" << windowsize << std::endl;
 	if(windowsize == 0)
 	{
 		if (g_bAnchors.get())
@@ -877,12 +869,8 @@ bool MuscleInterface::RefineFast( GappedAlignment& ga, size_t windowsize )
 		else
 			RefineHoriz(msa, GuideTree, g_uMaxIters.get(), false, false);
 		finalMsa = &msa;
-		std::cerr << "DEBUG RefineFast: windowsize>0 path" << std::endl;
-		std::cerr << "DEBUG RefineFast: msa.GetSeqCount()=" << msa.GetSeqCount() << ", msa.GetColCount()=" << msa.GetColCount() << std::endl;
 	}else{
-		std::cerr << "DEBUG RefineFast: Calling RefineW" << std::endl;
 		RefineW(msa, msaOut);
-		std::cerr << "DEBUG RefineFast: RefineW completed" << std::endl;
 		finalMsa = &msaOut;
 	}
 
@@ -1008,7 +996,7 @@ bool MuscleInterface::ProfileAlign( const GappedAlignment& ga1, const GappedAlig
 		{
 			cerr << "Running " << muscle_cmd << endl;
 		}
-		bool success = pipeExec( muscle_cmdline, muscle_cmd, input_seq_stream.str(), output, error );
+		boolean success = pipeExec( muscle_cmdline, muscle_cmd, input_seq_stream.str(), output, error );
 		if( !success || output.size() == 0 )
 		{
 			if( output.size() == 0 )
@@ -1065,7 +1053,6 @@ bool MuscleInterface::ProfileAlign( const GappedAlignment& ga1, const GappedAlig
 bool MuscleInterface::ProfileAlignFast( const GappedAlignment& ga1, const GappedAlignment& ga2, GappedAlignment& aln, bool anchored )
 {
 	try{
-		std::cerr << "DEBUG ProfileAlignFast: Starting, ga1.SeqCount()=" << ga1.SeqCount() << ", ga2.SeqCount()=" << ga2.SeqCount() << std::endl;
 		const vector< string >& aln1 = GetAlignment( ga1, vector< gnSequence* >() );
 		const vector< string >& aln2 = GetAlignment( ga2, vector< gnSequence* >() );
 		vector< uint > order;

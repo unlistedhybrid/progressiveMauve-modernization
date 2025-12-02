@@ -8,6 +8,10 @@
 //#define USE_LINUX_AIO
 //#define USE_LIBC_AIO	// don't use kaio
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifdef WIN32
 #   define WIN32_LEAN_AND_MEAN
 #   include <windows.h>
@@ -162,5 +166,9 @@ unsigned long aStatSize( const char * path );
 
 // get the size in bytes of a particular file
 unsigned long long aStatFileSize( const char * path );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _asyncio_h_ */

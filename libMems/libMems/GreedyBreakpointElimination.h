@@ -41,25 +41,6 @@ class TrackingLCB
 public:
 	TrackingLCB(){}
 	TrackingLCB( const TrackingLCB& l ){ *this = l; }
-	TrackingLCB& operator=( const TrackingLCB& l )
-	{
-		if( this != &l )
-		{
-			left_end[0] = l.left_end[0];
-			left_end[1] = l.left_end[1];
-			right_end[0] = l.right_end[0];
-			right_end[1] = l.right_end[1];
-			left_adjacency[0] = l.left_adjacency[0];
-			left_adjacency[1] = l.left_adjacency[1];
-			right_adjacency[0] = l.right_adjacency[0];
-			right_adjacency[1] = l.right_adjacency[1];
-			lcb_id = l.lcb_id;
-			weight = l.weight;
-			to_be_deleted = l.to_be_deleted;
-			matches = l.matches;
-		}
-		return *this;
-	}
 	/** Constructs a TrackingLCB from a pairwise LCB */
 	TrackingLCB( const mems::LCB& l ){ *this = l; }
 	TrackingLCB& operator=( const mems::LCB& l )
@@ -77,13 +58,13 @@ public:
 		to_be_deleted = false;
 		return *this;
 	}
-	int64 left_end[2];
-	int64 right_end[2];
-	uint left_adjacency[2];
-	uint right_adjacency[2];
-	double weight;
+	int64 left_end[2];	/**< The left end position of the LCB in each sequence */
+	int64 right_end[2];  /**< The right end position of the LCB in each sequence */
+	uint left_adjacency[2];	/**< 'Pointers' (actually IDs) to the LCBs on the left in each sequence */
+	uint right_adjacency[2];	/**< 'Pointers' (actually IDs) to the LCBs on the right in each sequence */
+	double weight;		/**< The weight (or coverage) of this LCB */
 	std::vector< MatchType > matches;
-	int lcb_id;
+	int lcb_id;			/**< A numerical ID that can be assigned to this LCB */
 	bool to_be_deleted;
 };
 
@@ -353,7 +334,7 @@ void filterMatches_v2( std::vector< mems::LCB >& adjacencies, std::vector< Match
 	std::vector< MatchVector > filtered_lcbs( lcb_list.size(), lcb_tmp );
 	uint lcbI;
 	for( lcbI = 0; lcbI < adjacencies.size(); lcbI++ ){
-		if( static_cast<uint>(adjacencies[ lcbI ].lcb_id) == lcbI ){
+		if( adjacencies[ lcbI ].lcb_id == lcbI ){
 			filtered_lcbs[ lcbI ].insert( filtered_lcbs[ lcbI ].end(), lcb_list[ lcbI ].begin(), lcb_list[ lcbI ].end() );
 			continue;
 		}
@@ -371,7 +352,7 @@ void filterMatches_v2( std::vector< mems::LCB >& adjacencies, std::vector< Match
 		// search and update the union/find structure for the target
 		std::stack< uint > visited_lcbs;
 		visited_lcbs.push( lcbI );
-		int cur_lcb = adjacencies[ lcbI ].lcb_id;
+		uint cur_lcb = adjacencies[ lcbI ].lcb_id;
 		while( adjacencies[ cur_lcb ].lcb_id != cur_lcb ){
 			visited_lcbs.push( cur_lcb );
 			cur_lcb = adjacencies[ cur_lcb ].lcb_id;
@@ -446,6 +427,7 @@ double GetPairwiseAnchorScore( MatchVector& lcb,
 		size_t merI = 0;
 		size_t merJ = 0;
 		double uni_count = 0;
+		double uni_score = 0;
 		const size_t m_aln_length = m->AlignmentLength();
 		const int64 m_leftend_0 = m->LeftEnd(0);
 		const int64 m_leftend_1 = m->LeftEnd(1);
@@ -567,12 +549,12 @@ protected:
 
 	std::vector< TrackingMatch* > deleted_tracking_matches;
 
+	double min_breakpoint_penalty;
+
 private:
 	// avoid continuous size lookup
 	const size_t seqI_count;
 	const size_t seqJ_count;
-
-	double min_breakpoint_penalty;
 
 	// variables used during score computation
 	boost::multi_array< std::vector< std::pair< uint, uint > >, 2 > all_id_remaps;
@@ -679,7 +661,9 @@ int64 greedyBreakpointElimination_v4( std::vector< mems::LCB >& adjacencies,
 
 	if( adjacencies.size() == 0 )
 		return 0;	// nothing can be done
+	uint seq_count = adjacencies[0].left_end.size();
 	
+	double prev_score = bp_scorer.score();
 	uint report_frequency = 10;
 	uint moves_made = 0;
 
@@ -760,6 +744,7 @@ int64 greedyBreakpointElimination_v4( std::vector< mems::LCB >& adjacencies,
 		}
 #endif
 		double cur_score = bp_scorer.score();
+		prev_score = cur_score;
 		moves_made++;
 #ifndef LCB_WEIGHT_LOSS_PLOT
 		if( status_out != NULL && moves_made % report_frequency == 0 )
@@ -885,3 +870,4 @@ struct AlnProgressTracker
 }	// namespace mems
 
 #endif // __greedyBreakpointElimination_h__
+

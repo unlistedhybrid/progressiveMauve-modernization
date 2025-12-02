@@ -25,18 +25,17 @@ set(LIBMEMS_SRC
     libMems/SortedMerList.cpp
     libMems/SuperInterval.cpp
     libMems/gnAlignedSequences.cpp
-    libMems/twister.cpp
-    libMems/dmSML/asyncio.cpp
-    libMems/dmSML/aPOSIXaio.cpp
-    libMems/dmSML/alinuxaio.cpp
-    libMems/dmSML/awin32aio.cpp
-    libMems/dmSML/alibc.cpp
-    libMems/dmSML/buffer.cpp
-    libMems/dmSML/sml.cpp
-    libMems/dmSML/sorting.cpp
-    libMems/dmSML/timing.cpp
-    libMems/dmSML/util.cpp
-    libMems/dmSML/dmsort.cpp
+    libMems/dmSML/asyncio.c
+    libMems/dmSML/aPOSIXaio.c
+    libMems/dmSML/alinuxaio.c
+    libMems/dmSML/awin32aio.c
+    libMems/dmSML/alibc.c
+    libMems/dmSML/buffer.c
+    libMems/dmSML/sml.c
+    libMems/dmSML/sorting.c
+    libMems/dmSML/timing.c
+    libMems/dmSML/util.c
+    libMems/dmSML/dmsort.c
 )
 
 add_library(libMems STATIC ${LIBMEMS_SRC})

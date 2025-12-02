@@ -25,11 +25,11 @@ namespace mems {
 class RepeatHash : public MemHash{
 public:
 	virtual RepeatHash* Clone() const;
-	[[nodiscard]] virtual bool CreateMatches();
+	virtual boolean CreateMatches();
 protected:
 
-	[[nodiscard]] virtual bool EnumerateMatches( IdmerList& match_list );
-	[[nodiscard]] virtual bool HashMatch(IdmerList& match_list);
+	virtual boolean EnumerateMatches( IdmerList& match_list );
+	virtual boolean HashMatch(IdmerList& match_list);
 	virtual SortedMerList* GetSar(uint32 sarI) const;
 };
 

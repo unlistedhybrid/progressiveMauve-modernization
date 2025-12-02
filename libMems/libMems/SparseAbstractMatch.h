@@ -56,7 +56,7 @@ public:
 	virtual void MoveStart(int64 move_amount);
 	virtual void MoveEnd(int64 move_amount);
 
-	bool operator==( const SparseAbstractMatch& sam ) const;
+	virtual boolean operator==( const SparseAbstractMatch& sam ) const;
 
 	virtual uint UsedSeq( uint seqI ) const;
 protected:
@@ -221,7 +221,7 @@ void SparseAbstractMatch< gnSeqIAlloc, uintAlloc >::MoveEnd(int64 move_amount)
 }
 
 template< class gnSeqIAlloc, class uintAlloc >
-bool SparseAbstractMatch< gnSeqIAlloc, uintAlloc >::operator==( const SparseAbstractMatch< gnSeqIAlloc, uintAlloc >& sam ) const
+boolean SparseAbstractMatch< gnSeqIAlloc, uintAlloc >::operator==( const SparseAbstractMatch< gnSeqIAlloc, uintAlloc >& sam ) const
 {
 	for( uint i=0; i < leftend.size(); ++i ){
 		if( leftend[i] != sam.leftend[i] ||
@@ -248,4 +248,3 @@ uint SparseAbstractMatch< gnSeqIAlloc, uintAlloc >::UsedSeq( uint seqI ) const
 }
 
 #endif // __SparseAbstractMatch_h__
-

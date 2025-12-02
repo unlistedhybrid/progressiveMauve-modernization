@@ -38,10 +38,10 @@ class AlignmentTreeNode : public TreeNode
 public:
 	AlignmentTreeNode() : TreeNode(), refined(false) {};
 	std::vector< SuperInterval > ordering;	/**< A total ordering on alignments of sequence contained by leafs below this node */
-	std::vector< bool > parents_aligned;		/**< have parents been aligned? */
-	std::vector< bool > children_aligned;	/**< have children been aligned? */
+	std::vector< boolean > parents_aligned;		/**< have parents been aligned? */
+	std::vector< boolean > children_aligned;	/**< have children been aligned? */
 	genome::gnSequence* sequence;	/**< The sequence associated with this node, NULL for ancestral nodes */
-	bool refined;	/**< true if iterative refinement has been applied to the alignment at this node */
+	boolean refined;	/**< true if iterative refinement has been applied to the alignment at this node */
 };
 
 
@@ -67,7 +67,7 @@ public:
 	/** sets the the minimum breakpoint penalty after scaling */
 	void setMinimumBreakpointPenalty( double min_bp_penalty ){ min_breakpoint_penalty = min_bp_penalty; }
 	/** assume all genomes are collinear when set to true */
-	void setCollinear( bool collinear ){ this->collinear_genomes = collinear; }
+	void setCollinear( boolean collinear ){ this->collinear_genomes = collinear; }
 	/** use a list of precomputed matches instead of computing them */
 	void setPairwiseMatches( mems::MatchList& pair_ml );
 	/** use a precomputed guide tree stored in the given file */
@@ -76,14 +76,13 @@ public:
 	void setOutputGuideTreeFileName( std::string& fname ){ this->output_guide_tree_fname = fname; }
 	/** set the max length (in columns) of alignments passed to MUSCLE */
 	void SetMaxGappedAlignmentLength( size_t len );
-	/** set whether a cache database should be used to speed up recursive anchor search */
- 
-	void SetUseCacheDb( bool cbd ){ this->using_cache_db = cbd; }
+	/** set whether a cache database should be used to speed up recursive anchor search */ 
+	void SetUseCacheDb( boolean cbd ){ this->using_cache_db = cbd; }
 
 	/** Set whether iterative refinement using MUSCLE should be performed (true/false) */
-	void setRefinement( bool refine ){ this->refine = refine; }
+	void setRefinement( boolean refine ){ this->refine = refine; }
 	/** Set whether iterative refinement using MUSCLE should be performed (true/false) */
-	void setGappedAlignment( bool do_gapped_alignment ){ this->gapped_alignment = do_gapped_alignment; }
+	void setGappedAlignment( boolean do_gapped_alignment ){ this->gapped_alignment = do_gapped_alignment; }
 
 	void setPairwiseScoringScheme( const mems::PairwiseScoringScheme& pss ){ this->subst_scoring = pss; }
 
@@ -98,11 +97,11 @@ public:
 	void setLcbScoringScheme( LcbScoringScheme scheme ){ scoring_scheme = scheme; }
 	LcbScoringScheme getLcbScoringScheme(void){ return scoring_scheme; }
 
-	void setUseSeedFamilies( bool use_seed_families ){ this->use_seed_families = use_seed_families; }
-	bool getUseSeedFamilies(void){ return this->use_seed_families; }
+	void setUseSeedFamilies( boolean use_seed_families ){ this->use_seed_families = use_seed_families; }
+	boolean getUseSeedFamilies(void){ return this->use_seed_families; }
 
-	void setUseLcbWeightScaling( bool use_weight_scaling ){ this->use_weight_scaling = use_weight_scaling; }
-	bool getUseLcbWeightScaling(void){ return this->use_weight_scaling; }
+	void setUseLcbWeightScaling( boolean use_weight_scaling ){ this->use_weight_scaling = use_weight_scaling; }
+	boolean getUseLcbWeightScaling(void){ return this->use_weight_scaling; }
 
 	void setBreakpointDistanceScale( double bp_dist_scale ){ this->bp_dist_scale = bp_dist_scale; }
 	double getBreakpointDistanceScale(void){ return this->bp_dist_scale; }
@@ -153,8 +152,8 @@ public:
 
 	void translateGappedCoordinates( std::vector<mems::AbstractMatch*>& ml, uint seqI, node_id_t extant, node_id_t ancestor );
 
-	void doGappedAlignment( node_id_t ancestor, bool profile_aln );
-	void refineAlignment( mems::GappedAlignment& gal, node_id_t ancestor, bool profile_aln, AlnProgressTracker& apt );
+	void doGappedAlignment( node_id_t ancestor, boolean profile_aln );
+	void refineAlignment( mems::GappedAlignment& gal, node_id_t ancestor, boolean profile_aln, AlnProgressTracker& apt );
 	void FixLeftEnds( node_id_t ancestor );
 	void ConstructSuperIntervalFromMSA( node_id_t ancestor, size_t ans_siv, mems::GappedAlignment& gal );
 
@@ -184,8 +183,8 @@ public:
 						std::vector<node_id_t>& node1_descendants,
 						std::vector<node_id_t>& node2_descendants);
 
-	bool validateSuperIntervals(node_id_t node1, node_id_t node2, node_id_t ancestor);
-	bool validatePairwiseIntervals(node_id_t node1, node_id_t node2, std::vector<mems::Interval*>& pair_iv);
+	boolean validateSuperIntervals(node_id_t node1, node_id_t node2, node_id_t ancestor);
+	boolean validatePairwiseIntervals(node_id_t node1, node_id_t node2, std::vector<mems::Interval*>& pair_iv);
 
 
 	void alignPP(mems::IntervalList& prof1, mems::IntervalList& prof2, mems::IntervalList& interval_list );
@@ -200,17 +199,17 @@ protected:
 	double min_breakpoint_penalty;
 	std::string input_guide_tree_fname;
 	std::string output_guide_tree_fname;
-	bool debug;
-	bool refine;
-	bool using_cache_db;
+	boolean debug;
+	boolean refine;
+	boolean using_cache_db;
 
 	std::vector< SeedOccurrenceList > sol_list;
 	boost::multi_array<double, 2> bp_distance;	/**< pairwise breakpoint distances.  dims will be [seq_count][seq_count] */
 	boost::multi_array<double, 2> conservation_distance;	/**< pairwise genome conservation distances.  dims will be [seq_count][seq_count] */
 
 	LcbScoringScheme scoring_scheme;
-	bool use_weight_scaling;
-	bool use_seed_families;
+	boolean use_weight_scaling;
+	boolean use_seed_families;
 
 	double bp_dist_scale;
 	double conservation_dist_scale;
@@ -250,7 +249,7 @@ template<class T>
 class AbsolutComparator
 {
 public:
-	bool operator()(const T& a, const T& b) const
+	boolean operator()(const T& a, const T& b) const
 	{
 		return (genome::absolut(a) < genome::absolut(b));
 	}
@@ -271,9 +270,9 @@ void processNewMatch( uint seqI, MatchVector& new_matches, typename MatchVector:
 	}
 }
 inline
-bool checkConsistent(const AbstractMatch* a, const AbstractMatch* b)
+boolean checkConsistent(const AbstractMatch* a, const AbstractMatch* b)
 {
-	bool consistent_overlap = true;
+	boolean consistent_overlap = true;
 	int64 o = (std::numeric_limits<int64>::max)();
 	int64 inter = 0;
 	uint seq_count = a->SeqCount();
@@ -299,7 +298,7 @@ bool checkConsistent(const AbstractMatch* a, const AbstractMatch* b)
  * @param	eliminate_both	Delete both of the overlapping matches, instead of leaving one remaining
  */
 template <class MatchVector>
-void EliminateOverlaps_v2( MatchVector& ml, const std::vector< uint >& seq_ids, bool eliminate_both = false ){
+void EliminateOverlaps_v2( MatchVector& ml, const std::vector< uint >& seq_ids, boolean eliminate_both = false ){
 	if( ml.size() < 2 )
 		return;
 	uint seq_count = ml[0]->SeqCount();
@@ -313,19 +312,19 @@ void EliminateOverlaps_v2( MatchVector& ml, const std::vector< uint >& seq_ids, 
 		MatchVector new_matches;
 
 		// scan forward to first defined match
-		for(; matchI != static_cast<int64>(ml.size()); matchI++ )
+		for(; matchI != ml.size(); matchI++ )
 			if( ml[ matchI ]->Start( seqI ) != mems::NO_MATCH )
 				break;
 
-		for(; matchI < static_cast<int64>(ml.size()); matchI++ ){
+		for(; matchI < ml.size(); matchI++ ){
 			if( ml[ matchI ] == NULL )
 				continue;
 			
-			for( nextI = matchI + 1; nextI < static_cast<int64>(ml.size()); nextI++ ){
+			for( nextI = matchI + 1; nextI < ml.size(); nextI++ ){
 				if( ml[ nextI ] == NULL )
 					continue;
 
-				bool deleted_matchI = false;
+				boolean deleted_matchI = false;
 				// check for overlaps
 				int64 startI = ml[ matchI ]->Start( seqI );
 				int64 lenI = ml[ matchI ]->Length( seqI );
@@ -337,10 +336,10 @@ void EliminateOverlaps_v2( MatchVector& ml, const std::vector< uint >& seq_ids, 
 
 				diff = -diff;
 				typename MatchVector::value_type new_match;
-				bool mem_iter_smaller = ( ml[ nextI ]->Multiplicity() > ml[ matchI ]->Multiplicity() ) ||
+				boolean mem_iter_smaller = ( ml[ nextI ]->Multiplicity() > ml[ matchI ]->Multiplicity() ) ||
 					( ml[ nextI ]->Multiplicity() == ml[ matchI ]->Multiplicity() && ml[ nextI ]->Length(seqI) > ml[ matchI ]->Length(seqI) );
 
-				bool consistent_overlap = checkConsistent( ml[ matchI ], ml[ nextI ] );
+				boolean consistent_overlap = checkConsistent( ml[ matchI ], ml[ nextI ] );
 
 				// delete bases from the smaller match
 				if( (!consistent_overlap && eliminate_both) || mem_iter_smaller )
@@ -366,7 +365,7 @@ void EliminateOverlaps_v2( MatchVector& ml, const std::vector< uint >& seq_ids, 
 					// match_iter is smaller
 					new_match = ml[nextI]->Copy();
 					// erase base pairs from new_match
-					if( diff >= static_cast<int64>(ml[ nextI ]->Length(seqI)) ){
+					if( diff >= ml[ nextI ]->Length(seqI) ){
 //							cerr << "Deleting " << **next_iter << " at the hands of\n" << **mem_iter << endl;
 						ml[ nextI ]->Free();
 						ml[ nextI ] = NULL;
@@ -395,7 +394,7 @@ void EliminateOverlaps_v2( MatchVector& ml, const std::vector< uint >& seq_ids, 
 }
 
 template <class MatchVector>
-void EliminateOverlaps_v2( MatchVector& ml, bool eliminate_both = false )
+void EliminateOverlaps_v2( MatchVector& ml, boolean eliminate_both = false )
 {
 	if( ml.size() < 2 )
 		return;	// can't eliminate overlaps between fewer than 2 matches
@@ -410,7 +409,7 @@ template< class MatchVector >
 uint64 SimpleGetLCBCoverage( MatchVector& lcb ){
 	typename MatchVector::iterator match_iter = lcb.begin();
 	uint64 coverage = 0;
-	bool debug = true;
+	boolean debug = true;
 	for( ; match_iter != lcb.end(); ++match_iter ){
 		double maxlen = 0;
 		double minlen = 0;
@@ -433,8 +432,6 @@ uint64 SimpleGetLCBCoverage( MatchVector& lcb ){
 template< class MatchVectorType >
 void addUnalignedIntervals_v2( MatchVectorType& iv_list, std::set< uint > seq_set, std::vector<gnSeqI> seq_lengths )
 {
-	std::cerr << "DEBUG: addUnalignedIntervals_v2 START, iv_list.size()=" << iv_list.size() 
-	          << ", seq_lengths.size()=" << seq_lengths.size() << std::endl;
 	std::vector< mems::LCB > adjacencies;
 	uint lcbI;
 	uint seqI;
@@ -448,56 +445,38 @@ void addUnalignedIntervals_v2( MatchVectorType& iv_list, std::set< uint > seq_se
 		for( seqI = 0; seqI < seq_count; seqI++ )
 			seq_set.insert( seqI );
 	}
-	std::cerr << "DEBUG: seq_set.size()=" << seq_set.size() << std::endl;
 	std::vector< std::vector< typename MatchVectorType::value_type > > ymmv;
 	for( size_t ivI = 0; ivI < iv_list.size(); ++ivI )
 		ymmv.push_back( std::vector< typename MatchVectorType::value_type >( 1, iv_list[ivI] ) );
 
 	std::vector< double > scores( iv_list.size(), 0 );
-	std::cerr << "DEBUG: Calling computeLCBAdjacencies_v3" << std::endl;
 	computeLCBAdjacencies_v3( ymmv, scores, adjacencies );
-	std::cerr << "DEBUG: computeLCBAdjacencies_v3 completed, adjacencies.size()=" << adjacencies.size() << std::endl;
 
 	std::vector< int > rightmost;
 	for( seqI = 0; seqI < seq_count; seqI++ ){
 		rightmost.push_back( -1 );
 	}
 
-	std::cerr << "DEBUG: Entering main loop, adjacencies.size()=" << adjacencies.size() << std::endl;
 	for( lcbI = 0; lcbI <= adjacencies.size(); lcbI++ ){
-		std::cerr << "DEBUG: Processing lcbI=" << lcbI << std::endl;
 		std::set< uint >::iterator seq_set_iterator = seq_set.begin();
 		for( ; seq_set_iterator != seq_set.end(); seq_set_iterator++ ){
 			seqI = *seq_set_iterator;
-			std::cerr << "DEBUG: Processing seqI=" << seqI << std::endl;
 			// scan left
 			int leftI;
 			if( lcbI < adjacencies.size() ){
-				std::cerr << "DEBUG: About to access adjacencies[" << lcbI << "].left_adjacency[" << seqI << "]" << std::endl;
-				std::cerr << "DEBUG: adjacencies[" << lcbI << "].left_adjacency.size()=" << adjacencies[lcbI].left_adjacency.size() << std::endl;
-				
-				// Bounds check
-				if( seqI >= adjacencies[lcbI].left_adjacency.size() )
-				{
-					std::cerr << "ERROR: seqI=" << seqI << " >= left_adjacency.size()=" << adjacencies[lcbI].left_adjacency.size() << std::endl;
-					continue;
-				}
 // left is always to the left!!
 				leftI = adjacencies[ lcbI ].left_adjacency[ seqI ];
-				std::cerr << "DEBUG: leftI=" << leftI << std::endl;
 			}else
 				leftI = rightmost[ seqI ];
 
 			int rightI = lcbI < adjacencies.size() ? lcbI : -1;
 // right is always to the right!!
 			if( lcbI < adjacencies.size() )
-				if( adjacencies[ lcbI ].right_adjacency[ seqI ] == static_cast<uint>(-1) )
+				if( adjacencies[ lcbI ].right_adjacency[ seqI ] == -1 )
 					rightmost[ seqI ] = lcbI;
 			
-			std::cerr << "DEBUG: Calling getGapBounds with leftI=" << leftI << ", rightI=" << rightI << std::endl;
 			int64 left_start, right_start;
 			mems::getGapBounds( seq_lengths, adjacencies, seqI, leftI, rightI, left_start, right_start );
-			std::cerr << "DEBUG: getGapBounds completed, left_start=" << left_start << ", right_start=" << right_start << std::endl;
 			int64 gap_len =  genome::absolut( right_start ) - genome::absolut( left_start );
 			if( gap_len > 0 ){
 				mems::Match mm( seq_count );

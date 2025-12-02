@@ -33,7 +33,7 @@ public:
 	 * @param max_length The maximum length
 	 */
 	void SetMaxAlignmentLength( gnSeqI len ){max_alignment_length = len;}
-	[[nodiscard]] virtual bool Align( GappedAlignment& cr, Match* r_begin, Match* r_end, std::vector< genome::gnSequence* >& seq_table ) = 0;
+	virtual boolean Align( GappedAlignment& cr, Match* r_begin, Match* r_end, std::vector< genome::gnSequence* >& seq_table ) = 0;
 protected:
 	gnSeqI max_alignment_length;
 };
@@ -42,10 +42,10 @@ protected:
 
 
 
-bool getInterveningCoordinates( std::vector< genome::gnSequence* >& seq_table, Match* r_begin, Match* r_end, uint seqI, int64& gap_lend, int64& gap_rend );
+boolean getInterveningCoordinates( std::vector< genome::gnSequence* >& seq_table, Match* r_begin, Match* r_end, uint seqI, int64& gap_lend, int64& gap_rend );
 
 inline
-bool getInterveningCoordinates( std::vector< genome::gnSequence* >& seq_table, Match* r_begin, Match* r_end, uint seqI, int64& gap_lend, int64& gap_rend ){
+boolean getInterveningCoordinates( std::vector< genome::gnSequence* >& seq_table, Match* r_begin, Match* r_end, uint seqI, int64& gap_lend, int64& gap_rend ){
 	// skip this sequence if it's undefined
 	if( (r_end != NULL && r_end->Start( seqI ) == NO_MATCH) ||
 		(r_begin != NULL && r_begin->Start( seqI ) == NO_MATCH) ){

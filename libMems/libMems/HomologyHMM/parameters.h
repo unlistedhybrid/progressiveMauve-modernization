@@ -20,7 +20,7 @@ Params getHoxdParams()
 		params->iGoStopFromUnrelated = 0.00000001;
 		params->iGoStopFromHomologous = 0.00000001;
 
-		// original values from Chiaramonte et al supplied by Webb Miler
+		// original values from Chiaromonte et al supplied by Webb Miler
 		params->aEmitHomologous[0] = 0.1723*2;		//a:a, t:t
 		params->aEmitHomologous[1] = 0.1462*2;	//c:c, g:g
 		params->aEmitHomologous[2] = 0.0180*4;	//a:c, c:a, g:t, t:g
@@ -59,6 +59,7 @@ inline
 Params getAdaptedHoxdMatrixParameters( double gc_content )
 {
 	Params params;
+    double s = 0.03028173853;
     double at_content = 1-gc_content;
     double norm_factor = 0.0;
 
@@ -158,3 +159,4 @@ void adaptToPercentIdentity( Params& params, double pct_identity )
 }
 
 #endif	// __HomologyHMM_parameters_h__
+

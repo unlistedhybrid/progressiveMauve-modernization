@@ -1,4 +1,3 @@
-// MatchList.h
 /*******************************************************************************
  * $Id: MatchList.h,v 1.10 2004/03/01 02:40:08 darling Exp $
  * This file is copyright 2002-2007 Aaron Darling and authors listed in the AUTHORS file.
@@ -93,14 +92,14 @@ public:
 	 * Removes matches that do not match in exactly the sequences specified in filter_spec
 	 * @param filter_spec 	The specification of the exact filter, true designates that the
 	 *						match must exist in that sequence.  filter_spec must contain
-	 *						one bool entry for every sequence.
+	 *						one boolean entry for every sequence.
 	 */
 //	void ExactFilter( valarray< bool >& filter_spec );
 	/**
 	 * Removes matches that do not intersect with the sequences specified in filter_spec
 	 * @param filter_spec 	The specification of the intersection filter, true designates
 	 *						match must exist in that sequence.  filter_spec must contain
-	 *						one bool entry for every sequence.
+	 *						one boolean entry for every sequence.
 	 */
 //	void IntersectFilter( valarray< bool >& filter_spec );
 
@@ -143,9 +142,7 @@ void WriteList( const MatchList& mlist, std::ostream& match_stream );
 typedef void* MatchID_t;
 
 template< typename MatchPtrType >
-GenericMatchList< MatchPtrType >::GenericMatchList( const GenericMatchList< MatchPtrType >& ml )
-	: std::vector< MatchPtrType >(ml)
-{
+GenericMatchList< MatchPtrType >::GenericMatchList( const GenericMatchList< MatchPtrType >& ml ){
 	*this = ml;
 }
 
@@ -275,7 +272,7 @@ void GenericMatchList< MatchPtrType >::LoadSMLs( uint mer_size, std::ostream* lo
 	// load and creates SMLs as necessary
 	uint64 default_seed = getSeed( mer_size, seed_rank );
 	if (solid)
-		default_seed = getSolidSeed( mer_size );
+		uint64 default_seed = getSolidSeed( mer_size );
 	std::vector< uint > create_list;
 	uint seqI = 0;
 	for( seqI = 0; seqI < seq_table.size(); seqI++ ){
@@ -283,14 +280,14 @@ void GenericMatchList< MatchPtrType >::LoadSMLs( uint mer_size, std::ostream* lo
 		DNAFileSML* file_sml = new DNAFileSML();
 		sml_table.push_back( file_sml );
 
-		bool success = true;
+		boolean success = true;
 		try{
 			file_sml->LoadFile( sml_filename[ seqI ] );
 		}catch( genome::gnException& gne ){
 			success = false;
 			create_list.push_back( seqI );
 		}
-		bool recreate = false;
+		boolean recreate = false;
 		if(success && force_create){
 			if( log_stream != NULL )
 				(*log_stream) << "SML exists, but forcefully recreating.  A new sorted mer list will be created.\n";
@@ -353,15 +350,11 @@ void GenericMatchList< MatchPtrType >::LoadSMLs( uint mer_size, std::ostream* lo
 
 template< typename MatchPtrType >
 uint GenericMatchList< MatchPtrType >::GetDefaultMerSize( const std::vector< genome::gnSequence* >& seq_table ){
-    if (seq_table.empty()) {
-        throw std::invalid_argument("GetDefaultMerSize called with empty seq_table");
-    }
-    gnSeqI total_len = 0;
-    for (uint seqI = 0; seqI < seq_table.size(); seqI++)
-        total_len += seq_table[ seqI ]->length();
-    return getDefaultSeedWeight( total_len / seq_table.size() );
+	gnSeqI total_len = 0;
+	for( uint seqI = 0; seqI < seq_table.size(); seqI++ )
+		total_len += seq_table[ seqI ]->length();
+	return getDefaultSeedWeight( total_len / seq_table.size() );
 }
-
 
 
 /**
@@ -380,7 +373,7 @@ void LoadMFASequences( MatchListType& mlist, const std::string& mfa_filename, st
 	genome::gnSequence file_sequence;
 	// Load the sequence and tell the user if it loaded successfully
 	try{
-		(void)file_sequence.LoadSource( mfa_filename );
+		file_sequence.LoadSource( mfa_filename );
 	}catch( genome::gnException& gne ){
 		if( gne.GetCode() == genome::FileNotOpened() )
 			std::cerr << "Error loading " << mfa_filename << std::endl;
@@ -398,6 +391,7 @@ void LoadMFASequences( MatchListType& mlist, const std::string& mfa_filename, st
 	}
 
 	mlist.seq_filename.clear();
+	gnSeqI total_len = 0;
 	for( uint contigI = 0; contigI < file_sequence.contigListSize(); contigI++ ){
 		genome::gnSequence* contig_seq = new genome::gnSequence( file_sequence.contig( contigI ) );
 		mlist.seq_filename.push_back( mfa_filename );
@@ -427,6 +421,7 @@ void GenericMatchList< MatchPtrType >::CreateMemorySMLs( uint mer_size, std::ost
 	for( uint contigI = 0; contigI < seq_table.size(); contigI++ )
 	{
 		DNAMemorySML* contig_sml = new DNAMemorySML();
+		boolean success = true;
 		if( log_stream != NULL )
 			(*log_stream) << "Creating sorted mer list\n";
 		time_t start_time = time(NULL);
@@ -566,7 +561,7 @@ void ReadList(MatchList& mlist, std::istream& match_file)
 		line_stream >> match_id;
 		
 		uint sub_count;
-		bool bad_stream = false;
+		boolean bad_stream = false;
 		line_stream >> sub_count;
 		if(sub_count > 0)
 			throw "Unable to read file, invalid format, cannot read subset data\n";
@@ -671,5 +666,3 @@ void GenericMatchList< MatchPtrType >::LengthFilter( gnSeqI length ){
 }
 
 #endif	//_MatchList_h_
-
-

@@ -101,10 +101,10 @@ public:
 	virtual gnBaseHeader* getHeader(const uint32 contigI, const uint32 headerI) const{Throw_gnEx(HeaderIndexOutOfBounds());};
 	virtual void addHeader(const uint32 contigI, gnBaseHeader* header, const uint32 headerI){Throw_gnEx(FragmentIndexOutOfBounds());}
 	virtual void removeHeader(const uint32 contigI, const uint32 headerI){ Throw_gnEx(HeaderIndexOutOfBounds()); }
-	virtual void setReverseComplement( const bool revComp, const uint32 contigI=ALL_CONTIGS){Throw_gnEx(FragmentIndexOutOfBounds());};
-	virtual bool isReverseComplement( const uint32 contigI=ALL_CONTIGS ){return false;}
-	virtual bool isCircular() const{ return false; }
-	virtual void setCircular( const bool value ) {}
+	virtual void setReverseComplement( const boolean revComp, const uint32 contigI=ALL_CONTIGS){Throw_gnEx(FragmentIndexOutOfBounds());};
+	virtual boolean isReverseComplement( const uint32 contigI=ALL_CONTIGS ){return false;}
+	virtual boolean isCircular() const{ return false; }
+	virtual void setCircular( const boolean value ) {}
 	
 	virtual void globalToLocal(uint32& contigI, gnSeqI& baseI) const{};
 	virtual void localToGlobal(const uint32 contigI, gnSeqI& baseI) const {};
@@ -159,13 +159,13 @@ public:
 		return asdf;
 	}
 
-	virtual bool ToString( std::string& str, const gnSeqI length=GNSEQI_END, const gnSeqI offset=1 ) const
+	virtual boolean ToString( std::string& str, const gnSeqI length=GNSEQI_END, const gnSeqI offset=1 ) const
 	{
 		gnSeqI len = length == GNSEQI_END ? data.size() - offset - 1 : length;
 		str.assign(data.data()+offset-1,len);
 		return true;
 	}
-	virtual bool ToArray( gnSeqC* pSeqC, gnSeqI length, const gnSeqI offset=1 ) const
+	virtual boolean ToArray( gnSeqC* pSeqC, gnSeqI length, const gnSeqI offset=1 ) const
 	{
 		gnSeqI len = length == GNSEQI_END ? data.size() - offset - 1 : length;
 		memcpy(pSeqC, data.data()+offset-1, len);

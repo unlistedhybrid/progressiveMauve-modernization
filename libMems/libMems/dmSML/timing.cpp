@@ -17,7 +17,7 @@
 
 struct dmtimer_s {
 #ifdef WIN32    
-    unsigned int last;
+    size_t last;
 #else
     struct timeval tv;
 #endif
@@ -26,7 +26,7 @@ struct dmtimer_s {
 
 
 typedef int Int;
-typedef unsigned int UInt;
+typedef size_t UInt;
 typedef double Float64;
 
 #ifdef WIN32
@@ -55,14 +55,14 @@ dmtimer_t * StartTimer() {
 
 
 
-unsigned int ReadTimer( dmtimer_t * t ) {
+size_t ReadTimer( dmtimer_t * t ) {
 #ifdef WIN32
-    unsigned int cur = timeGetTime();
+    size_t cur = timeGetTime();
     return( cur - t->last );
 #else
     struct timeval current;
     struct timezone dummy;
-    unsigned int begintime, endtime;
+    size_t begintime, endtime;
     gettimeofday( &current, &dummy );
     begintime = 1000 * t->tv.tv_sec + (t->tv.tv_usec/1000);
     endtime = 1000 * current.tv_sec + (current.tv_usec/1000);

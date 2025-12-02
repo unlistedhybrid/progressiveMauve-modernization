@@ -1,6 +1,9 @@
 /*******************************************************************************
- * $Id: Match.h,v 1.10 2004/03/01 02:40:08 darling Exp $
- * Modernized for C++17 — preserves all semantics, fixes type issues.
+ * $Id: MatchHashEntry.cpp,v 1.9 2004/03/01 02:40:08 darling Exp $
+ * This file is copyright 2002-2007 Aaron Darling and authors listed in the AUTHORS file.
+ * Please see the file called COPYING for licensing, copying, and modification
+ * Please see the file called COPYING for licensing details.
+ * **************
  ******************************************************************************/
 
 #ifdef HAVE_CONFIG_H
@@ -8,128 +11,193 @@
 #endif
 
 #include "libMems/MatchHashEntry.h"
-#include <algorithm> // std::min, std::abs
+#include "libGenome/gnException.h"
+#include "libGenome/gnDebug.h"
 
+using namespace std;
+using namespace genome;
 namespace mems {
 
-MatchHashEntry::MatchHashEntry()
-    : m_extended(false), m_mersize(0), m_offset(0) {}
-
-MatchHashEntry::MatchHashEntry(uint seq_count, gnSeqI mersize, MemType m_type)
-    : m_extended(m_type == MemType::extended),
-      m_mersize(mersize),
-      m_offset(0) {}
-
-MatchHashEntry& MatchHashEntry::operator=(const MatchHashEntry& mhe) {
-    Match::operator=(mhe);
-    m_extended = mhe.m_extended;
-    m_mersize = mhe.m_mersize;
-    m_offset = mhe.m_offset;
-    return *this;
+boolean MatchHashEntry::offset_lessthan(const MatchHashEntry& a, const MatchHashEntry& b){
+	return a.m_offset < b.m_offset;
 }
 
-bool MatchHashEntry::operator==(const MatchHashEntry& mhe) const {
-    if (!(Match::operator==(mhe)))
-        return false;
-    if (m_extended != mhe.m_extended)
-        return false;
-    if (m_mersize != mhe.m_mersize)
-        return false;
-    return true;
+boolean MatchHashEntry::start_lessthan_ptr(const MatchHashEntry* a, const MatchHashEntry* b){
+	int32 start_diff = a->FirstStart() - b->FirstStart();
+	if(start_diff == 0){
+		uint32 m_count = a->SeqCount();
+		m_count = m_count <= b->SeqCount() ? m_count : b->SeqCount();
+		for(uint32 seqI = seq_compare_start; seqI < m_count; seqI++){
+			int64 a_start = a->Start(seqI), b_start = b->Start(seqI);
+			if(a_start < 0)
+				a_start = -a_start + a->Length() - a->m_mersize;
+			if(b_start < 0)
+				b_start = -b_start + b->Length() - b->m_mersize;
+			int64 diff = a_start - b_start;
+			if(a_start == NO_MATCH || b_start == NO_MATCH)
+				continue;
+			else if(diff == 0)
+				continue;
+			else
+				return diff < 0;
+		}
+	}
+	return start_diff < 0;
 }
 
-void MatchHashEntry::CalculateOffset() {
-    if (SeqCount() == 0) {
-        m_offset = 0;
-        return;
-    }
-
-    int64_t first_start = LeftEnd(0);
-    if (first_start == NO_MATCH)
-        first_start = 0;
-
-    m_offset = first_start;
-
-    for (uint i = 1; i < SeqCount(); ++i) {
-        int64_t cur_start = LeftEnd(i);
-        if (cur_start == NO_MATCH)
-            cur_start = 0;
-        m_offset += std::abs(cur_start - first_start);
-    }
+boolean MatchHashEntry::strict_start_lessthan_ptr(const MatchHashEntry* a, const MatchHashEntry* b){
+	int start_diff = a->FirstStart() - b->FirstStart();
+	if(start_diff == 0){
+		uint m_count = a->SeqCount();
+		m_count = m_count <= b->SeqCount() ? m_count : b->SeqCount();
+		for(uint seqI = 0; seqI < m_count; seqI++){
+			int64 a_start = a->Start(seqI), b_start = b->Start(seqI);
+			if(a_start < 0)
+				a_start = -a_start + a->Length() - a->m_mersize;
+			if(b_start < 0)
+				b_start = -b_start + b->Length() - b->m_mersize;
+			int64 diff = a_start - b_start;
+			if(diff == 0)
+				continue;
+			else
+				return diff < 0;
+		}
+	}
+	return start_diff < 0;
 }
 
-bool MatchHashEntry::offset_lessthan(const MatchHashEntry& a, const MatchHashEntry& b) {
-    return a.m_offset < b.m_offset;
+
+//ignores mem_no_matches
+int64 MatchHashEntry::start_compare(const MatchHashEntry& a, const MatchHashEntry& b){
+	uint m_count = a.SeqCount();
+	m_count = m_count <= b.SeqCount() ? m_count : b.SeqCount();
+	for(uint seqI = 0; seqI < m_count; seqI++){
+		int64 a_start = a.Start(seqI), b_start = b.Start(seqI);
+		if(a_start < 0)
+			a_start = -a_start + a.Length() - a.m_mersize;
+		if(b_start < 0)
+			b_start = -b_start + b.Length() - b.m_mersize;
+		int64 diff = a_start - b_start;
+		if(a_start == NO_MATCH || b_start == NO_MATCH)
+			continue;
+		else if(diff == 0)
+			continue;
+		else
+			return diff;
+	}
+	return 0;
 }
 
-bool MatchHashEntry::start_lessthan_ptr(const MatchHashEntry* a, const MatchHashEntry* b) {
-    if (a->FirstStart() < b->FirstStart())
-        return true;
-    if (a->FirstStart() > b->FirstStart())
-        return false;
-    return a->Offset() < b->Offset();
+int64 MatchHashEntry::end_to_start_compare(const MatchHashEntry& a, const MatchHashEntry& b){
+	MatchHashEntry tmp_a = a;
+	tmp_a.CropStart(tmp_a.Length()-1);
+	return MatchHashEntry::start_compare(tmp_a, b);
 }
 
-bool MatchHashEntry::strict_start_lessthan_ptr(const MatchHashEntry* a, const MatchHashEntry* b) {
-    uint n = std::min(a->SeqCount(), b->SeqCount());
-    for (uint i = 0; i < n; ++i) {
-        int64_t a_start = a->LeftEnd(i);
-        int64_t b_start = b->LeftEnd(i);
 
-        if (a_start == NO_MATCH && b_start != NO_MATCH)
-            return true;
-        if (a_start != NO_MATCH && b_start == NO_MATCH)
-            return false;
-        if (a_start != NO_MATCH && b_start != NO_MATCH && a_start != b_start)
-            return a_start < b_start;
-    }
-    return false;
+MatchHashEntry::MatchHashEntry() : 
+Match(),
+m_extended( false ),
+m_mersize( 0 )
+{
 }
 
-int64_t MatchHashEntry::end_to_start_compare(const MatchHashEntry& a, const MatchHashEntry& b) {
-    int64_t a_end = a.RightEnd(0);
-    int64_t b_start = b.LeftEnd(0);
 
-    if (a_end == NO_MATCH || b_start == NO_MATCH)
-        return 0;
-
-    return b_start - a_end;
+MatchHashEntry::MatchHashEntry(uint32 seq_count, const gnSeqI mersize, MemType m_type) : 
+ Match( seq_count ),
+ m_mersize( mersize )
+{
+	m_extended = m_type == extended;
 }
 
-int64_t MatchHashEntry::start_compare(const MatchHashEntry& a, const MatchHashEntry& b) {
-    int64_t a_start = a.LeftEnd(0);
-    int64_t b_start = b.LeftEnd(0);
 
-    if (a_start == NO_MATCH || b_start == NO_MATCH)
-        return 0;
-
-    return a_start - b_start;
+MatchHashEntry* MatchHashEntry::Clone() const{
+	return new MatchHashEntry(*this);
 }
 
-bool MatchHashEntry::Contains(const MatchHashEntry& mhe) const {
-    if (Length() < mhe.Length())
-        return false;
+MatchHashEntry& MatchHashEntry::operator=(const MatchHashEntry& mhe)
+{
+	Match::operator=( mhe );
+	m_extended = mhe.m_extended;
+	m_mersize = 0;
+	m_offset = mhe.m_offset;
 
-    uint n = std::min(SeqCount(), mhe.SeqCount());
-    for (uint i = 0; i < n; ++i) {
-        int64_t this_start = LeftEnd(i);
-        int64_t mhe_start = mhe.LeftEnd(i);
-
-        if (this_start == NO_MATCH && mhe_start != NO_MATCH)
-            return false;
-        if (this_start != NO_MATCH && mhe_start == NO_MATCH)
-            continue;
-
-        if (this_start != NO_MATCH && mhe_start != NO_MATCH) {
-            int64_t this_end = RightEnd(i);
-            int64_t mhe_end = mhe.RightEnd(i);
-
-            if (mhe_start < this_start || mhe_end > this_end)
-                return false;
-        }
-    }
-
-    return true;
+	return *this;
 }
+
+boolean MatchHashEntry::operator==(const MatchHashEntry& mhe) const
+{
+	if(m_seq_count != mhe.m_seq_count)
+		return false;
+	if(m_mersize != mhe.m_mersize)
+		return false;
+	if(m_extended != mhe.m_extended)
+		return false;
+	if( m_offset != mhe.m_offset )
+		return false;
+	return Match::operator ==(mhe);
+}
+
+void MatchHashEntry::CalculateOffset()
+{
+	if( SeqCount() == 0 )
+		return;
+
+	int64 tmp_off = 0;
+	m_offset = 0;
+
+	uint seqI = FirstStart();
+	int64 ref_start = Start(seqI);
+
+	for(seqI++; seqI < SeqCount(); seqI++){
+		if(Start(seqI) != NO_MATCH){
+			tmp_off = Start(seqI) - ref_start;
+			if( Start(seqI) < 0 )
+				tmp_off -= (int64)Length( seqI );
+			m_offset += tmp_off;
+		}
+	}
+}
+
+// checks if mhe is _perfectly_ contained in this match.
+// all offsets in all sequences must be aligned to each other
+boolean MatchHashEntry::Contains(const MatchHashEntry& mhe) const{
+	uint i;
+	int64 diff_i;
+	int64 diff;
+	uint seq_count = mhe.SeqCount();
+	//check for a consistent number of genomes and
+	//identical generalized offsets
+	if(SeqCount() != seq_count || m_offset != mhe.m_offset)
+		return false;
+
+	i = mhe.FirstStart();
+	diff = mhe.Start(i) - Start(i);
+	if(Start(i) == NO_MATCH)
+		return false;
+
+	//check for containment properties
+	if(diff < 0 || Length() < mhe.Length() + diff)
+		return false;
+
+	//everything is ok so far, check for alignment
+	int64 diff_rc = (int64)mhe.Length() - (int64)Length() + diff;
+	for(i++; i < seq_count; i++){
+		//check for consistent alignment between all genomes
+		//in the case of revcomp, diff_i must equal diff_rc
+		diff_i = mhe.Start(i) - Start(i);
+
+		//it's ok if neither matches in a sequence
+		if(mhe.Start(i) == NO_MATCH && Start(i) == NO_MATCH)
+			continue;
+		else if(mhe.Start(i) < 0 && diff_rc == diff_i)
+			continue;
+		else if(diff != diff_i )
+			return false;
+	}
+	//it was contained.
+	return true;
+}
+
 
 } // namespace mems

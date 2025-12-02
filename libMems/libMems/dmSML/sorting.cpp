@@ -18,8 +18,8 @@ void CopySortedData ( sort_buf_t* sortbuf );
 
 void InitRadixSort( sort_buf_t* sortbuf, buffer_t* scratch_buffer )
 {
-	unsigned int bin_divisor;
-	unsigned int i, keyval = 0;
+	size_t bin_divisor;
+	size_t i, keyval = 0;
 	sortbuf->histogram_size = 1;
 	sortbuf->histogram_size <<= RADIX_BITS;
 	sortbuf->histogram = static_cast<unsigned*>( malloc( sortbuf->histogram_size * sizeof(unsigned) ) );

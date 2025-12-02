@@ -5,6 +5,10 @@
 #include "config.h"
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdarg.h>
 
 // these just let you get a temporary string -- don't hang onto it for very
@@ -24,5 +28,8 @@ void AddTo64( unsigned int amt, unsigned int *hi, unsigned int *lo );
 /** cross-platform file deletion */
 int removeFile( const char* filename, int verbose );
 
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _util_h_ */

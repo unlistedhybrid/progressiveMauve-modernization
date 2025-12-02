@@ -7,6 +7,10 @@
 
 #include "libMems/dmSML/asyncio.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 // forward decl for the benefit of iodevice_t
 // (can't be avoided)
 typedef struct buffer_s buffer_t;
@@ -198,6 +202,9 @@ buffer_t * RemoveItem( buffer_list_t * list, buffer_t * item );
 void ReadBuffer( buffer_t * buffer, offset_t num_recs, iodevice_t * dev );
 void WriteBuffer( buffer_t * buffer, offset_t num_recs, iodevice_t * dev );
 
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _buffer_h_ */
 

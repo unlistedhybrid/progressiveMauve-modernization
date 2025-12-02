@@ -1,124 +1,100 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.20)
 project(ProgressiveMauveModern LANGUAGES C CXX)
 
-cmake_policy(SET CMP0167 OLD)
+# ============================================================
+# 1. GLOBAL BUILD SETTINGS
+# ============================================================
 
+# Modern Boost (1.89) requires modern C++
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-# Ensure Release flags are not forced for Debug builds
-# Debug symbols will be present if -DCMAKE_BUILD_TYPE=Debug is passed
+# ACCURACY CONFIGURATION:
+# -O3: High optimization.
+# -fno-fast-math: STRICT math. Prevents reordering. Ensures 1859 matches result.
+# -DCOMMAND_LINE: Logic flag.
+add_compile_options(-O3 -fno-fast-math -DCOMMAND_LINE -fno-strict-aliasing)
 
-# ------------------ MSVC CONFIG ------------------
-if(MSVC)
-    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded")
-    add_compile_options($<$<CONFIG:Release>:/MT>)
-    add_compile_options($<$<CONFIG:Debug>:/MTd>)
-    add_compile_options(/wd4834)
-    add_compile_options(/wd4996)
-endif()
+# Link standard libraries statically
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++")
 
-# ------------------ OPENMP ACCELERATION ------------------
-find_package(OpenMP REQUIRED)
+# ============================================================
+# 2. OPTIONS
+# ============================================================
 
-# ------------------ PLATFORM-SPECIFIC EXTRAS ------------------
-set(EXTRA_SRCS "")
-set(EXTRA_LIBS "")
+option(ENABLE_SANITIZERS "Enable ASAN + UBSAN" OFF)
+option(ENABLE_CCACHE "Enable CCache" OFF)
+option(ENABLE_OPENMP "Enable OpenMP" ON)
 
-if(WIN32)
-    list(APPEND EXTRA_SRCS mauveAligner/src/win_getopt.cpp)
-    list(APPEND EXTRA_LIBS winmm psapi)
-endif()
+# Disable ZLIB to match original logic
+option(ENABLE_ZLIB "Enable ZLIB compression" OFF) 
 
-if(APPLE)
-    list(APPEND CMAKE_PREFIX_PATH "/opt/homebrew/opt/icu4c" "/usr/local/opt/icu4c")
-    include_directories("/opt/homebrew/opt/icu4c/include" "/usr/local/opt/icu4c/include")
-    link_directories("/opt/homebrew/opt/icu4c/lib" "/usr/local/opt/icu4c/lib")
-endif()
+# ============================================================
+# 3. DEPENDENCIES (SYSTEM BOOST 1.89)
+# ============================================================
 
-# ------------------ BOOST + ZLIB + BZIP2 + ZSTD ------------------
-set(Boost_DEBUG OFF)
+# We use the System Boost (1.89)
 set(Boost_USE_STATIC_LIBS ON)
-set(Boost_USE_MULTITHREADED ON)
 
-find_package(Boost 1.89 REQUIRED
-    COMPONENTS
-    filesystem
-    iostreams
-    program_options
-    regex
-)
+# Allow CMake to search system paths (/usr/lib, etc.)
+set(Boost_NO_SYSTEM_PATHS OFF)
 
-find_package(ZLIB)
-find_package(BZip2)
-find_package(PkgConfig)
+# Find version 1.89 or higher
+find_package(Boost 1.89 REQUIRED COMPONENTS filesystem iostreams program_options regex system)
+
+if(ENABLE_ZLIB)
+    find_package(ZLIB REQUIRED)
+    find_package(BZip2 REQUIRED)
+    add_definitions(-DHAVE_LIBZ)
+endif()
+
 find_package(ICU REQUIRED COMPONENTS uc data i18n)
 
-if(PKG_CONFIG_FOUND)
-    pkg_check_modules(ZSTD libzstd)
-endif()
+# ============================================================
+# 4. BOOST INTERFACE
+# ============================================================
 
-if(NOT ZSTD_FOUND)
-    find_library(ZSTD_LIB
-        NAMES zstd zstd_static libzstd
-        HINTS "/opt/homebrew/lib" "/usr/local/lib"
-    )
-else()
-    set(ZSTD_LIB ${ZSTD_LIBRARIES})
-    link_directories(${ZSTD_LIBRARY_DIRS})
-endif()
-
-# ------------------ BOOST INTERFACE ------------------
 add_library(BoostInterface INTERFACE)
 target_link_libraries(BoostInterface INTERFACE
     Boost::filesystem
     Boost::iostreams
     Boost::program_options
     Boost::regex
+    Boost::system
     ICU::uc ICU::data ICU::i18n
 )
 
-if(ZLIB_FOUND)
-    target_link_libraries(BoostInterface INTERFACE ZLIB::ZLIB)
+if(ENABLE_ZLIB)
+    target_link_libraries(BoostInterface INTERFACE ZLIB::ZLIB BZip2::BZip2)
 endif()
 
-if(BZIP2_FOUND)
-    target_link_libraries(BoostInterface INTERFACE BZip2::BZip2)
+if(ENABLE_OPENMP)
+    find_package(OpenMP REQUIRED)
+    target_link_libraries(BoostInterface INTERFACE OpenMP::OpenMP_CXX)
 endif()
 
-if(ZSTD_LIB)
-    target_link_libraries(BoostInterface INTERFACE ${ZSTD_LIB})
-else()
-    target_link_libraries(BoostInterface INTERFACE zstd)
-endif()
+# ============================================================
+# 5. SUBDIRECTORIES
+# ============================================================
 
-if(TARGET Boost::headers)
-    target_link_libraries(BoostInterface INTERFACE Boost::headers)
-elseif(TARGET Boost::boost)
-    target_link_libraries(BoostInterface INTERFACE Boost::boost)
-endif()
-
-if(Boost_INCLUDE_DIRS)
-    target_include_directories(BoostInterface INTERFACE ${Boost_INCLUDE_DIRS})
-endif()
-
-target_link_libraries(BoostInterface INTERFACE OpenMP::OpenMP_CXX)
-
-# ------------------ SUBDIRECTORIES ------------------
 add_subdirectory(libGenome)
 add_subdirectory(libMems)
 add_subdirectory(muscle)
 
-# ------------------ progressiveMauve REQUIRED SOURCES ------------------
+# ============================================================
+# 6. EXECUTABLE
+# ============================================================
+
 set(PM_SRC
     mauveAligner/src/progressiveMauve.cpp
     mauveAligner/src/UniqueMatchFinder.cpp
-    mauveAligner/src/AlignmentTree.cpp
-    ${EXTRA_SRCS}
 )
 
-# ------------------ EXECUTABLE: progressiveMauve ------------------
+if(WIN32)
+    list(APPEND PM_SRC mauveAligner/src/win_getopt.cpp)
+endif()
+
 add_executable(progressiveMauve ${PM_SRC})
 
 target_include_directories(progressiveMauve PRIVATE
@@ -133,6 +109,4 @@ target_link_libraries(progressiveMauve
     libMems
     libMUSCLE
     BoostInterface
-    OpenMP::OpenMP_CXX
-    ${EXTRA_LIBS}
 )

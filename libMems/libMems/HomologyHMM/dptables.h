@@ -29,21 +29,67 @@
 #ifndef __dptable_h_
 #define __dptable_h_
 
+
 #include <map>
-#include <unordered_map>
 #include <cassert>
 
-// Wrapper for std::map
-template<class key, class value>
-class treemap : public std::map<key,value> {};
 
-// Wrapper for std::unordered_map
-// Replaces the deprecated GNU hash_map
-template<class key, class value>
-class hashmap : public std::unordered_map<key, value> {};
+#ifdef __GNUC__
+ #define HAVE_HASH_MAP
+ #if __GNUC__ < 3
+  #include <hash_map.h>
+  namespace Sgi { using ::hash_map; }; // inherit globals
+ #else
+  #include <ext/hash_map>
+  #if __GNUC_MINOR__ + __GNUC__ == 3
+   namespace Sgi = std;               // GCC 3.0
+  #else
+   namespace Sgi = ::__gnu_cxx;       // GCC 3.1 and later
+  #endif
+ #endif
+#else      // ...there are other compilers, right?
+#ifdef _MSC_VER
+// visual studio 2005 has no hash map.  older versions did.
+#else
+// default for all other compilers
+#define HAVE_HASH_MAP
+namespace Sgi = std;
+#endif
+#endif
 
-// Select the hash map implementation
+
+using std::map;
+#ifdef HAVE_HASH_MAP
+using Sgi::hash_map;
+#endif
+
+// Define aliases for two maps: red-black trees, and hashes
+// (GNU C++ does not define a hash function for long long int, so we have to define our own)
+
+template<class key>
+struct _hash {
+  size_t operator()(long long x) const { return x; }
+};
+
+// typedefs can't be templated
+
+template<class key, class value>
+class treemap : public map<key,value> {};
+
+#ifdef HAVE_HASH_MAP
+template<class key, class value>
+class hashmap : public hash_map<key,value,_hash<key> > {};
+#endif
+
+// select one of the maps (the hash map is faster and appears to use less memory)
+
+#ifdef HAVE_HASH_MAP
 #define _mymap hashmap
+#else
+#define _mymap treemap
+#endif
+
+
 
 // States are stored in a self-initializing array
 
@@ -338,3 +384,4 @@ public:
 
 
 #endif
+

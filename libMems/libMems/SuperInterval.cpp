@@ -14,30 +14,30 @@ namespace mems {
 bool debug_aligner = false;
 
 SuperInterval::SuperInterval() :
+length(0),
+left_end(0),
 c1_siv((std::numeric_limits<size_t>::max)()),
 c2_siv((std::numeric_limits<size_t>::max)()),
-parent_siv((std::numeric_limits<size_t>::max)()),
-left_end(0),
-length(0)
+parent_siv((std::numeric_limits<size_t>::max)())
 {}
 
 SuperInterval::SuperInterval( const Interval& reference_iv ) :
 reference_iv(reference_iv),
+length(0),
+left_end(0),
 c1_siv((std::numeric_limits<size_t>::max)()),
 c2_siv((std::numeric_limits<size_t>::max)()),
-parent_siv((std::numeric_limits<size_t>::max)()),
-left_end(0),
-length(0)
+parent_siv((std::numeric_limits<size_t>::max)())
 {
 }
 
 SuperInterval::SuperInterval(const SuperInterval& siv) :
-reference_iv(siv.reference_iv),
+left_end(siv.left_end),
+length( siv.length ),
+reference_iv( siv.reference_iv ),
 c1_siv(siv.c1_siv),
 c2_siv(siv.c2_siv),
-parent_siv(siv.parent_siv),
-left_end(siv.left_end),
-length(siv.length)
+parent_siv(siv.parent_siv)
 {
 }
 SuperInterval& SuperInterval::operator=(const SuperInterval& siv)

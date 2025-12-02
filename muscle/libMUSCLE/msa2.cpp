@@ -4,8 +4,6 @@
 #include "libMUSCLE/profile.h"
 #include "libMUSCLE/tree.h"
 #include "libMUSCLE/threadstorage.h"
-#include <iostream>
-#include <sstream>
 
 namespace muscle {
 
@@ -384,15 +382,11 @@ void SetMSAWeightsMuscle(MSA &msa)
 	case SEQWEIGHT_ThreeWay:
 		SetThreeWayWeightsMuscle(msa);
 		return;
-
-	case SEQWEIGHT_Undefined:
-		Quit("SetMSAWeightsMuscle: Undefined weight method");
-		return;
 		}
 	Quit("SetMSAWeightsMuscle, Invalid method=%d", Method);
 	}
 
-static TLS<WEIGHT *> g_MuscleWeights(NULL);
+static TLS<WEIGHT *> g_MuscleWeights;
 static TLS<unsigned> g_uMuscleIdCount;
 
 WEIGHT GetMuscleSeqWeightById(unsigned uId)
@@ -408,54 +402,17 @@ WEIGHT GetMuscleSeqWeightById(unsigned uId)
 
 void SetMuscleTree(const Tree &tree)
 	{
-	static int call_count = 0;
-	call_count++;
-	
-	std::stringstream thread_info;
-#ifdef _OPENMP
-	thread_info << " [Thread " << omp_get_thread_num() << "]";
-#endif
-	
-	std::cerr << "DEBUG SetMuscleTree" << thread_info.str() << ": Starting (call #" << call_count << ")" << std::endl;
-	std::cerr << "DEBUG SetMuscleTree" << thread_info.str() << ": tree.GetLeafCount()=" << tree.GetLeafCount() << std::endl;
-	std::cerr << "DEBUG SetMuscleTree" << thread_info.str() << ": tree.GetNodeCount()=" << tree.GetNodeCount() << std::endl;
-	std::cerr << "DEBUG SetMuscleTree" << thread_info.str() << ": tree.IsRooted()=" << tree.IsRooted() << std::endl;
-	
 	g_ptrMuscleTree.get() = &tree;
-	std::cerr << "DEBUG SetMuscleTree: Set g_ptrMuscleTree" << std::endl;
 
 	if (SEQWEIGHT_ClustalW != GetSeqWeightMethod())
-		{
-		std::cerr << "DEBUG SetMuscleTree: SeqWeightMethod is not ClustalW, returning early" << std::endl;
 		return;
-		}
 
-	std::cerr << "DEBUG SetMuscleTree (call #" << call_count << "): Deleting old weights" << std::endl;
-	std::cerr << "DEBUG SetMuscleTree (call #" << call_count << "): g_MuscleWeights.get()=" << (void*)g_MuscleWeights.get() << std::endl;
-	
-	// Check if pointer is valid (not NULL and not uninitialized garbage)
-	WEIGHT* pWeights = g_MuscleWeights.get();
-	if (pWeights != NULL && pWeights != (WEIGHT*)0xffffffffffffffff && pWeights != (WEIGHT*)0xffffffffffffffffULL)
-		{
-		std::cerr << "DEBUG SetMuscleTree: Deleting valid weights pointer" << std::endl;
-		delete[] pWeights;
-		}
-	else
-		{
-		std::cerr << "DEBUG SetMuscleTree: Weights pointer is NULL or invalid (" << (void*)pWeights << "), skipping delete" << std::endl;
-		}
+	delete[] g_MuscleWeights.get();
 
 	const unsigned uLeafCount = tree.GetLeafCount();
-	std::cerr << "DEBUG SetMuscleTree: uLeafCount=" << uLeafCount << std::endl;
 	g_uMuscleIdCount.get() = uLeafCount;
-	
-	std::cerr << "DEBUG SetMuscleTree: Allocating weights array for " << uLeafCount << " leaves" << std::endl;
 	g_MuscleWeights.get() = new WEIGHT[uLeafCount];
-	
-	std::cerr << "DEBUG SetMuscleTree: Calling CalcClustalWWeights" << std::endl;
 	CalcClustalWWeights(tree, g_MuscleWeights.get());
-	std::cerr << "DEBUG SetMuscleTree: CalcClustalWWeights completed" << std::endl;
-	std::cerr << "DEBUG SetMuscleTree: Completed successfully" << std::endl;
 	}
 
 void SetClustalWWeightsMuscle(MSA &msa)
@@ -575,4 +532,4 @@ void MSACat(const MSA &msa1, const MSA &msa2, MSA &msaCat)
 			}
 		}
 	}
-}
+} 

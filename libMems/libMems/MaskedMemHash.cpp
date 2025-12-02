@@ -35,7 +35,7 @@ MaskedMemHash* MaskedMemHash::Clone() const{
 	return new MaskedMemHash(*this);
 }
 
-bool MaskedMemHash::HashMatch(list<idmer>& match_list){
+boolean MaskedMemHash::HashMatch(list<idmer>& match_list){
 	//check that there is at least one forward component
 	match_list.sort(&idmer_id_lessthan);
 	// initialize the hash entry
@@ -54,8 +54,7 @@ bool MaskedMemHash::HashMatch(list<idmer>& match_list){
 	{
 		match_number <<= 1;
 		if( mhe.Start(seqI) != NO_MATCH )
-			// FIXED: Use 1ULL to prevent 32-bit integer promotion issues
-			match_number |= 1ULL;
+			match_number |= 1;
 	}
 	if( seq_mask == 0 || match_number == seq_mask )
 		AddHashEntry(mhe);
@@ -64,4 +63,3 @@ bool MaskedMemHash::HashMatch(list<idmer>& match_list){
 }
 
 } // namespace mems
-

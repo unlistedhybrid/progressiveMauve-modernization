@@ -26,20 +26,20 @@ using namespace genome;
 namespace mems {
 
 
-bool validateLCB( MatchList& lcb );
+boolean validateLCB( MatchList& lcb );
 void validateRangeIntersections( vector< MatchList >& lcb_list  );
 bool debug_shite = false;
 
 /**
  * Test code to ensure that an individual LCB is truly collinear
  */
-bool validateLCB( MatchList& lcb ){
+boolean validateLCB( MatchList& lcb ){
 	vector< Match* >::iterator lcb_iter = lcb.begin();
 	if( lcb.size() == 0 )
 		return true;
 	uint seq_count = (*lcb_iter)->SeqCount();
 	uint seqI = 0;
-	bool complain = false;
+	boolean complain = false;
 	for(; seqI < seq_count; seqI++ ){
 		lcb_iter = lcb.begin();
 		int64 prev_coord = 0;
@@ -73,19 +73,19 @@ void EliminateOverlaps( MatchList& ml ){
 		vector< Match* > new_matches;
 
 		// scan forward to first defined match
-		for(; matchI != (int64)ml.size(); matchI++ )
+		for(; matchI != ml.size(); matchI++ )
 			if( ml[ matchI ]->Start( seqI ) != NO_MATCH )
 				break;
 
-		for(; matchI < (int64)ml.size(); matchI++ ){
+		for(; matchI < ml.size(); matchI++ ){
 			if( ml[ matchI ] == NULL )
 				continue;
 			
-			for( nextI = matchI + 1; nextI < (int64)ml.size(); nextI++ ){
+			for( nextI = matchI + 1; nextI < ml.size(); nextI++ ){
 				if( ml[ nextI ] == NULL )
 					continue;
 
-				bool deleted_matchI = false;
+				boolean deleted_matchI = false;
 				// check for overlaps
 				int64 startI = ml[ matchI ]->Start( seqI );
 				int64 lenI = ml[ matchI ]->Length();
@@ -124,7 +124,7 @@ void EliminateOverlaps( MatchList& ml ){
 						// match_iter is smaller
 						new_match = ml[nextI]->Copy();
 						// erase base pairs from new_match
-						if( diff >= (int64)ml[ nextI ]->Length() ){
+						if( diff >= ml[ nextI ]->Length() ){
 //							cerr << "Deleting " << **next_iter << " at the hands of\n" << **mem_iter << endl;
 							ml[ nextI ]->Free();
 							ml[ nextI ] = NULL;
@@ -161,7 +161,7 @@ void EliminateOverlaps( MatchList& ml ){
 
 		if( deleted_count > 0 ){
 			result_matches.reserve( ml.size() - deleted_count );
-			for( int64 copyI = 0; copyI < (int64)ml.size(); copyI++ ){
+			for( int64 copyI = 0; copyI < ml.size(); copyI++ ){
 				if( ml[ copyI ] != NULL )
 					result_matches.push_back( ml[ copyI ] );
 			}
@@ -178,47 +178,38 @@ void EliminateOverlaps( MatchList& ml ){
 
 const gnSeqI default_min_r_gap_size = 200;
 Aligner::Aligner( uint seq_count ) :
-nway_mh(),
+debug(false),
 seq_count(seq_count),
-LCB_minimum_density(0.0),
-LCB_minimum_range(0.0),
-cur_min_coverage(-1),
 min_recursive_gap_length(default_min_r_gap_size),
 collinear_genomes(false),
 gal(&(MuscleInterface::getMuscleInterface())),
-permutation_filename(""),
 permutation_weight(-1),
-max_extension_iters(4),
-debug(false),
-recursive(false),
-extend_lcbs(false),
-gapped_alignment(false),
-currently_recursing(false)
+cur_min_coverage(-1),
+max_extension_iters(4)
 {}
 
 Aligner::Aligner( const Aligner& al ) :
+//gap_mh( al.gap_mh ),
 nway_mh( al.nway_mh ),
 seq_count( al.seq_count ),
+debug( al.debug),
 LCB_minimum_density( al.LCB_minimum_density),
 LCB_minimum_range( al.LCB_minimum_range ),
 cur_min_coverage( al.cur_min_coverage),
 min_recursive_gap_length( al.min_recursive_gap_length ),
 collinear_genomes( al.collinear_genomes ),
 gal( al.gal ),
-permutation_filename( al.permutation_filename ),
 permutation_weight( al.permutation_weight ),
-max_extension_iters( al.max_extension_iters ),
-debug( al.debug),
-recursive( al.recursive ),
-extend_lcbs( al.extend_lcbs ),
-gapped_alignment( al.gapped_alignment ),
-currently_recursing( al.currently_recursing )
+permutation_filename( al.permutation_filename ),
+max_extension_iters( al.max_extension_iters )
 {}
 
 Aligner& Aligner::operator=( const Aligner& al )
 {
+	gap_mh = al.gap_mh;
 	nway_mh = al.nway_mh;
 	seq_count = al.seq_count;
+	debug = al.debug;
 	
 	LCB_minimum_density = al.LCB_minimum_density;
 	LCB_minimum_range = al.LCB_minimum_range;
@@ -229,15 +220,10 @@ Aligner& Aligner::operator=( const Aligner& al )
 
 	gal = al.gal;
 
-	permutation_filename = al.permutation_filename;
 	permutation_weight = al.permutation_weight;
+	permutation_filename = al.permutation_filename;
 
 	max_extension_iters = al.max_extension_iters;
-	debug = al.debug;
-	recursive = al.recursive;
-	extend_lcbs = al.extend_lcbs;
-	gapped_alignment = al.gapped_alignment;
-	currently_recursing = al.currently_recursing;
 
 	return *this;
 }
@@ -256,7 +242,7 @@ void Aligner::SetMaxGappedAlignmentLength( gnSeqI len ){
 
 
 /* returns true if all labels between start_label and end_label are contained in the no_match_labels set */
-void scanLabels( set< uint >& no_match_labels, uint& start_label, bool forward ){
+void scanLabels( set< uint >& no_match_labels, uint& start_label, boolean forward ){
 	uint labelI;
 	// scan no_match_labels for consecutive labels starting at start_label until one is missing
 	if( forward ){
@@ -278,7 +264,7 @@ void scanLabels( set< uint >& no_match_labels, uint& start_label, bool forward )
 	}
 }
 
-bool checkCollinearity( Match* m1, Match* m2 ){
+boolean checkCollinearity( Match* m1, Match* m2 ){
 	for( uint seqI = 0; seqI < m1->SeqCount(); seqI++ ){
 		if( m1->Start( seqI ) == NO_MATCH ||
 			m2->Start( seqI ) == NO_MATCH )
@@ -308,9 +294,9 @@ void scanFit( list< LabeledMem >& pair_list, list< LabeledMem >::iterator& list_
 			continue;
 		}
 //		if( absolut( last_iter->mem->Start( sort_seq ) ) < initial_start ||
-//			absolut( last_iter->mem->Start( sort_seq ) ) > (uint64)new_match->Start( sort_seq ) )
+//			absolut( last_iter->mem->Start( sort_seq ) ) > new_match->Start( sort_seq ) )
 		if( absolut( last_iter->mem->Start( sort_seq ) ) < initial_start ||
-			(int64)absolut( last_iter->mem->Start( sort_seq ) ) > new_match->Start( sort_seq ) )
+			absolut( last_iter->mem->Start( sort_seq ) ) > new_match->Start( sort_seq ) )
 			break;
 		++match_count;
 	}
@@ -344,7 +330,7 @@ void scanFit( list< LabeledMem >& pair_list, list< LabeledMem >::iterator& list_
 	for( matchI = match_count; matchI > 0; matchI-- )
 		scores.push_back( 0 );
 	for( uint seqI = 0; seqI < new_match->SeqCount() - sort_seq - 1; ++seqI ){
-		bool redefined = false;
+		boolean redefined = false;
 		for( matchI = match_count; matchI > 0; matchI-- ){
 			if( !redefined ){
 				if( score_vector[ seqI ][ matchI - 1 ] >= 0 ){
@@ -390,7 +376,7 @@ void AaronsLCB( MatchList& mlist, set<uint>& breakpoints ){
 	list<LabeledMem> pair_list;
 	
 	map<uint, Match*> debug_label_map;
-	bool debugging = false;
+	boolean debugging = false;
 	
 	
 	list< PlacementMatch > placement_list;
@@ -472,7 +458,7 @@ void AaronsLCB( MatchList& mlist, set<uint>& breakpoints ){
 			placement_iter->iter--;
 		}
 	}
-	bool debug_labels = false;
+	boolean debug_labels = false;
 	ofstream debug_label_file;
 	if( debug_labels )
 		debug_label_file.open( "label_debug.txt" );
@@ -613,7 +599,7 @@ void Aligner::SetPermutationOutput( std::string& permutation_filename, int64 per
 void GetLCBCoverage( MatchList& lcb, uint64& coverage ){
 	vector< Match* >::iterator match_iter = lcb.begin();
 	coverage = 0;
-	
+	bool debug = true;
 	for( ; match_iter != lcb.end(); ++match_iter ){
 		coverage += (*match_iter)->Length() * (*match_iter)->Multiplicity();
 
@@ -731,14 +717,14 @@ void scanRight( int& right_recurseI, vector< LCB >& adjacencies, int min_weight,
   * start positions organized as iv_regions[ seqI ][ lcbI * 2 ]
   * end positions organized as iv_regions[ seqI ][ lcbI * 2 + 1 ] 
  */
-void CreateGapSearchList( vector< LCB >& adjacencies, const vector< gnSequence* >& seq_table, vector< vector< int64 > >& iv_regions, bool entire_genome ) 
+void CreateGapSearchList( vector< LCB >& adjacencies, const vector< gnSequence* >& seq_table, vector< vector< int64 > >& iv_regions, boolean entire_genome ) 
 {
 	iv_regions.clear();
 	if( adjacencies.size() == 0 )
 		return;		// there aren't any intervening LCB regions!
 	if( adjacencies.size() == 1 && !entire_genome )
 		return; 	// there aren't any interveniing LCB regions in the local area
-	bool debug_lcb_extension = false;	/**< enables debugging output */
+	boolean debug_lcb_extension = false;	/**< enables debugging output */
 	const uint seq_count = seq_table.size();
 
 	uint seqI = 0;
@@ -749,8 +735,8 @@ void CreateGapSearchList( vector< LCB >& adjacencies, const vector< gnSequence* 
 	for( seqI = 0; seqI < seq_count; seqI++ ){
 
 		// find the first LCB in this sequence
-		for( lcbI = 0; lcbI < (int)adjacencies.size(); lcbI++ ){
-			if( adjacencies[ lcbI ].left_adjacency[ seqI ] == (uint)-1 )
+		for( lcbI = 0; lcbI < adjacencies.size(); lcbI++ ){
+			if( adjacencies[ lcbI ].left_adjacency[ seqI ] == -1 )
 				break;
 		}
 		// start concatenating the intervening regions
@@ -805,10 +791,11 @@ void SearchLCBGaps( MatchList& new_matches, const std::vector< std::vector< int6
 	if( sI == iv_regions.size() )
 		return;		// there aren't any intervening LCB regions!
 
-	bool debug_lcb_extension = false;	/**< enables debugging output */
+	boolean debug_lcb_extension = false;	/**< enables debugging output */
 
 	const uint seq_count = new_matches.seq_table.size();
 	uint seqI = 0;
+	int lcbI = 0;
 	MatchList gap_list;
 	gap_list.seq_table = vector< gnSequence* >( seq_count );	/**< intervening regions of sequences */
 	gap_list.sml_table = vector< SortedMerList* >( seq_count );
@@ -856,7 +843,7 @@ void SearchLCBGaps( MatchList& new_matches, const std::vector< std::vector< int6
 	
 	//	Create sorted mer lists for the intervening gap region
 	vector< boost::filesystem::path > delete_files;
-	bool create_succeeded = true;
+	boolean create_succeeded = true;
 	for( seqI = 0; seqI < seq_count; seqI++ ){
 		gap_list.sml_table[ seqI ]->Clear();
 		try{
@@ -939,7 +926,7 @@ void SearchLCBGaps( MatchList& new_matches, const std::vector< std::vector< int6
 	for( seqI = 0; seqI < seq_count; seqI++ )
 		delete gap_list.seq_table[ seqI ];
 
-	for( size_t delI = 0; delI < delete_files.size(); delI++ )	
+	for( int delI = 0; delI < delete_files.size(); delI++ )	
 		boost::filesystem::remove( delete_files[delI] );
 
 	new_matches.insert( new_matches.end(), gap_list.begin(), gap_list.end() );
@@ -952,11 +939,12 @@ public:
 	MatchLeftEndComparator( unsigned seq = 0 ){
 		m_seq = seq;
 	}
+	// Added 'const' to the argument type
 	MatchLeftEndComparator( const MatchLeftEndComparator& msc ){
 		m_seq = msc.m_seq;
 	}
 	// TODO??  make this do a wraparound comparison if all is equal?
-	bool operator()(const AbstractMatch* a, const AbstractMatch* b) const{
+	boolean operator()(const AbstractMatch* a, const AbstractMatch* b) const{
 		int32 start_diff = max( a->FirstStart(), m_seq ) - max( b->FirstStart(), m_seq );
 		if(start_diff == 0){
 			uint32 m_count = a->SeqCount();
@@ -1001,7 +989,7 @@ void transposeMatches( MatchList& mlist, uint seqI, const vector< int64 >& seq_r
 		int64 iv_orig_start = trans_start;
 		if( trans_start == 0 )
 			continue;
-		while( (int64)region_sum < absolut( trans_start ) && regionI + 2 < seq_regions.size() ){
+		while( region_sum < absolut( trans_start ) && regionI + 2 < seq_regions.size() ){
 			regionI += 2;
 			region_start_sum = region_sum;
 			region_sum += seq_regions[ regionI + 1 ] - seq_regions[ regionI ];
@@ -1019,11 +1007,10 @@ void transposeMatches( MatchList& mlist, uint seqI, const vector< int64 >& seq_r
 		
 		// this bad boy may need to be split
 		gnSeqI end_region_sum = region_sum;
-		
 		gnSeqI end_prev_sum = region_start_sum;
 		uint end_regionI = regionI;
 		Match* cur_match = mlist[ matchI ];
-		while( (int64)end_region_sum < absolut( trans_end ) && end_regionI + 2 < seq_regions.size() ){
+		while( end_region_sum < absolut( trans_end ) && end_regionI + 2 < seq_regions.size() ){
 			end_regionI += 2;
 
 			Match* left_match = new Match( *cur_match );
@@ -1089,12 +1076,12 @@ void ComputeLCBs( MatchList& meml, set<uint>& breakpoints, vector<MatchList>& lc
 	}
 }
 
-void Aligner::Recursion( MatchList& r_list, Match* r_begin, Match* r_end, bool nway_only ){
+void Aligner::Recursion( MatchList& r_list, Match* r_begin, Match* r_end, boolean nway_only ){
 	try{
 	gnSeqI gap_size = 0;
 	uint seqI = 0;
 //	gnSeqI min_gap_size = 0;
-	bool create_ok = true;
+	boolean create_ok = true;
 	// create gnSequences for each intervening region
 	// create a MatchList for the intervening region
 	MatchList gap_list;
@@ -1129,7 +1116,7 @@ void Aligner::Recursion( MatchList& r_list, Match* r_begin, Match* r_end, bool n
 		}
 		int64 diff = gap_end - gap_start;
 		diff = 0 < diff ? diff : 0;
-		gap_size = static_cast<gnSeqI>(diff) < gap_size ? gap_size : static_cast<gnSeqI>(diff);
+		gap_size = diff < gap_size ? gap_size : diff;
 
 		if( gap_start == 0 )
 			cerr << "scheiss\n";
@@ -1137,7 +1124,7 @@ void Aligner::Recursion( MatchList& r_list, Match* r_begin, Match* r_end, bool n
 		if( debug )
 			cout << r_list.seq_table[ seqI ]->length() << endl;
 
-		if( static_cast<gnSeqI>(diff) < min_recursive_gap_length )
+		if( diff < min_recursive_gap_length )
 			below_cutoff_count++;
 		starts.push_back( gap_start );
 		gnSequence* new_seq = new gnSequence( r_list.seq_table[ seqI ]->subseq( gap_start, diff ) );
@@ -1164,7 +1151,7 @@ void Aligner::Recursion( MatchList& r_list, Match* r_begin, Match* r_end, bool n
 		vector< uint > search_seqs;
 		while( mer_iter != mer_sizes.end() ){
 			uint prev_mer = mer_iter->first;
-			[[maybe_unused]] uint new_seqs = 0;
+			uint new_seqs = 0;
 			while( true ){
 				if( mer_iter->first < MIN_DNA_SEED_WEIGHT )
 					break;
@@ -1250,7 +1237,7 @@ void Aligner::Recursion( MatchList& r_list, Match* r_begin, Match* r_end, bool n
 			// move all the matches that were found
 			vector< Match* >::iterator mum_iter = gap_list.begin();
 			for( ; mum_iter != gap_list.end(); ){
-				bool add_ok = true;
+				boolean add_ok = true;
 				for( uint seqI = 0; seqI < (*mum_iter)->SeqCount(); ++seqI ){
 					int64 gap_start;
 					if( (*mum_iter)->Start( seqI ) == NO_MATCH )
@@ -1311,12 +1298,12 @@ void AlignLCBInParallel( bool collinear_genomes, mems::GappedAligner* gal, Match
 		iv.SetMatches( mlist );
 		return;
 	}
-	
+	size_t galI = 0;
 	vector<GappedAlignment*> gapped_alns(mlist.size()+1, NULL);
 	vector<int> success(gapped_alns.size(), 0);
 	gnSeqI progress_base = apt.cur_leftend;
 //#pragma omp parallel for
-	for( size_t mI = 0; mI < mlist.size()-1; mI++ )
+	for( int mI = 0; mI < mlist.size()-1; mI++ )
 	{
 		// align the region between mI and mI+1
 		GappedAlignment ga(mlist.seq_table.size(),0);
@@ -1329,7 +1316,7 @@ void AlignLCBInParallel( bool collinear_genomes, mems::GappedAligner* gal, Match
 		{
 			// update and print progress
 			int done = 0;
-			for( size_t i = 0; i < gapped_alns.size(); i++ )
+			for( int i = 0; i < gapped_alns.size(); i++ )
 				if(gapped_alns[i] != NULL)
 					done++;
 //#pragma omp critical
@@ -1389,7 +1376,7 @@ void Aligner::AlignLCB( MatchList& mlist, Interval& iv ){
 	}
 
 	vector< AbstractMatch* > iv_matches;
-	bool debug_recurse = false;
+	boolean debug_recurse = false;
 	int64 config_value = 138500;
 	int print_interval = 50;
 	try{
@@ -1414,9 +1401,9 @@ void Aligner::AlignLCB( MatchList& mlist, Interval& iv ){
 		cout << "Assuming collinear genomes...\n";
 	
 	uint memI = 0;
-	
+	uint matchI = 0;
 	while( true ){
-		if( (memI >= (uint)print_interval && memI % (uint)print_interval == 0) || debug)
+		if( memI >= print_interval && memI % print_interval == 0 || debug)
 			cout << "Number: " << memI << " match " << **recurse_prev << endl;
 		++memI;
 		if( debug_recurse ){
@@ -1435,7 +1422,7 @@ void Aligner::AlignLCB( MatchList& mlist, Interval& iv ){
 		// and add them to r_list		
 		r_list.clear();
 		GappedAlignment* cr = NULL;
-		bool align_success = false;
+		boolean align_success = false;
 		
 		Match* r_lend = NULL;
 		Match* r_rend = NULL;
@@ -1488,8 +1475,8 @@ void Aligner::SearchWithinLCB( MatchList& mlist, std::vector< search_cache_t >& 
 	if( !(leftmost || rightmost) && mlist.size() < 2 )
 		return;
 
-	bool debug_recurse = false;
-	
+	boolean debug_recurse = false;
+	int64 config_value = 138500;
 	int print_interval = 50;
 
 	try{
@@ -1506,7 +1493,7 @@ void Aligner::SearchWithinLCB( MatchList& mlist, std::vector< search_cache_t >& 
 	uint memI = 0;
 	uint matchI = 0;
 	while( recurse_prev != match_list.end() ){
-		if( (memI >= (uint)print_interval && memI % (uint)print_interval == 0) || debug)
+		if( memI >= print_interval && memI % print_interval == 0 || debug)
 			cout << "Number: " << memI << " match " << **recurse_prev << endl;
 		++memI;
 		if( debug_recurse ){
@@ -1635,7 +1622,7 @@ int64 greedyBreakpointElimination( gnSeqI minimum_weight, vector< LCB >& adjacen
 	gnSeqI prev_min_weight = 0;
 	uint min_lcb = 0;
 	uint lcb_count = adjacencies.size();
-	bool debug_bp_elimination = false;
+	boolean debug_bp_elimination = false;
 	uint current_lcbI = 0;	/**< tracks how many of the LCBs are above the min weight */
 
 	if( adjacencies.size() == 0 )
@@ -1653,11 +1640,11 @@ int64 greedyBreakpointElimination( gnSeqI minimum_weight, vector< LCB >& adjacen
 
 			// start with current_lcbI since everything up to it has already been scanned
 			for( lcbI = current_lcbI; lcbI < weights.size(); lcbI++ ){
-				if( adjacencies[ lcbI ].lcb_id != (int)adjacencies[ lcbI ].lcb_id ){
+				if( adjacencies[ lcbI ].lcb_id != lcbI ){
 					// this lcb has been removed or merged with another lcb
 					continue;
 				}
-				if( weights[ lcbI ] < (int64)min_weight || !have_weight ){
+				if( weights[ lcbI ] < min_weight || !have_weight ){
 					min_weight = weights[ lcbI ];
 					min_lcb = lcbI;
 					have_weight = true;
@@ -1701,21 +1688,21 @@ int64 greedyBreakpointElimination( gnSeqI minimum_weight, vector< LCB >& adjacen
 			left_adj = adjacencies[ lcbI ].left_adjacency[ seqI ];
 			right_adj = adjacencies[ lcbI ].right_adjacency[ seqI ];
 			if( debug_bp_elimination ){
-				if( left_adj == (uint)-2 || right_adj == (uint)-2 ){
+				if( left_adj == -2 || right_adj == -2 ){
 					cerr << "improper linking\n";
 				}
 				// for debugging, check for consistency:
-				if( left_adj != (uint)-1 && adjacencies[ left_adj ].right_adjacency[ seqI ] != lcbI )
+				if( left_adj != -1 && adjacencies[ left_adj ].right_adjacency[ seqI ] != lcbI )
 					cerr << "Mutiny on the bounty!\n";
 				// for debugging, check for consistency
 				if( right_adj == adjacencies.size() )
 					cerr << "Horrible Error -399a\n";
-				if( right_adj != (uint)-1 && adjacencies[ right_adj ].left_adjacency[ seqI ] != lcbI )
+				if( right_adj != -1 && adjacencies[ right_adj ].left_adjacency[ seqI ] != lcbI )
 					cerr << "Mutiny on the bounty!\n";
 			}
-			if( left_adj != (uint)-1 )
+			if( left_adj != -1 )
 				adjacencies[ left_adj ].right_adjacency[ seqI ] = right_adj;
-			if( right_adj != (uint)-1 && right_adj != adjacencies.size() )
+			if( right_adj != -1 && right_adj != adjacencies.size() )
 				adjacencies[ right_adj ].left_adjacency[ seqI ] = left_adj;
 			
 		}
@@ -1726,31 +1713,31 @@ int64 greedyBreakpointElimination( gnSeqI minimum_weight, vector< LCB >& adjacen
 		for( seqI = 0; seqI < seq_count; seqI++ ){
 			left_adj = adjacencies[ lcbI ].left_adjacency[ seqI ];
 			right_adj = adjacencies[ lcbI ].right_adjacency[ seqI ];
-			if( left_adj == (uint)-1 || right_adj == (uint)-1 )
+			if( left_adj == -1 || right_adj == -1 )
 				continue;	// can't collapse with a non-existant LCB!
 
 			if( debug_bp_elimination ){
 				if( right_adj == adjacencies.size() )
 					cerr << "Horrible Error -399a\n";
 				// check whether this LCB has already been merged
-				if( left_adj != (uint)adjacencies[ left_adj ].lcb_id ||
-					right_adj != (uint)adjacencies[ right_adj ].lcb_id ){
+				if( left_adj != adjacencies[ left_adj ].lcb_id ||
+					right_adj != adjacencies[ right_adj ].lcb_id ){
 					// because adjacency pointers are always updated to point to the 
 					// representative entry of an LCB, the lcb_id and the array index
 					// should always be identical
 					cerr << "improper linking\n";
 					continue;
 				}
-				if( left_adj == (uint)-2 || right_adj == (uint)-2 ){
+				if( left_adj == -2 || right_adj == -2 ){
 					cerr << "improper linking\n";
 				}
 			}
 
 			// check whether the two LCBs are adjacent in each sequence
-			bool orientation = adjacencies[ left_adj ].left_end[ seqI ] > 0 ? true : false;
+			boolean orientation = adjacencies[ left_adj ].left_end[ seqI ] > 0 ? true : false;
 			uint seqJ;
 			for( seqJ = 0; seqJ < seq_count; seqJ++ ){
-				bool j_orientation = adjacencies[ left_adj ].left_end[ seqJ ] > 0;
+				boolean j_orientation = adjacencies[ left_adj ].left_end[ seqJ ] > 0;
 				if( j_orientation == orientation &&
 					adjacencies[ left_adj ].right_adjacency[ seqJ ] != right_adj )
 					break;
@@ -1758,7 +1745,7 @@ int64 greedyBreakpointElimination( gnSeqI minimum_weight, vector< LCB >& adjacen
 					adjacencies[ left_adj ].left_adjacency[ seqJ ] != right_adj )
 					break;
 				// check that they are both in the same orientation
-				if( (adjacencies[ right_adj ].left_end[ seqJ ] > 0) != j_orientation )
+				if( adjacencies[ right_adj ].left_end[ seqJ ] > 0 != j_orientation )
 					break;
 			}
 
@@ -1776,7 +1763,7 @@ int64 greedyBreakpointElimination( gnSeqI minimum_weight, vector< LCB >& adjacen
 			// unlink right_adj from the adjacency list and
 			// update left and right ends of left_adj
 			for( seqJ = 0; seqJ < seq_count; seqJ++ ){
-				bool j_orientation = adjacencies[ left_adj ].left_end[ seqJ ] > 0;
+				boolean j_orientation = adjacencies[ left_adj ].left_end[ seqJ ] > 0;
 				uint rr_adj = adjacencies[ right_adj ].right_adjacency[ seqJ ];
 				uint rl_adj = adjacencies[ right_adj ].left_adjacency[ seqJ ];
 				if( j_orientation == orientation ){
@@ -1784,14 +1771,14 @@ int64 greedyBreakpointElimination( gnSeqI minimum_weight, vector< LCB >& adjacen
 					adjacencies[ left_adj ].right_adjacency[ seqJ ] = rr_adj;
 					if( rr_adj == adjacencies.size() )
 						cerr << "Horrible Error -399a\n";
-					if( rr_adj != (uint)-1 )
+					if( rr_adj != -1 )
 						adjacencies[ rr_adj ].left_adjacency[ seqJ ] = left_adj;
 				}else{
 					adjacencies[ left_adj ].left_end[ seqJ ] = adjacencies[ right_adj ].left_end[ seqJ ];
 					adjacencies[ left_adj ].left_adjacency[ seqJ ] = rl_adj;
 					if( rl_adj == adjacencies.size() )
 						cerr << "Horrible Error -399a\n";
-					if( rl_adj != (uint)-1 )
+					if( rl_adj != -1 )
 						adjacencies[ rl_adj ].right_adjacency[ seqJ ] = left_adj;
 				}
 				// update lcbI's adjacency links to point nowhere
@@ -1833,7 +1820,7 @@ void filterMatches( vector< LCB >& adjacencies, vector< MatchList >& lcb_list, v
 	vector< MatchList > filtered_lcbs = vector< MatchList >( lcb_list.size(), lcb_tmp );
 	uint lcbI;
 	for( lcbI = 0; lcbI < adjacencies.size(); lcbI++ ){
-		if( adjacencies[ lcbI ].lcb_id == (int)adjacencies[ lcbI ].lcb_id ){
+		if( adjacencies[ lcbI ].lcb_id == lcbI ){
 			filtered_lcbs[ lcbI ].insert( filtered_lcbs[ lcbI ].end(), lcb_list[ lcbI ].begin(), lcb_list[ lcbI ].end() );
 			continue;
 		}
@@ -1849,10 +1836,10 @@ void filterMatches( vector< LCB >& adjacencies, vector< MatchList >& lcb_list, v
 		stack< uint > visited_lcbs;
 		visited_lcbs.push( lcbI );
 		uint cur_lcb = adjacencies[ lcbI ].lcb_id;
-		while( adjacencies[ cur_lcb ].lcb_id != (int)adjacencies[ cur_lcb ].lcb_id ){
+		while( adjacencies[ cur_lcb ].lcb_id != cur_lcb ){
 			visited_lcbs.push( cur_lcb );
 			cur_lcb = adjacencies[ cur_lcb ].lcb_id;
-			if( cur_lcb == (uint)-1 || cur_lcb == (uint)-2 ){
+			if( cur_lcb == -1 || cur_lcb == -2 ){
 //				cerr << "improper hoodidge\n";
 				break;	// this one points to an LCB that got deleted
 			}
@@ -1862,7 +1849,7 @@ void filterMatches( vector< LCB >& adjacencies, vector< MatchList >& lcb_list, v
 			visited_lcbs.pop();
 		}
 		// add this LCB's matches to the target LCB.
-		if( cur_lcb != (uint)-1 && cur_lcb != (uint)-2 )
+		if( cur_lcb != -1 && cur_lcb != -2 )
 			filtered_lcbs[ cur_lcb ].insert( filtered_lcbs[ cur_lcb ].end(), lcb_list[ lcbI ].begin(), lcb_list[ lcbI ].end() );
 	}
 
@@ -1905,18 +1892,18 @@ void Aligner::WritePermutation( vector< LCB >& adjacencies, std::string out_file
 		cerr << "Error opening " << out_filename << endl;
 		return;
 	}
-	for( uint32 seqI = 0; seqI < seq_count; seqI++ )
+	for( int seqI = 0; seqI < seq_count; seqI++ )
 	{
 		// find the left-most LCB in this genome
-		size_t left_lcb = 0;
+		int left_lcb = 0;
 		for( ; left_lcb < adjacencies.size(); left_lcb++ )
 		{
 			uint left_adj = adjacencies[left_lcb].left_adjacency[seqI];
-			if( left_adj == static_cast<uint>(-1) )
+			if( left_adj == -1 )
 				break;
 		}
 		// write out lcb id's in order
-		for( size_t lcbI = left_lcb; lcbI < adjacencies.size(); )
+		for( uint lcbI = left_lcb; lcbI < adjacencies.size(); )
 		{
 			if( lcbI != left_lcb )
 				permutation_out << '\t';
@@ -1962,7 +1949,7 @@ void WritePermutationCoordinates( IntervalList& perm_iv_list, std::string out_fi
 	}
 }
 
-void Aligner::RecursiveAnchorSearch( MatchList& mlist, gnSeqI minimum_weight, vector< MatchList >& LCB_list, bool entire_genome, ostream* status_out ){
+void Aligner::RecursiveAnchorSearch( MatchList& mlist, gnSeqI minimum_weight, vector< MatchList >& LCB_list, boolean entire_genome, ostream* status_out ){
 
 //
 // Step 4) Identify regions of collinearity (LCBs) among the remaining n-way multi-MUMs
@@ -1990,7 +1977,7 @@ void Aligner::RecursiveAnchorSearch( MatchList& mlist, gnSeqI minimum_weight, ve
 
 	computeLCBAdjacencies_v2( LCB_list, weights, adjacencies );
 
-	uint cur_extension_round = 0;
+	int cur_extension_round = 0;
 	int64 total_weight = 0;
 	int64 prev_total_weight = 0;
 	weightI = 0;
@@ -2040,7 +2027,7 @@ void Aligner::RecursiveAnchorSearch( MatchList& mlist, gnSeqI minimum_weight, ve
 					if( prev_extension_weight > extension_weight ){
 						cerr << "Error! Previous weight: " << prev_extension_weight << " new weight: " << extension_weight << endl;
 					}
-				}while( extension_weight > prev_extension_weight && local_round < (int)this->max_extension_iters);
+				}while( extension_weight > prev_extension_weight && local_round < this->max_extension_iters);
 			}
 			swap( prev_iv_regions, cur_iv_regions );
 		}
@@ -2051,13 +2038,13 @@ void Aligner::RecursiveAnchorSearch( MatchList& mlist, gnSeqI minimum_weight, ve
 			for( lcbI = 0; lcbI < LCB_list.size(); lcbI++ ){
 //				if( status_out )
 //					*status_out << "Searching in LCB: " << lcbI << endl;
-				[[maybe_unused]] int prev_size = LCB_list[ lcbI ].size();
+				int prev_size = LCB_list[ lcbI ].size();
 				bool leftmost = true;
-				for( int i = 0; leftmost && i < (int)adjacencies[lcbI].left_adjacency.size(); i++ )
+				for( int i = 0; leftmost && i < adjacencies[lcbI].left_adjacency.size(); i++ )
 					if(adjacencies[lcbI].left_adjacency[i] != NO_ADJACENCY)
 						leftmost = false;
 				bool rightmost = true;
-				for( int i = 0; rightmost && i < (int)adjacencies[lcbI].right_adjacency.size(); i++ )
+				for( int i = 0; rightmost && i < adjacencies[lcbI].right_adjacency.size(); i++ )
 					if(adjacencies[lcbI].right_adjacency[i] != NO_ADJACENCY)
 						rightmost = false;
 				SearchWithinLCB( LCB_list[ lcbI ], new_cache, leftmost, rightmost );
@@ -2135,7 +2122,7 @@ void Aligner::RecursiveAnchorSearch( MatchList& mlist, gnSeqI minimum_weight, ve
 				IntervalList perm_iv_list;
 				perm_iv_list.seq_filename = mlist.seq_filename;
 				perm_iv_list.seq_table = mlist.seq_table;
-				for( size_t permI = 0; permI < LCB_list.size(); permI++ ){
+				for( int permI = 0; permI < LCB_list.size(); permI++ ){
 					vector< AbstractMatch* > perm_vector;
 					perm_vector.push_back( LCB_list[permI].front() );
 					if( LCB_list[permI].size() > 1 )
@@ -2150,7 +2137,7 @@ void Aligner::RecursiveAnchorSearch( MatchList& mlist, gnSeqI minimum_weight, ve
 				// increment the current weight
 				cur_perm_weight = *min_w + seq_count;
 			}
-		}while( cur_perm_weight < (int64)minimum_weight );
+		}while( cur_perm_weight < minimum_weight );
 		// only enable recursive anchor search once we achieve
 		// the desired weight threshold once -- for speed's sake
 		if( recursive && entire_genome ){
@@ -2204,7 +2191,7 @@ void Aligner::RecursiveAnchorSearch( MatchList& mlist, gnSeqI minimum_weight, ve
  * 
  */
 
-void Aligner::align( MatchList& mlist, IntervalList& interval_list, double LCB_minimum_density, double LCB_minimum_range, bool recursive, bool extend_lcbs, bool gapped_alignment, string tree_filename ){
+void Aligner::align( MatchList& mlist, IntervalList& interval_list, double LCB_minimum_density, double LCB_minimum_range, boolean recursive, boolean extend_lcbs, boolean gapped_alignment, string tree_filename ){
 	seq_count = mlist.seq_table.size();
 	this->LCB_minimum_density = LCB_minimum_density;
 	this->LCB_minimum_range = LCB_minimum_range;

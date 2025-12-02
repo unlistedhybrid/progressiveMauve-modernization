@@ -48,9 +48,9 @@ using namespace genome;
 namespace mems {
 
 
-bool progress_msgs = false;
+boolean progress_msgs = false;
 
-bool debug_me = false;
+boolean debug_me = false;
 static int dbg_count = 0; 	 
 
 
@@ -68,13 +68,13 @@ void mergeUnalignedIntervals( uint seqI, vector< Interval* >& iv_list, vector< I
  * Test code to ensure that an individual LCB is truly collinear
  * @return	true if the LCB is good
  */
-bool my_validateLCB( MatchList& lcb ){
+boolean my_validateLCB( MatchList& lcb ){
 	vector< Match* >::iterator lcb_iter = lcb.begin();
 	if( lcb.size() == 0 )
 		return true;
 	uint seq_count = (*lcb_iter)->SeqCount();
 	uint seqI = 0;
-	bool complain = false;
+	boolean complain = false;
 	for(; seqI < seq_count; seqI++ ){
 		lcb_iter = lcb.begin();
 		int64 prev_coord = 0;
@@ -163,7 +163,7 @@ void ProgressiveAligner::getAlignedChildren( node_id_t node, vector< node_id_t >
 	// do a depth first search along edges that have been aligned
 	stack< node_id_t > node_stack;
 	node_stack.push( node );
-	vector< bool > visited( alignment_tree.size(), false );
+	vector< boolean > visited( alignment_tree.size(), false );
 	descendants.clear();
 	while( node_stack.size() > 0 )
 	{
@@ -189,7 +189,7 @@ void ProgressiveAligner::getPath( node_id_t first_n, node_id_t last_n, vector< n
 	// do a depth first search along edges that have been aligned
 	stack< node_id_t > node_stack;
 	node_stack.push( last_n );
-	vector< bool > visited( alignment_tree.size(), false );
+	vector< boolean > visited( alignment_tree.size(), false );
 	while( node_stack.top() != first_n )
 	{
 		node_id_t cur_node = node_stack.top();
@@ -451,7 +451,7 @@ void ProgressiveAligner::translateGappedCoordinates( vector<AbstractMatch*>& ml,
 			CompactGappedAlignment<>* siv_cga = dynamic_cast<CompactGappedAlignment<>*>(siv_list[sivI].reference_iv.GetMatches()[0]);
 			if( siv_list[sivI].reference_iv.GetMatches().size() > 1 )
 				siv_cga = NULL;
-			bool alloc_new_siv = false;
+			boolean alloc_new_siv = false;
 			CompactGappedAlignment<> tmp_cga;
 			if( siv_cga == NULL )
 			{
@@ -465,7 +465,7 @@ void ProgressiveAligner::translateGappedCoordinates( vector<AbstractMatch*>& ml,
 			for( size_t mI = 0; mI < siv_matches[sivI].size(); mI++ )
 			{
 				CompactGappedAlignment<>* match_cga = dynamic_cast<CompactGappedAlignment<>*>(siv_matches[sivI][mI]);
-				bool alloc_new = false;
+				boolean alloc_new = false;
 				if( match_cga == NULL )
 				{
 					match_cga = tmp_cga.Copy();
@@ -519,7 +519,7 @@ void ProgressiveAligner::translateGappedCoordinates( vector<AbstractMatch*>& ml,
 class SuperIntervalPtrComp
 {
 public:
-	bool operator()( const SuperInterval* a, const SuperInterval* b )
+	boolean operator()( const SuperInterval* a, const SuperInterval* b )
 	{
 		return (*a) < (*b);
 	}
@@ -562,7 +562,7 @@ void ProgressiveAligner::recursiveApplyAncestralBreakpoints( node_id_t ancestor 
 }
 
 
-bool getInterveningCoordinates( const AbstractMatch* iv, uint oseqI, Match* r_begin, Match* r_end, uint seqI, int64& gap_lend, int64& gap_rend ){
+boolean getInterveningCoordinates( const AbstractMatch* iv, uint oseqI, Match* r_begin, Match* r_end, uint seqI, int64& gap_lend, int64& gap_rend ){
 	// skip this sequence if it's undefined
 	if( (r_end != NULL && r_end->Start( seqI ) == NO_MATCH) ||
 		(r_begin != NULL && r_begin->Start( seqI ) == NO_MATCH) ){
@@ -604,7 +604,7 @@ void ProgressiveAligner::pairwiseAnchorSearch( MatchList& r_list, Match* r_begin
 
 		starts.push_back( gap_start );
 		gnSequence* new_seq = NULL;
-		if(diff > 0 && static_cast<gnSeqI>(gap_start + diff - 1) <= r_list.seq_table[ seqI ]->length())
+		if(diff > 0 && gap_start + diff - 1 <= r_list.seq_table[ seqI ]->length())
 			new_seq = new gnSequence( r_list.seq_table[ seqI ]->ToString( diff, gap_start ) );
 		else
 			new_seq = new gnSequence();
@@ -693,7 +693,7 @@ void ProgressiveAligner::recurseOnPairs( const vector<node_id_t>& node1_seqs, co
 			node_pairs[nni++] = make_pair(n1,n2);
 
 #pragma omp parallel for
-	for(size_t ni = 0; ni < node_pairs.size(); ni++)
+	for(int ni = 0; ni < node_pairs.size(); ni++)
 	{
 		size_t n1 = node_pairs[ni].first;
 		size_t n2 = node_pairs[ni].second;
@@ -837,7 +837,7 @@ void ProgressiveAligner::recurseOnPairs( const vector<node_id_t>& node1_seqs, co
 		charJ = 0;
 		gnSeqI prev_charI = 0;
 		gnSeqI prev_charJ = 0;
-		bool in_gap = false;
+		boolean in_gap = false;
 
 		for( uint colI = 0; colI <= iv_aln_length; colI++ )
 		{
@@ -1047,37 +1047,17 @@ void splitGappedAlignment( const GappedAlignment& ga, GappedAlignment& ga1, Gapp
 		ga1.SetLeftEnd(seqs2[seqI], NO_MATCH);
 }
 
-void removeLargeGapsPP( GappedAlignment& gal, list< GappedAlignment* >& gal_list, vector<bool>& gap_iv, const vector< size_t >& group1, const vector< size_t >& group2 )
+void removeLargeGapsPP( GappedAlignment& gal, list< GappedAlignment* >& gal_list, vector<boolean>& gap_iv, const vector< size_t >& group1, const vector< size_t >& group2 )
 {
-	cerr << "DEBUG: removeLargeGapsPP called with gal.SeqCount()=" << gal.SeqCount() << ", gal.AlignmentLength()=" << gal.AlignmentLength() << endl;
-	cerr << "DEBUG: group1.size()=" << group1.size() << ", group2.size()=" << group2.size() << endl;
-	cerr << "DEBUG: group1 indices: ";
-	for( size_t i = 0; i < group1.size(); ++i )
-		cerr << group1[i] << " ";
-	cerr << endl;
-	cerr << "DEBUG: group2 indices: ";
-	for( size_t i = 0; i < group2.size(); ++i )
-		cerr << group2[i] << " ";
-	cerr << endl;
-	
 	// scan through and remove any section where members of group1 aren't aligned to members of group2
 	// for more than some number of nucleotides
 	gap_iv.clear();
 	gal_list.clear();
 	const vector< string >& aln_matrix = GetAlignment(gal, vector<gnSequence*>(gal.SeqCount(),NULL));
-	
-	cerr << "DEBUG: aln_matrix.size()=" << aln_matrix.size() << endl;
-	if( aln_matrix.size() > 0 )
-		cerr << "DEBUG: aln_matrix[0].size()=" << aln_matrix[0].size() << endl;
-	
 	size_t gap_cols = 0;
 	size_t last_aln_col = (std::numeric_limits<size_t>::max)();
 	size_t col_base = 0;
 	GappedAlignment* galp = gal.Copy();
-	
-	size_t aligned_col_count = 0;
-	size_t gap_segment_count = 0;
-	
 	for( size_t colI = 0; colI < gal.AlignmentLength(); colI++ )
 	{
 		 size_t g1 = 0;
@@ -1095,11 +1075,9 @@ void removeLargeGapsPP( GappedAlignment& gal, list< GappedAlignment* >& gal_list
 		 if( g1 < group1.size() && g2 < group2.size() )
 		 {
 			 // it's an aligned col
-			 aligned_col_count++;
 			 if( gap_cols > max_gap_length )
 			 {
 				// crop out the middle gapped section
-				gap_segment_count++;
 				gnSeqI split_point = 0;
 				if( last_aln_col != (std::numeric_limits<size_t>::max)() )
 				{
@@ -1135,21 +1113,15 @@ void removeLargeGapsPP( GappedAlignment& gal, list< GappedAlignment* >& gal_list
 	}else
 		gap_iv.push_back(false);
 	gal_list.push_back( galp );
-	
-	cerr << "DEBUG: removeLargeGapsPP results: aligned_col_count=" << aligned_col_count << ", gap_segment_count=" << gap_segment_count << ", final gal_list.size()=" << gal_list.size() << endl;
-	cerr << "DEBUG: gap_iv values: ";
-	for( size_t i = 0; i < gap_iv.size(); ++i )
-		cerr << gap_iv[i] << " ";
-	cerr << endl;
 }
 
-void ProgressiveAligner::refineAlignment( GappedAlignment& gal, node_id_t ancestor, bool profile_aln, AlnProgressTracker& apt )
+void ProgressiveAligner::refineAlignment( GappedAlignment& gal, node_id_t ancestor, boolean profile_aln, AlnProgressTracker& apt )
 {
 	// divide the gapped alignment up into windows of a given size and have
 	// muscle refine the alignments
 	// when anchors are dense use smaller windows to improve speed efficiency
 	list< GappedAlignment* > gal_list;
-	vector<bool> gap_iv;
+	vector<boolean> gap_iv;
 	std::vector<node_id_t> nodes1;
 	std::vector<node_id_t> nodes2;
 	getAlignedChildren( alignment_tree[ancestor].children[0], nodes1 );
@@ -1168,7 +1140,7 @@ void ProgressiveAligner::refineAlignment( GappedAlignment& gal, node_id_t ancest
 //		gap_iv.push_back(false);
 //	}
 	list< GappedAlignment* >::iterator gal_iter = gal_list.begin();
-	vector<bool>::iterator gap_iter = gap_iv.begin();
+	vector<boolean>::iterator gap_iter = gap_iv.begin();
 	while(gal_iter != gal_list.end())
 	{
 		int density = IsDenseEnough( *gal_iter );
@@ -1185,7 +1157,7 @@ void ProgressiveAligner::refineAlignment( GappedAlignment& gal, node_id_t ancest
 			++ins_iter;
 //			ins_iter = gal_list.insert(ins_iter, new GappedAlignment(**gal_iter) );
 			ins_iter = gal_list.insert(ins_iter, (*gal_iter)->Copy());
-			vector<bool>::iterator gap_ins_iter = gap_iter;
+			vector<boolean>::iterator gap_ins_iter = gap_iter;
 			size_t gap_off = gap_iter - gap_iv.begin();
 			++gap_ins_iter;
 			gap_iv.insert( gap_ins_iter, *gap_iter );
@@ -1208,67 +1180,34 @@ void ProgressiveAligner::refineAlignment( GappedAlignment& gal, node_id_t ancest
 // this section can not be paralellized b/c it makes calls to muscle
 #pragma omp critical
 {
-	cerr << "DEBUG: refineAlignment processing " << gal_count << " gapped alignments" << endl;
-	for( size_t galI = 0; galI < static_cast<size_t>(gal_count); galI++ )
+	for( int galI = 0; galI < gal_count; galI++ )
 	{
-		cerr << "DEBUG: Processing gapped alignment " << galI << " of " << gal_count << endl;
 		list<GappedAlignment*>::iterator my_g_iter = gal_list.begin();
-		vector<bool>::iterator my_b_iter = gap_iv.begin();
+		vector<boolean>::iterator my_b_iter = gap_iv.begin();
 		for(uint a = 0; a < galI; a++)
 		{
 			++my_g_iter;
 			++my_b_iter;
 		}
 		apt.cur_leftend += (*my_g_iter)->AlignmentLength();
-		cerr << "DEBUG: profile_aln=" << profile_aln << ", gap_iv=" << (*my_b_iter) << endl;
 		if( profile_aln && !(*my_b_iter) )
 		{
-			cerr << "DEBUG: Calling splitGappedAlignment" << endl;
 			GappedAlignment ga1;
 			GappedAlignment ga2;
 			splitGappedAlignment( **my_g_iter, ga1, ga2, seqs1, seqs2 );
-			cerr << "DEBUG: splitGappedAlignment completed, ga1.Multiplicity()=" << ga1.Multiplicity() << ", ga2.Multiplicity()=" << ga2.Multiplicity() << endl;
-			// ProfileAlign requires both profiles to have multiple sequences
-			// If either has only 1 sequence, use regular refinement instead
-			if( ga1.Multiplicity() > 1 && ga2.Multiplicity() > 1 )
+			if( ga1.Multiplicity() > 0 && ga2.Multiplicity() > 0 )
 			{
-				cerr << "DEBUG: Calling ProfileAlignFast" << endl;
 				mi.ProfileAlignFast( ga1, ga2, **my_g_iter, true );
-				cerr << "DEBUG: ProfileAlignFast completed" << endl;
-			}
-			else if( ga1.Multiplicity() > 0 && ga2.Multiplicity() > 0 )
-			{
-				cerr << "DEBUG: Skipping ProfileAlignFast (Multiplicity too low)" << endl;
-				cerr << "DEBUG: my_g_iter Multiplicity=" << (*my_g_iter)->Multiplicity() 
-				     << ", AlignmentLength=" << (*my_g_iter)->AlignmentLength() << endl;
-				// Refine the alignment
-				if( (*my_g_iter)->AlignmentLength() > 0 )
-				{
-					int density = IsDenseEnough( *my_g_iter );
-					cerr << "DEBUG: Calling RefineFast with density=" << density << endl;
-					if( density == 0 )
-						mi.RefineFast( **my_g_iter );
-					else if( density == 1 )
-						mi.RefineFast( **my_g_iter, 500 );
-					else
-						mi.RefineFast( **my_g_iter, 200 );
-					cerr << "DEBUG: RefineFast completed" << endl;
-				}
 			}
 		}else if(!(*my_b_iter))
 		{
 			int density = IsDenseEnough( *my_g_iter );
-			cerr << "DEBUG: Regular RefineFast path - Multiplicity=" << (*my_g_iter)->Multiplicity() 
-			     << ", AlignmentLength=" << (*my_g_iter)->AlignmentLength() << endl;
-			cerr << "DEBUG: Calling RefineFast with density=" << density << endl;
-			// Refine the alignment
 			if( density == 0 )
 				mi.RefineFast( **my_g_iter );
 			else if( density == 1 )
 				mi.RefineFast( **my_g_iter, 500 );
 			else
 				mi.RefineFast( **my_g_iter, 200 );
-			cerr << "DEBUG: RefineFast completed" << endl;
 		}
 
 		new_len += (*my_g_iter)->AlignmentLength();
@@ -1299,7 +1238,7 @@ void ProgressiveAligner::refineAlignment( GappedAlignment& gal, node_id_t ancest
 	gal.SetAlignment(aln_matrix);
 }
 
-void ProgressiveAligner::doGappedAlignment( node_id_t ancestor, bool profile_aln )
+void ProgressiveAligner::doGappedAlignment( node_id_t ancestor, boolean profile_aln )
 {
 	AlnProgressTracker apt;
 	gnSeqI total_len = 0;
@@ -1311,15 +1250,8 @@ void ProgressiveAligner::doGappedAlignment( node_id_t ancestor, bool profile_aln
 	printProgress(-1, 0, cout);
 	apt.cur_leftend = 1;
 
-	cerr << "DEBUG: doGappedAlignment starting with " << alignment_tree[ancestor].ordering.size() << " intervals" << endl;
-	cerr << "DEBUG: doGappedAlignment processing " << alignment_tree[ancestor].ordering.size() << " intervals" << endl;
-	
-	size_t original_size = alignment_tree[ancestor].ordering.size();
 	for( size_t aI = 0; aI < alignment_tree[ancestor].ordering.size(); aI++ )
 	{
-		cerr << "DEBUG: === LOOP ITERATION " << aI << " of " << alignment_tree[ancestor].ordering.size() << " ===" << endl;
-		cerr << "DEBUG: original_size=" << original_size << ", current ordering.size()=" << alignment_tree[ancestor].ordering.size() << endl;
-		cerr << "DEBUG: Processing interval " << aI << ", Multiplicity=" << alignment_tree[ancestor].ordering[aI].reference_iv.Multiplicity() << endl;
 		if( alignment_tree[ancestor].ordering[aI].reference_iv.Multiplicity() == 1 )
 		{
 			apt.cur_leftend += alignment_tree[ancestor].ordering[aI].reference_iv.AlignmentLength();
@@ -1328,174 +1260,17 @@ void ProgressiveAligner::doGappedAlignment( node_id_t ancestor, bool profile_aln
 
 //		printMemUsage();
 //		cout << "extract aln\n";
-		cerr << "DEBUG: Calling extractAlignment for interval " << aI << endl;
 		GappedAlignment gal;
 		extractAlignment(ancestor, aI, gal);
-		cerr << "DEBUG: extractAlignment completed, gal.Multiplicity()=" << gal.Multiplicity() << ", gal.SeqCount()=" << gal.SeqCount() << ", gal.AlignmentLength()=" << gal.AlignmentLength() << endl;
-		
-		// Debug: check what's in the alignment
-		if( gal.AlignmentLength() > 0 )
-		{
-			cerr << "DEBUG: gal LeftEnds: ";
-			for( uint seqI = 0; seqI < gal.SeqCount(); ++seqI )
-				cerr << "seq" << seqI << "=" << gal.LeftEnd(seqI) << " ";
-			cerr << endl;
-			
-			// Sample first few columns
-			const vector< string >& aln_mat = GetAlignment(gal, vector<gnSequence*>(gal.SeqCount(), NULL));
-			cerr << "DEBUG: First 50 columns of alignment:" << endl;
-			for( uint seqI = 0; seqI < aln_mat.size() && seqI < gal.SeqCount(); ++seqI )
-			{
-				cerr << "DEBUG:   seq" << seqI << ": " << aln_mat[seqI].substr(0, std::min((size_t)50, aln_mat[seqI].size())) << endl;
-			}
-			
-			// Check if this is actually an unaligned interval
-			// Count aligned columns (where both sequences have non-gap characters)
-			bool needs_initial_alignment = false;
-			if( gal.Multiplicity() > 1 && gal.SeqCount() == 2 )
-			{
-				size_t aligned_cols = 0;
-				size_t sample_size = std::min((size_t)1000, aln_mat[0].size());
-				for( size_t colI = 0; colI < sample_size; ++colI )
-				{
-					bool all_present = true;
-					for( uint seqI = 0; seqI < gal.SeqCount(); ++seqI )
-					{
-						if( gal.LeftEnd(seqI) != NO_MATCH && aln_mat[seqI][colI] == '-' )
-							all_present = false;
-					}
-					if( all_present )
-						aligned_cols++;
-				}
-				
-				// If less than 5% of columns are aligned, this needs initial alignment
-				double aligned_fraction = (double)aligned_cols / (double)sample_size;
-				cerr << "DEBUG: Aligned column fraction in first " << sample_size << " cols: " << aligned_fraction << endl;
-				if( aligned_fraction < 0.05 )
-				{
-					needs_initial_alignment = true;
-					cerr << "DEBUG: Alignment has very few aligned columns, needs initial MUSCLE alignment" << endl;
-				}
-			}
-			
-			if( needs_initial_alignment )
-			{
-				cerr << "DEBUG: Attempting to align unaligned interval" << endl;
-				// Extract the ungapped sequences
-				vector<string> seq_strings;
-				for( uint seqI = 0; seqI < gal.SeqCount(); ++seqI )
-				{
-					if( gal.LeftEnd(seqI) != NO_MATCH )
-					{
-						// Extract ungapped sequence
-						string seq_str;
-						seq_str.reserve(gal.Length(seqI));
-						for( size_t colI = 0; colI < aln_mat[seqI].size(); ++colI )
-						{
-							if( aln_mat[seqI][colI] != '-' )
-								seq_str += aln_mat[seqI][colI];
-						}
-						seq_strings.push_back(seq_str);
-						cerr << "DEBUG: Extracted sequence " << seqI << " length: " << seq_str.length() << endl;
-					}
-					else
-					{
-						seq_strings.push_back("");
-					}
-				}
-				
-				// Try MUSCLE first
-				bool muscle_worked = false;
-				if( seq_strings.size() == 2 && seq_strings[0].length() > 0 && seq_strings[1].length() > 0 )
-				{
-					// Check if sequences are within MUSCLE's limits
-					// MUSCLE can crash on very large sequences due to memory/stack limits
-					const size_t MUSCLE_MAX_LENGTH = 12500;
-					size_t max_seq_len = std::max(seq_strings[0].length(), seq_strings[1].length());
-					
-					if( max_seq_len > MUSCLE_MAX_LENGTH )
-					{
-						cerr << "DEBUG: Sequences too large for MUSCLE (max_len=" << max_seq_len << " > " << MUSCLE_MAX_LENGTH << "), skipping" << endl;
-						muscle_worked = false;
-					}
-					else
-					{
-						try {
-							MuscleInterface& mi = MuscleInterface::getMuscleInterface();
-							vector<string> aligned_strings;
-							cerr << "DEBUG: Attempting MUSCLE alignment on sequences of length " << seq_strings[0].length() << " and " << seq_strings[1].length() << endl;
-							muscle_worked = mi.CallMuscleFast(aligned_strings, seq_strings);
-							
-							if( muscle_worked && aligned_strings.size() == 2 )
-							{
-								cerr << "DEBUG: MUSCLE succeeded, aligned length: " << aligned_strings[0].length() << endl;
-								gal.SetAlignment(aligned_strings);
-							}
-							else
-							{
-								cerr << "DEBUG: MUSCLE returned failure or invalid result" << endl;
-							}
-						}
-						catch(const std::exception& e) {
-							cerr << "DEBUG: MUSCLE threw exception: " << e.what() << endl;
-							muscle_worked = false;
-						}
-						catch(...) {
-							cerr << "DEBUG: MUSCLE threw unknown exception" << endl;
-							muscle_worked = false;
-						}
-					}
-				}
-				
-				// Fall back to simple ungapped alignment if MUSCLE failed
-				if( !muscle_worked )
-				{
-					cerr << "DEBUG: Creating simple ungapped alignment as fallback" << endl;
-					
-					if( seq_strings.size() == 2 && seq_strings[0].length() > 0 && seq_strings[1].length() > 0 )
-					{
-						// Find the maximum length
-						size_t max_len = std::max(seq_strings[0].length(), seq_strings[1].length());
-						
-						// Pad shorter sequence with gaps at the end
-						vector<string> aligned_strings(2);
-						aligned_strings[0] = seq_strings[0];
-						aligned_strings[1] = seq_strings[1];
-						
-						if( aligned_strings[0].length() < max_len )
-							aligned_strings[0].append(max_len - aligned_strings[0].length(), '-');
-						if( aligned_strings[1].length() < max_len )
-							aligned_strings[1].append(max_len - aligned_strings[1].length(), '-');
-						
-						cerr << "DEBUG: Created ungapped alignment length: " << max_len << endl;
-						gal.SetAlignment(aligned_strings);
-					}
-					else
-					{
-						cerr << "WARNING: Cannot create initial alignment - invalid sequences" << endl;
-					}
-				}
-			}
-		}
 //		printMemUsage();
 //		cout << "refine aln\n";
 		if( gal.Multiplicity() > 1 )	// no point in refining intervals that are unaligned anyways
-		{
-			cerr << "DEBUG: Calling refineAlignment for interval " << aI << endl;
 			refineAlignment( gal, ancestor, profile_aln, apt );
-			cerr << "DEBUG: refineAlignment completed" << endl;
-		}
 		else
 			apt.cur_leftend += gal.AlignmentLength();
 //		printMemUsage();
 //		cout << "construct siv\n";
-		cerr << "DEBUG: Calling ConstructSuperIntervalFromMSA for interval " << aI << endl;
-		cerr << "DEBUG: BEFORE ConstructSuperIntervalFromMSA: ordering.size()=" << alignment_tree[ancestor].ordering.size() << endl;
 		ConstructSuperIntervalFromMSA(ancestor, aI, gal);
-		cerr << "DEBUG: AFTER ConstructSuperIntervalFromMSA: ordering.size()=" << alignment_tree[ancestor].ordering.size() << endl;
-		cerr << "DEBUG: ConstructSuperIntervalFromMSA completed" << endl;
-		cerr << "DEBUG: After processing interval " << aI << ", ancestor still has " << alignment_tree[ancestor].ordering.size() << " superintervals" << endl;
-		cerr << "DEBUG: === END LOOP ITERATION " << aI << " ===" << endl << endl;
 //		printMemUsage();
 
 		// print a progress message
@@ -1505,25 +1280,20 @@ void ProgressiveAligner::doGappedAlignment( node_id_t ancestor, bool profile_aln
 	}
 	printMemUsage();
 	cout << "Fix left ends\n";
-	cerr << "DEBUG: Before FixLeftEnds, ancestor has " << alignment_tree[ancestor].ordering.size() << " superintervals" << endl;
 	FixLeftEnds(ancestor);
-	cerr << "DEBUG: After FixLeftEnds, ancestor has " << alignment_tree[ancestor].ordering.size() << " superintervals" << endl;
 	printMemUsage();
 
 	if( debug_aligner )
 		validateSuperIntervals(alignment_tree[ancestor].children[0], alignment_tree[ancestor].children[1], ancestor);
-	cerr << "DEBUG: refineAlignment completed" << endl;
 	cout << "\ndone.\n";
 }
 
 void ProgressiveAligner::FixLeftEnds( node_id_t ancestor )
 {
-	cerr << "DEBUG: FixLeftEnds called for ancestor " << ancestor << endl;
-	cerr << "DEBUG: Ancestor has " << alignment_tree[ancestor].ordering.size() << " superintervals at start" << endl;
 	// fixes all SuperInterval left-end coordinates for nodes below ancestor
 	stack< node_id_t > node_stack;
 	node_stack.push( ancestor );
-	vector<bool> visited( alignment_tree.size(), false );
+	vector<boolean> visited( alignment_tree.size(), false );
 	while( node_stack.size() > 0 )
 	{
 		node_id_t cur_node = node_stack.top();
@@ -1596,8 +1366,6 @@ void ProgressiveAligner::FixLeftEnds( node_id_t ancestor )
 
 		}
 	}
-	cerr << "DEBUG: FixLeftEnds completed for ancestor " << ancestor << endl;
-	cerr << "DEBUG: Ancestor has " << alignment_tree[ancestor].ordering.size() << " superintervals at end" << endl;
 }
 
 /**
@@ -1649,55 +1417,27 @@ void propagateInvert( PhyloTree< AlignmentTreeNode >& alignment_tree, node_id_t 
 
 void ProgressiveAligner::ConstructSuperIntervalFromMSA( node_id_t ancestor, size_t ans_siv, GappedAlignment& gal )
 {
-	cerr << "DEBUG: >>> ConstructSuperIntervalFromMSA called with ancestor=" << ancestor << ", ans_siv=" << ans_siv << endl;
-	cerr << "DEBUG: >>> alignment_tree[" << ancestor << "].ordering.size()=" << alignment_tree[ancestor].ordering.size() << endl;
-	cerr << "DEBUG: >>> gal.SeqCount()=" << gal.SeqCount() << ", gal.AlignmentLength()=" << gal.AlignmentLength() << endl;
-	
 	const vector< string >& aln_matrix = GetAlignment( gal, vector< gnSequence* >() );
-	cerr << "DEBUG: >>> aln_matrix.size()=" << aln_matrix.size() << endl;
-	if(aln_matrix.size() > 0)
-		cerr << "DEBUG: >>> aln_matrix[0].size()=" << aln_matrix[0].size() << endl;
-	
 	stack< pair< node_id_t, size_t > > node_siv_stack;
 	node_siv_stack.push( make_pair(ancestor, ans_siv) );
-	vector<bool> visited( alignment_tree.size(), false );
-	
-	int iteration = 0;
-	cerr << "DEBUG: >>> Starting stack processing loop" << endl;
+	vector<boolean> visited( alignment_tree.size(), false );
 	while( node_siv_stack.size() > 0 )
 	{
-		cerr << "DEBUG: >>> Stack iteration " << iteration++ << ", stack size=" << node_siv_stack.size() << endl;
 		pair< node_id_t, size_t > cur = node_siv_stack.top();
 		node_id_t cur_node = cur.first;
-		size_t cur_siv = cur.second;
-		cerr << "DEBUG: >>> Processing node=" << cur_node << ", siv=" << cur_siv << ", visited=" << visited[cur_node] << endl;
-		
 		// visit post-order
 		if( !visited[cur_node] )
 		{
-			cerr << "DEBUG: >>> First visit to node " << cur_node << endl;
 			if( alignment_tree[cur_node].ordering[cur.second].c1_siv != (std::numeric_limits<size_t>::max)() )
-			{
-				cerr << "DEBUG: >>> Pushing child 0, siv=" << alignment_tree[cur_node].ordering[cur.second].c1_siv << endl;
 				node_siv_stack.push( make_pair( alignment_tree[cur_node].children[0], alignment_tree[cur_node].ordering[cur.second].c1_siv ) );
-			}
 			if( alignment_tree[cur_node].ordering[cur.second].c2_siv != (std::numeric_limits<size_t>::max)() )
-			{
-				cerr << "DEBUG: >>> Pushing child 1, siv=" << alignment_tree[cur_node].ordering[cur.second].c2_siv << endl;
 				node_siv_stack.push( make_pair( alignment_tree[cur_node].children[1], alignment_tree[cur_node].ordering[cur.second].c2_siv ) );
-			}
 			visited[cur_node] = true;
 			continue;
 		}
-		cerr << "DEBUG: >>> Second visit (post-order) to node " << cur_node << endl;
 		node_siv_stack.pop();
 		if( alignment_tree[cur_node].sequence != NULL )
-		{
-			cerr << "DEBUG: >>> Node " << cur_node << " is a leaf, skipping" << endl;
 			continue;	// don't do anything on leaf nodes
-		}
-		
-		cerr << "DEBUG: >>> Processing internal node " << cur_node << ", siv=" << cur_siv << endl;
 
 		// build a super-interval
 		vector< node_id_t > node1_seqs;	/**< the node id's of extant sequences below node 1 */
@@ -1749,7 +1489,7 @@ void ProgressiveAligner::ConstructSuperIntervalFromMSA( node_id_t ancestor, size
 
 		// the alignment may need to be reversed if the aligned parent is reverse
 		size_t p_siv = alignment_tree[cur_node].ordering[cur.second].parent_siv;
-		bool reverse_me = false;
+		boolean reverse_me = false;
 		if( p_siv != (std::numeric_limits<size_t>::max)() )
 		{
 			size_t p_node = alignment_tree[cur_node].parents[0];
@@ -1773,10 +1513,7 @@ void ProgressiveAligner::ConstructSuperIntervalFromMSA( node_id_t ancestor, size
 		// set these to zero so they don't interfere with coordinate translation
 		alignment_tree[cur_node].ordering[cur.second].reference_iv.SetLeftEnd(0, 0);
 		alignment_tree[cur_node].ordering[cur.second].reference_iv.SetLeftEnd(1, 0);
-		cerr << "DEBUG: >>> Finished processing node " << cur_node << ", siv=" << cur_siv << endl;
 	}
-	cerr << "DEBUG: >>> ConstructSuperIntervalFromMSA exiting, alignment_tree[" << ancestor << "].ordering.size()=" << alignment_tree[ancestor].ordering.size() << endl;
-	cerr << "DEBUG: <<< ConstructSuperIntervalFromMSA done" << endl;
 }
 
 typedef boost::tuple<CompactGappedAlignment<>*, vector< bitset_t >*, AbstractMatch* > _sort_tracker_type;
@@ -1786,7 +1523,7 @@ class CgaBsComp
 {
 public:
 	CgaBsComp( CompType& c ) : comp(c) {};
-	bool operator()( const _sort_tracker_type& a, const _sort_tracker_type& b )
+	boolean operator()( const _sort_tracker_type& a, const _sort_tracker_type& b )
 	{
 		return comp( a.get<0>(), b.get<0>() );
 	}
@@ -1830,7 +1567,7 @@ void alignedNtCountFilter( MatchVector& matches, uint length )
 }
 
 
-bool debugging_cltm = false;
+boolean debugging_cltm = false;
 void ProgressiveAligner::constructLcbTrackingMatches( 
 	node_id_t ancestral_node, 
 	vector< AbstractMatch* >& ancestral_matches, 
@@ -1853,22 +1590,6 @@ void ProgressiveAligner::constructLcbTrackingMatches(
 		vector< bitset_t > aln( alignment_tree.size(), bitset_t(ancestral_matches[mI]->AlignmentLength() ) );
 		swap( bs[mI], aln );
 		ancestral_matches[mI]->GetAlignment(aln);
-		
-		// Handle empty alignments (ungapped seed matches)
-		if( aln.size() < 2 )
-		{
-			// Create trivial ungapped alignment
-			gnSeqI aln_len = ancestral_matches[mI]->AlignmentLength();
-			aln.resize(2);
-			aln[0] = bitset_t(aln_len);
-			aln[1] = bitset_t(aln_len);
-			for(gnSeqI i = 0; i < aln_len; i++)
-			{
-				aln[0].set(i, true);
-				aln[1].set(i, true);
-			}
-		}
-		
 		swap( bs[mI][child_0], aln[0] );
 		swap( bs[mI][child_1], aln[1] );
 		CompactGappedAlignment<> c(alignment_tree.size(),0);
@@ -1878,7 +1599,7 @@ void ProgressiveAligner::constructLcbTrackingMatches(
 		c.SetLeftEnd(child_1, ancestral_matches[mI]->LeftEnd(1));
 		c.SetOrientation(child_1, ancestral_matches[mI]->Orientation(1));
 		c.SetLength(ancestral_matches[mI]->Length(1), child_1);
-		cga_list.push_back(boost::tuples::make_tuple(c.Copy(), &bs[mI], ancestral_matches[mI]));
+		cga_list.push_back(boost::make_tuple(c.Copy(), &bs[mI], ancestral_matches[mI]));
 	}
 
 	stack<node_id_t> node_stack;
@@ -2006,7 +1727,7 @@ void ProgressiveAligner::constructLcbTrackingMatches(
 		ltm.original_match = cga_list[bsI].get<2>();
 		ltm.match_id = bsI;
 
-		bool found_extant = false;
+		boolean found_extant = false;
 		for( size_t i = 0; i < alignment_tree.size()-1; ++i )
 		{
 			size_t im = node_sequence_map[i];
@@ -2299,8 +2020,8 @@ void ProgressiveAligner::getRepresentativeAncestralMatches( const vector< node_i
 
 int cachecomp( const void* e1, const void* e2 )
 {
-	bool a = mems::cache_comparator(*(search_cache_t*)e1, *(search_cache_t*)e2);
-	bool b = mems::cache_comparator(*(search_cache_t*)e2, *(search_cache_t*)e1);
+	boolean a = mems::cache_comparator(*(search_cache_t*)e1, *(search_cache_t*)e2);
+	boolean b = mems::cache_comparator(*(search_cache_t*)e2, *(search_cache_t*)e1);
 	if(!a && !b)
 		return 0;
 	return a ? -1 : 1;
@@ -2308,7 +2029,6 @@ int cachecomp( const void* e1, const void* e2 )
 
 void ProgressiveAligner::alignProfileToProfile( node_id_t node1, node_id_t node2, node_id_t ancestor )
 {
-	cerr << "DEBUG: alignProfileToProfile called for node1=" << node1 << ", node2=" << node2 << ", ancestor=" << ancestor << endl;
 	// 1) find all pairwise matches
 	// 2) convert to pairwise matches among the ancestral sequences
 	//    - delete inconsistently aligned regions?
@@ -2323,7 +2043,6 @@ void ProgressiveAligner::alignProfileToProfile( node_id_t node1, node_id_t node2
 	vector< node_id_t > node2_seqs;	/**< the node id's of extant sequences below node 2 */
 	getAlignedChildren( node1, node1_seqs );
 	getAlignedChildren( node2, node2_seqs );
-	cerr << "DEBUG: Before main loop, ancestor " << ancestor << " has " << alignment_tree[ancestor].ordering.size() << " superintervals" << endl;
 
 	uint seqI, seqJ;
 	gnSeqI prev_ancestral_seq_len = (std::numeric_limits<gnSeqI>::max)();
@@ -2344,12 +2063,8 @@ void ProgressiveAligner::alignProfileToProfile( node_id_t node1, node_id_t node2
 	double prev_anchoring_score = -(std::numeric_limits<double>::max)();
 	double cur_anchoring_score = -(std::numeric_limits<double>::max)();
 
-	int iteration_count = 0;
-	cerr << "DEBUG: ===== STARTING MAIN alignProfileToProfile LOOP =====" << endl;
 	while(true)
 	{
-		cerr << "DEBUG: ========== LOOP ITERATION " << iteration_count++ << " ==========" << endl;
-		cerr << "DEBUG: ancestor " << ancestor << " has " << alignment_tree[ancestor].ordering.size() << " superintervals at loop start" << endl;
 		vector<AbstractMatch*> ancestral_matches;
 		if( anc_pairwise_matches.size() > 0 )
 		{
@@ -2610,9 +2325,8 @@ void ProgressiveAligner::alignProfileToProfile( node_id_t node1, node_id_t node2
 		addUnalignedIntervals_v2(pairwise_intervals, set<uint>(), seq_lengths);
 
 		cout << "addUnalignedIntervals yields " << pairwise_intervals.size() << " intervals\n";
-		cerr << "DEBUG: After addUnalignedIntervals, pairwise_intervals.size()=" << pairwise_intervals.size() << endl;
 
-		bool borked = false;
+		boolean borked = false;
 		if(debug_aligner)
 			borked = validatePairwiseIntervals(node1, node2, pairwise_intervals);
 
@@ -2622,9 +2336,7 @@ void ProgressiveAligner::alignProfileToProfile( node_id_t node1, node_id_t node2
 		vector<Interval*> new_list1;
 		vector<Interval*> merged_intervals;
 		mergeUnalignedIntervals( 1, pairwise_intervals, new_list1 );
-		cerr << "DEBUG: After mergeUnalignedIntervals(seq 1), new_list1.size()=" << new_list1.size() << endl;
 		mergeUnalignedIntervals( 0, new_list1, merged_intervals );
-		cerr << "DEBUG: After mergeUnalignedIntervals(seq 0), merged_intervals.size()=" << merged_intervals.size() << endl;
 		cout << "Marbling gaps\n";
 		cout.flush();
 		for( size_t ivI = 0; ivI < merged_intervals.size(); ivI++ )
@@ -2634,9 +2346,7 @@ void ProgressiveAligner::alignProfileToProfile( node_id_t node1, node_id_t node2
 
 		// split up intervals at descendant's breakpoints
 		propagateDescendantBreakpoints( node1, 0, merged_intervals );
-		cerr << "DEBUG: After propagateDescendantBreakpoints(node1), merged_intervals.size()=" << merged_intervals.size() << endl;
 		propagateDescendantBreakpoints( node2, 1, merged_intervals );
-		cerr << "DEBUG: After propagateDescendantBreakpoints(node2), merged_intervals.size()=" << merged_intervals.size() << endl;
 
 		cout << "descendant 0(" << node1 << ") has " << alignment_tree[node1].ordering.size() << " intervals\n";
 		cout << "descendant 1(" << node2 << ") has " << alignment_tree[node2].ordering.size() << " intervals\n";
@@ -2647,7 +2357,6 @@ void ProgressiveAligner::alignProfileToProfile( node_id_t node1, node_id_t node2
 		cout << "Creating ancestral ordering\n";
 		alignment_tree[ancestor].ordering.clear();
 		createAncestralOrdering( merged_intervals, alignment_tree[ancestor].ordering );
-		cerr << "DEBUG: After createAncestralOrdering, ancestor " << ancestor << " has " << alignment_tree[ancestor].ordering.size() << " superintervals" << endl;
 		for( size_t ivI = 0; ivI < merged_intervals.size(); ivI++ )
 			merged_intervals[ivI]->Free();
 		merged_intervals.clear();	// free up some memory
@@ -2667,37 +2376,24 @@ void ProgressiveAligner::alignProfileToProfile( node_id_t node1, node_id_t node2
 		// if cur_seq_len has decreased then we're improving
 		// if not, then we're done finding matches
 		if( collinear_genomes && cur_ancestral_seq_len >= prev_ancestral_seq_len )
-		{
-			cerr << "DEBUG: Breaking from loop - collinear and no improvement" << endl;
-			cerr << "DEBUG: ancestor " << ancestor << " has " << alignment_tree[ancestor].ordering.size() << " superintervals at loop break" << endl;
 			break;
-		}
 
 		// stop unless we've increased the anchoring score by at least 0.5%
 		// the 0.5% is important for large alignments where many slow iterations might otherwise occur
 		// that only increase the anchoring score by a tiny amount
 		if( !collinear_genomes && cur_anchoring_score <= prev_anchoring_score + (genome::absolut(prev_anchoring_score)/200.0) )
-		{
-			cerr << "DEBUG: Breaking from loop - non-collinear and no significant score improvement" << endl;
-			cerr << "DEBUG: ancestor " << ancestor << " has " << alignment_tree[ancestor].ordering.size() << " superintervals at loop break" << endl;
 			break;
-		}
 		prev_anchoring_score = cur_anchoring_score;
 		prev_ancestral_seq_len = cur_ancestral_seq_len;
 
 		// accept the new alignment tree...
 		cout << "Backing up alignment tree...\n";
 		cout.flush();
-		cerr << "DEBUG: BEFORE backup, ancestor " << ancestor << " has " << alignment_tree[ancestor].ordering.size() << " superintervals" << endl;
 		aln_tree_backup = alignment_tree;
-		cerr << "DEBUG: AFTER backup, ancestor " << ancestor << " has " << alignment_tree[ancestor].ordering.size() << " superintervals" << endl;
-		cerr << "DEBUG: AFTER backup, aln_tree_backup[" << ancestor << "] has " << aln_tree_backup[ancestor].ordering.size() << " superintervals" << endl;
 
 		cout << "propagating ancestral breakpoints\n";
 		cout.flush();
-		cerr << "DEBUG: BEFORE recursiveApplyAncestralBreakpoints, ancestor " << ancestor << " has " << alignment_tree[ancestor].ordering.size() << " superintervals" << endl;
 		recursiveApplyAncestralBreakpoints(ancestor);
-		cerr << "DEBUG: AFTER recursiveApplyAncestralBreakpoints, ancestor " << ancestor << " has " << alignment_tree[ancestor].ordering.size() << " superintervals" << endl;
 
 
 		if( debug_me ) 	 
@@ -2707,7 +2403,7 @@ void ProgressiveAligner::alignProfileToProfile( node_id_t node1, node_id_t node2
 				GappedAlignment gal; 	 
 				extractAlignment(ancestor, aI, gal); 	 
 
-				bool check = false;
+				boolean check = false;
 				for( size_t ii = 0; ii < gal.SeqCount(); ++ii )
 				{
 					if( gal.LeftEnd(ii) == 0 )
@@ -2831,15 +2527,9 @@ void ProgressiveAligner::alignProfileToProfile( node_id_t node1, node_id_t node2
 		// breakpoints applied to the descendants
 		cout << "Restoring backed up alignment tree...\n";
 		cout.flush();
-		cerr << "DEBUG: BEFORE first swap, alignment_tree[" << ancestor << "] has " << alignment_tree[ancestor].ordering.size() << " superintervals" << endl;
-		cerr << "DEBUG: BEFORE first swap, aln_tree_backup[" << ancestor << "] has " << aln_tree_backup[ancestor].ordering.size() << " superintervals" << endl;
 		swap( alignment_tree, aln_tree_backup );
-		cerr << "DEBUG: AFTER first swap, alignment_tree[" << ancestor << "] has " << alignment_tree[ancestor].ordering.size() << " superintervals" << endl;
-		cerr << "DEBUG: AFTER first swap, aln_tree_backup[" << ancestor << "] has " << aln_tree_backup[ancestor].ordering.size() << " superintervals" << endl;
 
 	}	// end while(true)
-	cerr << "DEBUG: ===== EXITED MAIN alignProfileToProfile LOOP =====" << endl;
-	cerr << "DEBUG: ancestor " << ancestor << " has " << alignment_tree[ancestor].ordering.size() << " superintervals after loop exit" << endl;
 
 	if( using_cache_db )
 	{
@@ -2858,14 +2548,9 @@ void ProgressiveAligner::alignProfileToProfile( node_id_t node1, node_id_t node2
 	printMemUsage();
 
 	// aln_tree_backup has the highest scoring alignment_tree
-	cerr << "DEBUG: BEFORE second swap, alignment_tree[" << ancestor << "] has " << alignment_tree[ancestor].ordering.size() << " superintervals" << endl;
-	cerr << "DEBUG: BEFORE second swap, aln_tree_backup[" << ancestor << "] has " << aln_tree_backup[ancestor].ordering.size() << " superintervals" << endl;
 	swap( alignment_tree, aln_tree_backup );
-	cerr << "DEBUG: AFTER second swap, alignment_tree[" << ancestor << "] has " << alignment_tree[ancestor].ordering.size() << " superintervals" << endl;
 	cout << "propagating ancestral breakpoints\n";
-	cerr << "DEBUG: BEFORE final recursiveApplyAncestralBreakpoints, ancestor " << ancestor << " has " << alignment_tree[ancestor].ordering.size() << " superintervals" << endl;
 	recursiveApplyAncestralBreakpoints(ancestor);
-	cerr << "DEBUG: AFTER final recursiveApplyAncestralBreakpoints, ancestor " << ancestor << " has " << alignment_tree[ancestor].ordering.size() << " superintervals" << endl;
 
 	printMemUsage();
 
@@ -2873,9 +2558,7 @@ void ProgressiveAligner::alignProfileToProfile( node_id_t node1, node_id_t node2
 	if( gapped_alignment )
 	{
 		cout << "performing a gapped alignment\n";
-		cerr << "DEBUG: Before doGappedAlignment(profile_aln=true), ancestor " << ancestor << " has " << alignment_tree[ancestor].ordering.size() << " superintervals" << endl;
 		doGappedAlignment(ancestor, true);
-		cerr << "DEBUG: After doGappedAlignment(profile_aln=true), ancestor " << ancestor << " has " << alignment_tree[ancestor].ordering.size() << " superintervals" << endl;
 	}else
 		cout << "skipping gapped alignment\n";
 	if( refine )
@@ -2884,9 +2567,7 @@ void ProgressiveAligner::alignProfileToProfile( node_id_t node1, node_id_t node2
 		if( unrefined > 5 && ancestor != alignment_tree.root )
 		{
 			cout << "performing iterative refinement\n";
-			cerr << "DEBUG: Before doGappedAlignment(profile_aln=false), ancestor " << ancestor << " has " << alignment_tree[ancestor].ordering.size() << " superintervals" << endl;
 			doGappedAlignment(ancestor, false);
-			cerr << "DEBUG: After doGappedAlignment(profile_aln=false), ancestor " << ancestor << " has " << alignment_tree[ancestor].ordering.size() << " superintervals" << endl;
 			markAsRefined( alignment_tree, ancestor );
 		}
 	}
@@ -2902,7 +2583,7 @@ void ProgressiveAligner::alignProfileToProfile( node_id_t node1, node_id_t node2
 			GappedAlignment gal; 	 
 			extractAlignment(ancestor, aI, gal); 	 
 
-			bool check = false;
+			boolean check = false;
 			for( size_t ii = 0; ii < gal.SeqCount(); ++ii )
 			{
 				if( gal.LeftEnd(ii) == 0 )
@@ -3014,7 +2695,7 @@ void mergeUnalignedIntervals( uint seqI, vector< Interval* >& iv_list, vector< I
 		// split this one in half (if its not the last one and there's something to split)...
 		Interval* left_iv = iv_list[ordI]->Copy();
 		to_delete.push_back( left_iv );	// make sure this gets deleted later
-		bool cropped = (ordI + 1 < iv_list.size() && iv_list[ordI]->Length(seqI) > 1);
+		boolean cropped = (ordI + 1 < iv_list.size() && iv_list[ordI]->Length(seqI) > 1);
 		if( cropped )
 		{
 			gnSeqI lendo = left_iv->AlignmentLength() / 2;
@@ -3086,11 +2767,11 @@ void markAligned( PhyloTree< AlignmentTreeNode >& alignment_tree, node_id_t subj
 }
 
 
-bool
+boolean
 ProgressiveAligner::validateSuperIntervals(node_id_t node1, node_id_t node2, node_id_t ancestor)
 {
 		// validate the ancestor
-	bool borked = false;
+	boolean borked = false;
 	vector< SuperInterval >& siv_list = alignment_tree[ancestor].ordering;
 	gnSeqI n1_len = 0;
 	gnSeqI n2_len = 0;
@@ -3159,10 +2840,10 @@ ProgressiveAligner::validateSuperIntervals(node_id_t node1, node_id_t node2, nod
 
 }
 
-bool ProgressiveAligner::validatePairwiseIntervals(node_id_t node1, node_id_t node2, std::vector<Interval*>& pair_iv)
+boolean ProgressiveAligner::validatePairwiseIntervals(node_id_t node1, node_id_t node2, std::vector<Interval*>& pair_iv)
 {
 		// validate the ancestor
-	bool borked = false;
+	boolean borked = false;
 	gnSeqI n1_len = 0;
 	gnSeqI n2_len = 0;
 	for( size_t sivI = 0; sivI < pair_iv.size(); sivI++ )
@@ -3261,12 +2942,6 @@ bool ProgressiveAligner::validatePairwiseIntervals(node_id_t node1, node_id_t no
 void ProgressiveAligner::alignNodes( node_id_t node1, node_id_t node2, node_id_t ancestor )
 {
 	cout << "Aligning node " << node1 << " to " << node2 << " via " << ancestor << "!\n";
-	cerr << "DEBUG: alignNodes START - node1=" << node1 << ", node2=" << node2 << ", ancestor=" << ancestor << endl;
-	cerr << "DEBUG: BEFORE alignProfileToProfile:" << endl;
-	cerr << "DEBUG:   node1 (" << node1 << ") has " << alignment_tree[node1].ordering.size() << " superintervals" << endl;
-	cerr << "DEBUG:   node2 (" << node2 << ") has " << alignment_tree[node2].ordering.size() << " superintervals" << endl;
-	cerr << "DEBUG:   ancestor (" << ancestor << ") has " << alignment_tree[ancestor].ordering.size() << " superintervals" << endl;
-	
 	// if node1 and node2 are not already children of ancestor then make it so...
 	if( alignment_tree[node1].parents[0] != ancestor || 
 		alignment_tree[node2].parents[0] != ancestor )
@@ -3276,11 +2951,6 @@ void ProgressiveAligner::alignNodes( node_id_t node1, node_id_t node2, node_id_t
 	}
 	
 	alignProfileToProfile(node1, node2, ancestor);
-	
-	cerr << "DEBUG: AFTER alignProfileToProfile:" << endl;
-	cerr << "DEBUG:   node1 (" << node1 << ") has " << alignment_tree[node1].ordering.size() << " superintervals" << endl;
-	cerr << "DEBUG:   node2 (" << node2 << ") has " << alignment_tree[node2].ordering.size() << " superintervals" << endl;
-	cerr << "DEBUG:   ancestor (" << ancestor << ") has " << alignment_tree[ancestor].ordering.size() << " superintervals" << endl;
 
 	// mark edges as aligned
 	markAligned( alignment_tree, node1, node2 );
@@ -3289,8 +2959,6 @@ void ProgressiveAligner::alignNodes( node_id_t node1, node_id_t node2, node_id_t
 	markAligned( alignment_tree, node2, ancestor );
 	markAligned( alignment_tree, ancestor, node1 );
 	markAligned( alignment_tree, ancestor, node2 );
-	
-	cerr << "DEBUG: alignNodes END - ancestor (" << ancestor << ") has " << alignment_tree[ancestor].ordering.size() << " superintervals" << endl;
 }
 
 /**
@@ -3340,7 +3008,7 @@ void findMidpoint( PhyloTree< AlignmentTreeNode >& alignment_tree, node_id_t& n1
 		w[*e] = *wp++;
 
 	boost::multi_array<int,2> D( boost::extents[V][V] );
-	bool success = johnson_all_pairs_shortest_paths(g, D);
+	boolean success = johnson_all_pairs_shortest_paths(g, D);
 	if( !success )
 	{
 		cerr << "failed, is this really a tree?\n";
@@ -3433,7 +3101,7 @@ void chooseNextAlignmentPair( PhyloTree< AlignmentTreeNode >& alignment_tree, no
 
 		// skip this node if it's already been completely aligned
 		// or is an extant sequence
-		bool completely_aligned = true;
+		boolean completely_aligned = true;
 		for( uint alignedI = 0; alignedI < cur_node.children_aligned.size(); alignedI++ )
 			completely_aligned = completely_aligned && cur_node.children_aligned[alignedI];
 		for( uint alignedI = 0; alignedI < cur_node.parents_aligned.size(); alignedI++ )
@@ -3443,7 +3111,7 @@ void chooseNextAlignmentPair( PhyloTree< AlignmentTreeNode >& alignment_tree, no
 		
 
 		vector< node_id_t > neighbor_id;
-		vector< bool > alignable;
+		vector< boolean > alignable;
 		vector< double > distance;
 		
 		for( uint parentI = 0; parentI < cur_node.parents.size(); parentI++ )
@@ -3546,9 +3214,9 @@ node_id_t createAlignmentTreeRoot( PhyloTree< AlignmentTreeNode >& alignment_tre
 		// re-root the tree on the new node
 		rerootTree( alignment_tree, alignment_tree.size()-1 );
 
-		new_root.children_aligned = vector< bool >( new_root.children.size(), false );
-		old_root.children_aligned = vector< bool >( old_root.children.size(), false );
-		old_root.parents_aligned = vector< bool >( old_root.parents.size(), false );
+		new_root.children_aligned = vector< boolean >( new_root.children.size(), false );
+		old_root.children_aligned = vector< boolean >( old_root.children.size(), false );
+		old_root.parents_aligned = vector< boolean >( old_root.parents.size(), false );
 		new_root.sequence = NULL;
 
 	return alignment_tree.root;
@@ -3649,7 +3317,7 @@ void ProgressiveAligner::extractAlignment( node_id_t ancestor, size_t super_iv, 
 			cerr << "a_iv.LeftEnd(): " << a_iv.LeftEnd() << " a_iv.Length(): " << a_iv.Length() << endl;
 			breakHere();
 		}
-		bool parity = trans_cga->Orientation(0) == trans_cga->Orientation(1);
+		boolean parity = trans_cga->Orientation(0) == trans_cga->Orientation(1);
 		cga.SetLeftEnd(seqI, trans_cga->LeftEnd(1));
 		AbstractMatch::orientation o = parity ? AbstractMatch::forward : AbstractMatch::reverse;
 		cga.SetOrientation(seqI, o);
@@ -3803,8 +3471,8 @@ void makeAlignmentTree( PhyloTree< AlignmentTreeNode >& alignment_tree, MatchLis
 	// initialize all nodes to unaligned
 	for( node_id_t nodeI = 0; nodeI < alignment_tree.size(); nodeI++ )
 	{
-		alignment_tree[nodeI].children_aligned = vector< bool >( alignment_tree[nodeI].children.size(), false );
-		alignment_tree[nodeI].parents_aligned = vector< bool >( alignment_tree[nodeI].parents.size(), false );
+		alignment_tree[nodeI].children_aligned = vector< boolean >( alignment_tree[nodeI].children.size(), false );
+		alignment_tree[nodeI].parents_aligned = vector< boolean >( alignment_tree[nodeI].parents.size(), false );
 		alignment_tree[nodeI].sequence = NULL;
 		alignment_tree[nodeI].refined = false;
 	}
@@ -4039,16 +3707,16 @@ void ProgressiveAligner::alignPP(IntervalList& prof1, IntervalList& prof2, Inter
 				node_sequence_map[nodeI] += prof1.seq_table.size();
 		}
 
-		alignment_tree[nodeI].children_aligned = vector< bool >( alignment_tree[nodeI].children.size(), true );
-		alignment_tree[nodeI].parents_aligned = vector< bool >( alignment_tree[nodeI].parents.size(), true );
+		alignment_tree[nodeI].children_aligned = vector< boolean >( alignment_tree[nodeI].children.size(), true );
+		alignment_tree[nodeI].parents_aligned = vector< boolean >( alignment_tree[nodeI].parents.size(), true );
 		alignment_tree[nodeI].refined = true;
 	}
 
 	alignment_tree.back().children.push_back( tree1.size()-1 );
 	alignment_tree.back().children.push_back( alignment_tree.size()-2 );
 	alignment_tree.back().distance = 100;
-	alignment_tree.back().children_aligned = vector< bool >( alignment_tree.back().children.size(), true );
-	alignment_tree.back().parents_aligned = vector< bool >( alignment_tree.back().parents.size(), true );
+	alignment_tree.back().children_aligned = vector< boolean >( alignment_tree.back().children.size(), true );
+	alignment_tree.back().parents_aligned = vector< boolean >( alignment_tree.back().parents.size(), true );
 	alignment_tree.back().refined = false;
 
 
@@ -4059,7 +3727,6 @@ void ProgressiveAligner::alignPP(IntervalList& prof1, IntervalList& prof2, Inter
 void ProgressiveAligner::getAlignment( IntervalList& interval_list )
 {
 	cout << "Aligning...\n";
-	cerr << "DEBUG: getAlignment started" << endl;
 	// pick each pair of sequences and align until none are left
 	while(true)
 	{
@@ -4070,11 +3737,9 @@ void ProgressiveAligner::getAlignment( IntervalList& interval_list )
 		if( node1 == node2 )
 			break;	// all pairs have been aligned
 
-		cerr << "DEBUG: About to align nodes " << node1 << " and " << node2 << " via ancestor " << ancestor << endl;
 		// this is the last alignable pair in the unrooted tree
 		// create a root from which the complete alignment can be extracted
 		alignNodes( node1, node2, ancestor );
-		cerr << "DEBUG: After aligning nodes, ancestor " << ancestor << " has " << alignment_tree[ancestor].ordering.size() << " superintervals" << endl;
 		if( ancestor == alignment_tree.root )
 			break;  // all done
 	}
@@ -4083,9 +3748,7 @@ void ProgressiveAligner::getAlignment( IntervalList& interval_list )
 	{
 		// perform iterative refinement
 		cout << "Performing final pass iterative refinement\n";
-		cerr << "DEBUG: Before final refinement, root has " << alignment_tree[alignment_tree.root].ordering.size() << " superintervals" << endl;
 		doGappedAlignment(alignment_tree.root, false);
-		cerr << "DEBUG: After final refinement, root has " << alignment_tree[alignment_tree.root].ordering.size() << " superintervals" << endl;
 	}
 
 	// peel off the alignment from the root node
@@ -4144,17 +3807,6 @@ void ProgressiveAligner::align( vector< gnSequence* >& seq_table, IntervalList& 
 	mlist.clear();
 	mlist = original_ml;
 	cout << "Starting with " << mlist.size() << " multi-matches\n";
-	cerr << "DEBUG: Initial multi-matches details:" << endl;
-	for( size_t mI = 0; mI < mlist.size(); ++mI )
-	{
-		cerr << "DEBUG:   Match " << mI << ": ";
-		for( uint seqI = 0; seqI < seq_count; ++seqI )
-		{
-			if( mlist[mI]->LeftEnd(seqI) != NO_MATCH )
-				cerr << "seq" << seqI << "=[" << mlist[mI]->LeftEnd(seqI) << ".." << mlist[mI]->RightEnd(seqI) << "] ";
-		}
-		cerr << "Length=" << mlist[mI]->Length() << ", Multiplicity=" << mlist[mI]->Multiplicity() << endl;
-	}
 	cout << "Computing genome content distance matrix...\n";
 
 //
@@ -4166,8 +3818,8 @@ void ProgressiveAligner::align( vector< gnSequence* >& seq_table, IntervalList& 
 	distance.print(cout);
 	cout << endl;
 
-	bool input_tree_specified = input_guide_tree_fname != "";
-	bool output_tree_specified = output_guide_tree_fname != "";
+	boolean input_tree_specified = input_guide_tree_fname != "";
+	boolean output_tree_specified = output_guide_tree_fname != "";
 	if( !input_tree_specified )
 	{
 		// Make a phylogenetic guide tree

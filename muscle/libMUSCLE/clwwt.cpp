@@ -1,7 +1,6 @@
 #include "libMUSCLE/muscle.h"
 #include "libMUSCLE/tree.h"
 #include "libMUSCLE/msa.h"
-#include <iostream>
 
 namespace muscle {
 
@@ -66,57 +65,46 @@ static unsigned CountLeaves(const Tree &tree, unsigned uNodeIndex,
 
 void CalcClustalWWeights(const Tree &tree, WEIGHT Weights[])
 	{
-	std::cerr << "DEBUG CalcClustalWWeights: Starting" << std::endl;
+#if	TRACE
+	Log("CalcClustalWWeights\n");
+	tree.LogMe();
+#endif
 
 	const unsigned uLeafCount = tree.GetLeafCount();
-	std::cerr << "DEBUG CalcClustalWWeights: uLeafCount=" << uLeafCount << std::endl;
-	
 	if (0 == uLeafCount)
-		{
-		std::cerr << "DEBUG CalcClustalWWeights: uLeafCount==0, returning" << std::endl;
 		return;
-		}
 	else if (1 == uLeafCount)
 		{
-		std::cerr << "DEBUG CalcClustalWWeights: uLeafCount==1, setting weight to 1.0" << std::endl;
 		Weights[0] = (WEIGHT) 1.0;
 		return;
 		}
 	else if (2 == uLeafCount)
 		{
-		std::cerr << "DEBUG CalcClustalWWeights: uLeafCount==2, setting weights to 0.5 each" << std::endl;
 		Weights[0] = (WEIGHT) 0.5;
 		Weights[1] = (WEIGHT) 0.5;
 		return;
 		}
 
-	std::cerr << "DEBUG CalcClustalWWeights: uLeafCount>2, checking if rooted" << std::endl;
 	if (!tree.IsRooted())
-		{
-		std::cerr << "ERROR CalcClustalWWeights: Tree is not rooted!" << std::endl;
 		Quit("CalcClustalWWeights requires rooted tree");
-		}
-	std::cerr << "DEBUG CalcClustalWWeights: Tree is rooted" << std::endl;
 
 	const unsigned uNodeCount = tree.GetNodeCount();
-	std::cerr << "DEBUG CalcClustalWWeights: uNodeCount=" << uNodeCount << std::endl;
-	
 	unsigned *LeavesUnderNode = new unsigned[uNodeCount];
 	memset(LeavesUnderNode, 0, uNodeCount*sizeof(unsigned));
 
 	const unsigned uRootNodeIndex = tree.GetRootNodeIndex();
-	std::cerr << "DEBUG CalcClustalWWeights: uRootNodeIndex=" << uRootNodeIndex << std::endl;
-	std::cerr << "DEBUG CalcClustalWWeights: Calling CountLeaves" << std::endl;
-	
 	unsigned uLeavesUnderRoot = CountLeaves(tree, uRootNodeIndex, LeavesUnderNode);
-	std::cerr << "DEBUG CalcClustalWWeights: uLeavesUnderRoot=" << uLeavesUnderRoot << std::endl;
-	
 	if (uLeavesUnderRoot != uLeafCount)
 		Quit("WeightsFromTreee: Internal error, root count %u %u",
 		  uLeavesUnderRoot, uLeafCount);
 
+#if	TRACE
+	Log("Node  Leaves    Length  Strength\n");
+	Log("----  ------  --------  --------\n");
+	//    1234  123456  12345678  12345678
+#endif
+
 	double *Strengths = new double[uNodeCount];
-	std::cerr << "DEBUG CalcClustalWWeights: Calculating strengths" << std::endl;
 	for (unsigned uNodeIndex = 0; uNodeIndex < uNodeCount; ++uNodeIndex)
 		{
 		if (tree.IsRoot(uNodeIndex))
@@ -129,12 +117,22 @@ void CalcClustalWWeights(const Tree &tree, WEIGHT Weights[])
 		const unsigned uLeaves = LeavesUnderNode[uNodeIndex];
 		const double dStrength = dLength / (double) uLeaves;
 		Strengths[uNodeIndex] = dStrength;
+#if	TRACE
+		Log("%4u  %6u  %8g  %8g\n", uNodeIndex, uLeaves, dLength, dStrength);
+#endif
 		}
 
-	std::cerr << "DEBUG CalcClustalWWeights: Calculating weights for each leaf" << std::endl;
+#if	TRACE
+	Log("\n");
+	Log("                 Seq  Path..Weight\n");
+	Log("--------------------  ------------\n");
+#endif
 	for (unsigned n = 0; n < uLeafCount; ++n)
 		{
 		const unsigned uLeafNodeIndex = tree.LeafIndexToNodeIndex(n);
+#if	TRACE
+		Log("%20.20s  %4u ", tree.GetLeafName(uLeafNodeIndex), uLeafNodeIndex);
+#endif
 		if (!tree.IsLeaf(uLeafNodeIndex))
 			Quit("CalcClustalWWeights: leaf");
 
@@ -144,19 +142,27 @@ void CalcClustalWWeights(const Tree &tree, WEIGHT Weights[])
 			{
 			dWeight += Strengths[uNode];
 			uNode = tree.GetParent(uNode);
+#if	TRACE
+			Log("->%u(%g)", uNode, Strengths[uNode]);
+#endif
 			}
 		if (dWeight < 0.0001)
+			{
+#if	TRACE
+			Log("zero->one");
+#endif
 			dWeight = 1.0;
+			}
 		Weights[n] = (WEIGHT) dWeight;
+#if	TRACE
+		Log(" = %g\n", dWeight);
+#endif
 		}
 
-	std::cerr << "DEBUG CalcClustalWWeights: Cleaning up" << std::endl;
 	delete[] Strengths;
 	delete[] LeavesUnderNode;
 
-	std::cerr << "DEBUG CalcClustalWWeights: Normalizing weights" << std::endl;
 	Normalize(Weights, uLeafCount);
-	std::cerr << "DEBUG CalcClustalWWeights: Completed successfully" << std::endl;
 	}
 
 void MSA::SetClustalWWeights(const Tree &tree)
@@ -184,4 +190,4 @@ void MSA::SetClustalWWeights(const Tree &tree)
 
 	delete[] Weights;
 	}
-}
+} 

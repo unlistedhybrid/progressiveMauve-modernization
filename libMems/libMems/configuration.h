@@ -4,8 +4,7 @@
 #if defined(WIN32)||defined(WIN64)
 
 // set the mems library name to include based on the configuration...
-// DISABLED for CMake build compatibility. CMake handles linking explicitly.
-/*
+
 #if defined(WIN64)&&defined(NDEBUG)&&!defined(FASTDEBUG)&&defined(_OPENMP)
 #pragma comment(lib, "mems64omp.lib")
 #endif
@@ -30,8 +29,9 @@
 #if defined(WIN32)&&!defined(WIN64)&&defined(FASTDEBUG)&&!defined(_OPENMP)
 #pragma comment(lib, "memsfd.lib")
 #endif
-*/
+
 
 #endif
 
 #endif // __libMems_configuration_h__
+

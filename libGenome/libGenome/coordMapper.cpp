@@ -6,6 +6,12 @@
 #include <iostream>
 #include <fstream>
 #include <algorithm>
+#include <vector>  // Added: Fixes 'undeclared identifier vector'
+#include <list>    // Added: Fixes 'undeclared identifier list'
+#include <string>  // Added: Fixes 'undeclared identifier string'
+
+using namespace std;
+using namespace genome;
 
 struct ExMem{
 	gnSeqI length;
@@ -350,4 +356,3 @@ int main(int argc, char* argv[]){
 //		}
 	}
 }
-

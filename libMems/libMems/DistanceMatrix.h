@@ -217,10 +217,6 @@ void SingleCopyDistanceMatrix( MatchVector& iv_list, std::vector< genome::gnSequ
 {
 		iv_list[ivI]->GetAlignment(aln_table);
 }
-		// Skip matches with empty alignment tables to prevent crashes
-		if( aln_table.size() == 0 || aln_table.size() < seq_count )
-			continue;
-			
 		for( uint seqI = 0; seqI < seq_count; ++seqI )
 		{
 			for( uint seqJ = seqI+1; seqJ < seq_count; ++seqJ )
@@ -239,13 +235,8 @@ void SingleCopyDistanceMatrix( MatchVector& iv_list, std::vector< genome::gnSequ
 				{
 					if( aln_table[seqI].test(colI) && aln_table[seqJ].test(colI) )
 					{
-						// Bounds check before setting bits
-						if( seqI_pos > 0 && seqI_pos <= seq_table[seqI]->length() &&
-						    seqJ_pos > 0 && seqJ_pos <= seq_table[seqJ]->length() )
-						{
-							pair_comp[seqI][seqJ].first.set(seqI_pos-1,true);
-							pair_comp[seqI][seqJ].second.set(seqJ_pos-1,true);
-						}
+						pair_comp[seqI][seqJ].first.set(seqI_pos-1,true);
+						pair_comp[seqI][seqJ].second.set(seqJ_pos-1,true);
 					}
 					if( aln_table[seqI].test(colI) )
 						if( o_i == AbstractMatch::forward )
@@ -333,3 +324,4 @@ void DistanceMatrix( uint seq_count, const std::vector< std::pair< uint64, uint6
 
 
 #endif	// __DistanceMatrix_h__
+

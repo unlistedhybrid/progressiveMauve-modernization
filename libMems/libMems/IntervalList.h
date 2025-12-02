@@ -103,7 +103,6 @@ typedef GenericIntervalList<> IntervalList;
 
 template< class MatchType >
 GenericIntervalList<MatchType>::GenericIntervalList( const GenericIntervalList<MatchType>& ml )
-	: std::vector< MatchType >(ml)
 {
 	*this = ml;
 }
@@ -180,7 +179,7 @@ void GenericIntervalList<MatchType>::ReadList(std::istream& match_file)
 	// read the matches
 	std::string cur_line;
 	Interval* cur_iv = NULL;
-	bool clustal_match;
+	boolean clustal_match;
 	std::vector< AbstractMatch* > iv_matches;
 	bool parsing = false;
 	
@@ -309,7 +308,7 @@ void GenericIntervalList<MatchType>::WriteXMLAlignment( std::ostream& out_file )
 		return;
     // write source sequence filenames and formats
 	// to make Paul happy
-	bool single_input = true;
+	boolean single_input = true;
     uint seqI = 0;
 	for( seqI = 1; seqI < seq_filename.size(); seqI++ ){
 		if( seq_filename[ 0 ] != seq_filename[ seqI ] ){
@@ -334,6 +333,7 @@ void GenericIntervalList<MatchType>::WriteXMLAlignment( std::ostream& out_file )
 			GetAlignment( (*this)[ ivI ], seq_table, alignment );
 		for( seqI = 0; seqI < (*this)[ ivI ].SeqCount(); seqI++ ){
 			int64 startI = (*this)[ ivI ].Start( seqI );
+			gnSeqI length = (*this)[ ivI ].Length( seqI );
 			// if this genome doesn't have any sequence in this
 			// interval then skip it...
 			if( startI == 0 &&ivI > 0)	// kludge: write all seqs into the first interval so java parser can read it
@@ -363,7 +363,7 @@ void GenericIntervalList<MatchType>::WriteStandardAlignment( std::ostream& out_f
 	
 	// write source sequence filenames and formats
 	// to make Paul happy
-	bool single_input = true;
+	boolean single_input = true;
 	for( seqI = 1; seqI < seq_filename.size(); seqI++ ){
 		if( seq_filename[ 0 ] != seq_filename[ seqI ] ){
 			single_input = false;
@@ -430,8 +430,8 @@ void GenericIntervalList<MatchType>::WriteStandardAlignment( std::ostream& out_f
 				out_file << seq_filename[ seqI ];	// write the sequence filename as the seq name
 			out_file << std::endl;
 			gnSeqI cur_pos = 0;
-			for( ; cur_pos < static_cast<gnSeqI>(alignment[ seqI ].length()); cur_pos += 80 ){
-				gnSeqI cur_len = static_cast<gnSeqI>(cur_pos) + 80 < static_cast<gnSeqI>(alignment[ seqI ].length()) ? 80 : static_cast<gnSeqI>(alignment[ seqI ].length() - cur_pos);
+			for( ; cur_pos < alignment[ seqI ].length(); cur_pos += 80 ){
+				gnSeqI cur_len = cur_pos + 80 < alignment[ seqI ].length() ? 80 : alignment[ seqI ].length() - cur_pos;
 				out_file.write( alignment[ seqI ].data() + cur_pos, cur_len );
 				out_file << std::endl;
 			}
@@ -523,7 +523,7 @@ void GenericIntervalList<MatchType>::ReadStandardAlignment( std::istream& in_str
 				cr.SetStart( seqI - 1, 0 );
 			else
 				cr.SetStart( seqI - 1, -start );
-			if( chars != static_cast<gnSeqI>(stop - start + 1) && !(chars == 0 && stop - start == 1) ){
+			if( chars != stop - start + 1 && !(chars == 0 && stop - start == 1) ){
 				std::cerr << "Error in XMFA file format\n";
 				std::cerr << "Before line " << line_count << std::endl;
 				std::cerr << "Expecting " << stop - start + 1 << " characters based on defline\n";
@@ -535,7 +535,7 @@ void GenericIntervalList<MatchType>::ReadStandardAlignment( std::istream& in_str
 				cr.SetStart( seqI - 1, 0 );
 			else
 				cr.SetStart( seqI - 1, -stop );
-			if( chars != static_cast<gnSeqI>(start - stop + 1) && !(chars == 0 && stop - start == 1) ){
+			if( chars != start - stop + 1 && !(chars == 0 && stop - start == 1) ){
 				std::cerr << "Error in XMFA file format\n";
 				std::cerr << "Before line " << line_count << std::endl;
 				std::cerr << "Expecting " << start - stop + 1 << " characters based on defline\n";
@@ -691,7 +691,7 @@ void GenericIntervalList<MatchType>::ReadStandardAlignmentCompact( std::istream&
 				cr.SetStart( seqI - 1, 0 );
 			else
 				cr.SetStart( seqI - 1, -start );
-			if( chars != static_cast<gnSeqI>(stop - start + 1) && !(chars == 0 && stop - start == 1) ){
+			if( chars != stop - start + 1 && !(chars == 0 && stop - start == 1) ){
 				std::cerr << "Error in XMFA file format\n";
 				std::cerr << "Before line " << line_count << std::endl;
 				std::cerr << "Expecting " << stop - start + 1 << " characters based on defline\n";
@@ -703,7 +703,7 @@ void GenericIntervalList<MatchType>::ReadStandardAlignmentCompact( std::istream&
 				cr.SetStart( seqI - 1, 0 );
 			else
 				cr.SetStart( seqI - 1, -stop );
-			if( chars != static_cast<gnSeqI>(start - stop + 1) && !(chars == 0 && stop - start == 1) ){
+			if( chars != start - stop + 1 && !(chars == 0 && stop - start == 1) ){
 				std::cerr << "Error in XMFA file format\n";
 				std::cerr << "Before line " << line_count << std::endl;
 				std::cerr << "Expecting " << start - stop + 1 << " characters based on defline\n";
@@ -840,4 +840,3 @@ void GenericIntervalList<MatchType>::WriteAlignedSequences(std::ostream& match_f
 }
 
 #endif	//_IntervalList_h_
-

@@ -11,9 +11,6 @@
 #endif
 
 #include "libMems/SortedMerList.h"
-#include <cstring>
-#include <iostream>
-#include <algorithm>
 
 using namespace std;
 using namespace genome;
@@ -170,7 +167,7 @@ uint32 SortedMerList::CalculateMaxMerSize() const{
 	return (sizeof(tmp.mer) * 8) / header.alphabet_bits;
 }
 
-bool SortedMerList::FindMer(const uint64 query_mer, gnSeqI& result){
+boolean SortedMerList::FindMer(const uint64 query_mer, gnSeqI& result){
 	bmer merle;
 	merle.mer = query_mer;
 	gnSeqI last_pos = Length();
@@ -181,7 +178,7 @@ bool SortedMerList::FindMer(const uint64 query_mer, gnSeqI& result){
 	return ((*this)[result].mer == merle.mer);
 }
 
-bool SortedMerList::Find(const string& query_seq, gnSeqI& result) {
+boolean SortedMerList::Find(const string& query_seq, gnSeqI& result) {
 	struct bmer merle;
 	merle.mer = 0;
 
@@ -211,11 +208,11 @@ void SortedMerList::FindAll(const string& query_seq, vector<gnSeqI> result) {
 	matchI = bsearch(merle, 0, last_pos);
 
 	//first seek backwards
-	int64 cur_matchI = static_cast<int64>(matchI);
+	int64 cur_matchI = matchI;
 	matchmer = (*this)[matchI];
 	while(cur_matchI >= 0 && matchmer.mer == merle.mer){
 		cur_matchI--;
-		matchmer = (*this)[static_cast<gnSeqI>(cur_matchI)];
+		matchmer = (*this)[cur_matchI];
 	}
 	int64 first_matchI = cur_matchI+1;
 
@@ -227,7 +224,7 @@ void SortedMerList::FindAll(const string& query_seq, vector<gnSeqI> result) {
 		matchmer = (*this)[cur_matchI];
 	}
 	//fill the result array
-	for(gnSeqI matchI = static_cast<gnSeqI>(first_matchI); matchI < static_cast<gnSeqI>(cur_matchI); matchI++)
+	for(matchI = first_matchI; matchI < cur_matchI; matchI++)
 		result.push_back(matchI);
 }
 
@@ -255,7 +252,7 @@ uint64 SortedMerList::Seed() const{
 	return header.seed;
 }
 
-bool SortedMerList::IsCircular() const{
+boolean SortedMerList::IsCircular() const{
 	return header.circular;
 }
 
@@ -278,8 +275,9 @@ void SortedMerList::SetMerMaskSize(uint32 mer_size){
 		mask_size = mer_size;
 
 	// calculate the mer mask
-	// FIXED: Use 0xFFFFFFFFFFFFFFFFULL directly to ensure 64-bit mask
-	mer_mask = 0xFFFFFFFFFFFFFFFFULL;
+	mer_mask = UINT32_MAX;
+	mer_mask <<= 32;
+	mer_mask |= UINT32_MAX;
 	mer_mask <<= (64 - header.alphabet_bits * mer_size);
 }
 
@@ -403,7 +401,7 @@ void SortedMerList::translate(uint8* dest, const gnSeqC* src, const gnSeqI len) 
 	const uint32 alpha_bits = OPT_HEADER_ALPHABET_BITS;
 	dest[cur_byte] = 0;
 	for(uint32 i=0; i < len; i++){
-		uint8 tmp = header.translation_table[static_cast<unsigned char>(src[i])];
+		uint8 tmp = header.translation_table[src[i]];
 		if(start_bit + alpha_bits <= 8){
 			tmp <<= 8 - start_bit - alpha_bits;
 			dest[cur_byte] |= tmp;
@@ -437,7 +435,7 @@ void SortedMerList::translate32(uint32* dest, const gnSeqC* src, const gnSeqI le
 			cerr << "Input sequences must be unaligned and ungapped!\n";
 			throw "Gap in genome sequence\n";
 		}
-		uint32 tmp = header.translation_table[static_cast<unsigned char>(src[i])];
+		uint32 tmp = header.translation_table[src[i]];
 		if(start_bit + alpha_bits <= 32){
 			tmp <<= 32 - start_bit - alpha_bits;
 			dest[cur_word] |= tmp;
@@ -532,7 +530,7 @@ void SortedMerList::ShiftWords(unsigned int* data, uint32 length, int32 bits)
 	}
 }
 
-void SortedMerList::FillSML(gnSeqC* seq_buf, gnSeqI seq_len, bool circular, vector<bmer>& sml_array){
+void SortedMerList::FillSML(gnSeqC* seq_buf, gnSeqI seq_len, boolean circular, vector<bmer>& sml_array){
 	const uint32 alpha_bits = OPT_HEADER_ALPHABET_BITS;
 	const uint32 mer_size = header.seed_length;
 	gnSeqI sar_len = seq_len;
@@ -547,7 +545,7 @@ void SortedMerList::FillSML(gnSeqC* seq_buf, gnSeqI seq_len, bool circular, vect
 	/* now fill in the suffix array with the forward sequence*/
 	for(gnSeqI i=0; i < mer_size; i++){
 		cur_suffix.mer <<= alpha_bits;
-		cur_suffix.mer |= header.translation_table[static_cast<unsigned char>(seq_buf[i])];
+		cur_suffix.mer |= header.translation_table[seq_buf[i]];
 	}
 	uint8 dead_bits = 64 - (mer_size * alpha_bits);
 	cur_suffix.mer <<= dead_bits;
@@ -559,7 +557,7 @@ void SortedMerList::FillSML(gnSeqC* seq_buf, gnSeqI seq_len, bool circular, vect
 													//first one
 		cur_suffix.position++;
 		cur_suffix.mer <<= alpha_bits;
-		uint64 new_mer = header.translation_table[static_cast<unsigned char>(seq_buf[seqI+(mer_size-1)])];
+		uint64 new_mer = header.translation_table[seq_buf[seqI+(mer_size-1)]];
 		new_mer <<= dead_bits;
 		cur_suffix.mer |= new_mer;
 		sml_array.push_back(cur_suffix);
@@ -569,7 +567,7 @@ void SortedMerList::FillSML(gnSeqC* seq_buf, gnSeqI seq_len, bool circular, vect
 void SortedMerList::FillSML(const gnSequence& seq, vector<bmer>& sml_array){
 	gnSeqI seq_len = seq.length();
 	Array<gnSeqC> seq_buf( seq_len );
-	(void)seq.ToArray(seq_buf.data, seq_len);
+	seq.ToArray(seq_buf.data, seq_len);
 	FillSML(seq_buf.data, seq_len, seq.isCircular(), sml_array);
 }
 
@@ -611,9 +609,7 @@ uint64 SortedMerList::RevCompMer( uint64 mer_a, int mer_length ) const
 		mer_c <<= OPT_HEADER_ALPHABET_BITS;
 	}
 	mer_c <<= 64 - (OPT_HEADER_ALPHABET_BITS * (mer_length+1));
-	
-	// FIXED: Use 1ULL to force 64-bit OR. Prevents signed 32-bit issues on MSVC.
-	mer_c |= 1ULL;
+	mer_c |= 1;
 	return mer_c;
 }
 
@@ -657,9 +653,7 @@ void SortedMerList::FillDnaSML(const gnSequence& seq, vector<bmer>& sml_array){
 		rcur_suffix.mer <<= alpha_bits;
 	}
 	rcur_suffix.mer <<= dead_bits - alpha_bits;
-	
-	// FIXED: Use 1ULL for safe 64-bit modification
-	rcur_suffix.mer |= 1ULL;
+	rcur_suffix.mer |= 1;
 
 	//add the first mer
 	if(cur_suffix.mer < rcur_suffix.mer)
@@ -708,9 +702,7 @@ void SortedMerList::FillDnaSML(const gnSequence& seq, vector<bmer>& sml_array){
 		rcur_suffix.mer >>= alpha_bits;
 		rcur_suffix.mer |= tmp_rseq;
 		rcur_suffix.mer &= create_mask;
-		
-		// FIXED: Use 1ULL
-		rcur_suffix.mer |= 1ULL;
+		rcur_suffix.mer |= 1;
 		if(cur_suffix.mer < rcur_suffix.mer)
 			sml_array.push_back(cur_suffix);
 		else
@@ -737,21 +729,16 @@ uint64 SortedMerList::GetSeedMer( gnSeqI offset ) const
 	uint64 mer_a = SortedMerList::GetMer( offset );
 	uint64 mer_b = SortedMerList::GetMer( offset + 1 );
 	uint64 seed_mer = 0;
-	
-	// FIXED: Use 1ULL to force 64-bit calculation.
-	// Original '1' (32-bit int) would overflow if shifted by large values.
-	uint64 alpha_mask = 1ULL;
+	uint64 alpha_mask = 1;
 	alpha_mask <<= OPT_HEADER_ALPHABET_BITS;
 	alpha_mask--;
 	alpha_mask <<= 62;
 	uint64 cur_alpha_mask = alpha_mask;
-	
-	// FIXED: Use 1ULL
-	uint64 char_mask = 1ULL;
+	uint64 char_mask = 1;
 	char_mask <<= header.seed_length - 1;
 	uint64 cur_mer = mer_a;
-	const uint32 mer_transition = 64 / OPT_HEADER_ALPHABET_BITS;
-	uint32 patternI = 0;
+	const int mer_transition = 64 / OPT_HEADER_ALPHABET_BITS;
+	int patternI = 0;
 	int rshift_amt = 64 - OPT_HEADER_ALPHABET_BITS;
 	for( ; patternI < header.seed_length; patternI++ ){
 		if( patternI == mer_transition ){
@@ -804,7 +791,7 @@ void SortedMerList::Create(const gnSequence& seq, const uint64 seed){
 	int seed_length = getSeedLength( seed );
 	int seed_weight = getSeedWeight( seed );
 	
-	if(static_cast<uint32>(seed_length) > CalculateMaxMerSize())
+	if(seed_length > CalculateMaxMerSize())
 		Throw_gnExMsg( SMLCreateError(), "Mer size is too large" );
 
 	if(seed_length == 0)
@@ -819,9 +806,9 @@ void SortedMerList::Create(const gnSequence& seq, const uint64 seed){
 	// use the nifty Array class as a wrapper for the buffer to ensure correct deallocation
 	gnSeqI buf_len = seq.isCircular() ? seq_len + seed_length : seq_len;
 	Array<gnSeqC> seq_buf( buf_len );
-	(void)seq.ToArray(seq_buf.data, seq_len);
+	seq.ToArray(seq_buf.data, seq_len);
 	if( seq.isCircular() )
-		(void)seq.ToArray(seq_buf.data + seq_len, seed_length-1);
+		seq.ToArray(seq_buf.data + seq_len, seed_length-1);
 
 	// set header information
 	header.length = seq_len;
@@ -837,4 +824,3 @@ void SortedMerList::Create(const gnSequence& seq, const uint64 seed){
 }
 
 } // namespace mems
-

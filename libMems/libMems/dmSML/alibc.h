@@ -5,11 +5,19 @@
 #include "config.h"
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 int OpenLibC( aFILE * file, const char *path, int mode );
 int CloseLibC( aFILE * file );
 int WriteLibC( aFILE * file, aIORec * rec );
 int ReadLibC( aFILE * file, aIORec * rec );
 
 /* Line ending test modification... */
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _alibc_h_ */

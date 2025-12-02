@@ -231,7 +231,7 @@ AbstractMatch* GappedAlignment::Split( gnSeqI before_column )
 
 const std::vector<std::string>& GetAlignment( const GappedAlignment& ga, const std::vector< genome::gnSequence* >& seq_table );
 inline
-const std::vector<std::string>& GetAlignment( const GappedAlignment& ga, [[maybe_unused]] const std::vector< genome::gnSequence* >& seq_table )
+const std::vector<std::string>& GetAlignment( const GappedAlignment& ga, const std::vector< genome::gnSequence* >& seq_table )
 {
 	return ga.align_matrix;
 }
@@ -280,3 +280,4 @@ void swap( mems::GappedAlignment& a, mems::GappedAlignment& b )
 
 
 #endif // __GappedAlignment_h__
+

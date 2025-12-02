@@ -36,7 +36,7 @@ void run(std::string& sequence, std::string& prediction, const Params& params )
   memcpy(aSequence, sequence.data(), iPathLength );
 
   // Decode the emission sequence using Viterbi, and compute posteriors and Baum Welch counts using Forward and Backward
-  HomologyDPTable *pFWDP, *pBWDP;
+  HomologyDPTable *pViterbiDP, *pFWDP, *pBWDP;
   HomologyBaumWelch bw;
 
   bfloat iFWProb = Forward(&pFWDP, iPar, aSequence, iPathLength );
@@ -61,3 +61,5 @@ void run(std::string& sequence, std::string& prediction, const Params& params )
   delete pBWDP;
 
 }
+
+

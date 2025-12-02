@@ -66,7 +66,7 @@ public:
 	/**
 	 * Checks whether a particular format name is supported
 	 */
-	static bool isSupportedFormat( const std::string& format_name );
+	static boolean isSupportedFormat( const std::string& format_name );
 
 	/**
 	 * Writes out this sequence alignment in the specified format, 
@@ -232,7 +232,7 @@ public:
 	 * @param offset the position in the alignment to access.
 	 * @return a vector of characters at position offset.
 	 */
-	std::vector <char> operator[]( size_t offset );
+	std::vector <char> operator[]( const int offset ); //const;
 	
 	/**
 	 * Adds a sequence to the alignment.
@@ -399,4 +399,3 @@ std::string gnAlignedSequences::getAlignedSequenceFileName() {return alignedSequ
 }
 
 #endif	// __gnAlignedSequences_h__
-

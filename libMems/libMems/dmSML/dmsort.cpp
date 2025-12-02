@@ -5,6 +5,14 @@
 #include <cstdlib>
 #include <cstdio>
 #include <cstring>
+#include <string>     // For std::string (used in InitdmSML)
+#include <algorithm>  // For std::memset (used in InitdmSML and dmSML)
+
+// FIX: Ensure this type is declared as a global variable outside of the sml namespace
+// because it is assigned using a function (sml::CreateBasicDNATable) and used globally.
+unsigned char* DNA_TABLE = nullptr; 
+
+// Include necessary project headers
 #include "libMems/dmSML/util.h"
 #include "libMems/dmSML/timing.h"
 #include "libMems/dmSML/asyncio.h"
@@ -12,6 +20,7 @@
 #include "libMems/dmSML/sorting.h"
 #include "libMems/dmSML/sml.h"
 #include "libMems/dmSML/dmsort.h"
+
 
 device_t *Devices;
 int NumDevices;
@@ -84,21 +93,24 @@ static buffer_t * AllocateFree( void ) {
     return( ret );
 }
 
-static unsigned int divisor = 0;
+static size_t divisor = 0;
 
 static int ComputeBinNumber( const unsigned char key[10] ) {
     int i;
-    unsigned int keyval = 0;
+    size_t keyval = 0;
+    
     if( divisor == 0 ) {
-        divisor = (unsigned)16777216 / (unsigned)NumBins;
-        divisor += (unsigned)16777216 % (unsigned)NumBins ? 1 : 0;
-        printf( "Divisor is: %u\n", divisor );
+        divisor = 16777216 / (size_t)NumBins;
+        divisor += (16777216 % (size_t)NumBins) ? 1 : 0;
+        printf( "Divisor is: %zu\n", divisor );
     }
+    
     for( i = 0; i < 3; i++ ) {
         keyval <<= 8;
         keyval += key[i];
     }
-    return( keyval / divisor );
+    
+    return (int)(keyval / divisor);
 }
 
 static offset_t         consumed_recs = 0;
@@ -195,7 +207,7 @@ void FinishBinning() {
 }
 
 offset_t CalculateDataReadSize( buffer_t* b ){
-	return (b->totalrecs + mask_length - 1) < (RecsUnread + mask_length - 1) ? (b->totalrecs + mask_length - 1) : (RecsUnread + mask_length - 1);
+	return (b->totalrecs + sml::mask_length - 1) < (RecsUnread + sml::mask_length - 1) ? (b->totalrecs + sml::mask_length - 1) : (RecsUnread + sml::mask_length - 1);
 }
 
 static void DoReading( void ) {
@@ -269,6 +281,7 @@ static void Translate32(uint32* dest, const char* src, const unsigned len){
 	for(i=0; i < len; i++){
 		if(start_bit + ALPHA_BITS <= 32){
 			word_mer <<= ALPHA_BITS;
+			// FIX: Use the global DNA_TABLE
 			word_mer |= DNA_TABLE[static_cast<unsigned char>(src[i])];
 			dest[cur_word] = word_mer;
 			start_bit += ALPHA_BITS;
@@ -288,14 +301,14 @@ static void Translate32(uint32* dest, const char* src, const unsigned len){
 
 void RestructureReadSMLBins( void ) {
 	char little_endian = 1;
-	mask_t bit;
-	mask_t mer, rc_mer;
+	sml::mask_t bit;
+	sml::mask_t mer, rc_mer;
 	record_t forward, reverse;
 	record_t begin[6];
 	int i;
 	offset_t seqI, extras;
 	char* sequence;
-	sml_t *sml;
+	sml::sml_t *sml;
 
     buffer_t *b, *tmpnext;
 	
@@ -317,7 +330,7 @@ void RestructureReadSMLBins( void ) {
 		
         tmpnext = b->next;
 		sequence = reinterpret_cast<char*>(b->recs);
-		sml = reinterpret_cast<sml_t*>(b->recs);
+		sml = reinterpret_cast<sml::sml_t*>(b->recs);
 
         headbuf = Seqbuf.bufs.head;
         if( !headbuf || 
@@ -344,9 +357,9 @@ void RestructureReadSMLBins( void ) {
 			seq_word++;
 		}
 		
-		translate_length = b->io_size - static_cast<offset_t>(mask_length) + 1 - (word_remainder / 2);
+		translate_length = b->io_size - static_cast<offset_t>(sml::mask_length) + 1 - (word_remainder / 2);
 		if( b->io_size + b->input_pos >= NumRecs ){
-			translate_length += static_cast<offset_t>(mask_length) - 1;
+			translate_length += static_cast<offset_t>(sml::mask_length) - 1;
 		}
 		
 #ifndef NO_RESTRUCTURE_PERF_TEST
@@ -357,6 +370,7 @@ void RestructureReadSMLBins( void ) {
 			int begin_mer = 0;
 			for( seqI = 0; seqI < static_cast<offset_t>(word_remainder / 2); seqI++ ){
 				begin_mer <<= 2;
+				// FIX: Use the global DNA_TABLE
 				begin_mer |= DNA_TABLE[static_cast<unsigned char>(sequence[ seqI ])];
 			}
 			(reinterpret_cast<uint32*>(headbuf->recs))[ seq_word - 1 ] |= begin_mer;
@@ -386,24 +400,28 @@ void RestructureReadSMLBins( void ) {
         }
 
 #ifndef NO_RESTRUCTURE_PERF_TEST
-		for( seqI = b->io_size - static_cast<offset_t>(mask_length) + 1; seqI > 0; seqI-- ){
+		for( seqI = b->io_size - static_cast<offset_t>(sml::mask_length) + 1; seqI > 0; seqI-- ){
 			bit = 1;
-			bit <<= mask_length - 1;
+			bit <<= sml::mask_length - 1;
 			mer = 0;
-			for( i = 0; i < mask_length; i++ ){
-				if( bit & seed_mask ){
+			for( i = 0; i < sml::mask_length; i++ ){
+				if( bit & sml::seed_mask ){
 					mer <<= 2;
+					// FIX: Use the global DNA_TABLE
 					mer |= DNA_TABLE[static_cast<unsigned char>(sequence[ seqI + i - 1 ])];
 				}
 				bit >>= 1;
 			}
-			mer <<= 64 - (2 * mask_weight);
+			// FIX: Use sml::mask_weight
+			mer <<= 64 - (2 * sml::mask_weight);
 			if( little_endian ){
-				for( i = 0; i < MASK_T_BYTES; i++ )
+				// FIX: Use sml::MASK_T_BYTES
+				for( i = 0; i < sml::MASK_T_BYTES; i++ )
 					forward.key[i] = (reinterpret_cast<char*>(&mer))[ sizeof( mer ) - i - 1 ];
 
 			}else{
-				for( i = 0; i < MASK_T_BYTES; i++ )
+				// FIX: Use sml::MASK_T_BYTES
+				for( i = 0; i < sml::MASK_T_BYTES; i++ )
 					forward.key[i] = (reinterpret_cast<char*>(&mer))[ i ];
 			}
 
@@ -413,12 +431,15 @@ void RestructureReadSMLBins( void ) {
 				rc_mer |= mer & 3;
 				mer >>= 2;
 			}
-			rc_mer <<= 64 - (2 * mask_weight);
+			// FIX: Use sml::mask_weight
+			rc_mer <<= 64 - (2 * sml::mask_weight);
 			if( little_endian ){
-				for( i = 0; i < MASK_T_BYTES; i++ )
+				// FIX: Use sml::MASK_T_BYTES
+				for( i = 0; i < sml::MASK_T_BYTES; i++ )
 					reverse.key[i] = (reinterpret_cast<char*>(&rc_mer))[ sizeof( mer ) - i - 1 ];
 			}else{
-				for( i = 0; i < MASK_T_BYTES; i++ )
+				// FIX: Use sml::MASK_T_BYTES
+				for( i = 0; i < sml::MASK_T_BYTES; i++ )
 					reverse.key[i] = (reinterpret_cast<char*>(&rc_mer))[i];
 			}
 			if( COMPARE_KEYS( forward, reverse ) > 0)
@@ -432,7 +453,7 @@ void RestructureReadSMLBins( void ) {
 			}
 		}
 
-		extras = b->io_size - static_cast<offset_t>(mask_length) + 1 < 6 ? b->io_size - static_cast<offset_t>(mask_length) + 1 : 6;
+		extras = b->io_size - static_cast<offset_t>(sml::mask_length) + 1 < 6 ? b->io_size - static_cast<offset_t>(sml::mask_length) + 1 : 6;
 		
 		for(; seqI < static_cast<offset_t>(extras); seqI++ ){
 			b->recs[ seqI ] = begin[ seqI ];
@@ -441,8 +462,8 @@ void RestructureReadSMLBins( void ) {
 #else
 	if(1){
     int i;
-    unsigned int keyval = 0;
-	unsigned int tmpval = 0;
+    size_t keyval = 0;
+	size_t tmpval = 0;
     if( divisor == 0 ) {
         divisor = (unsigned)16777216 / (unsigned)NumBins;
         divisor += (unsigned)16777216 % (unsigned)NumBins ? 1 : 0;
@@ -482,11 +503,12 @@ static void HandleReadingCompletions( void ) {
     } while( b != Reading.head && Reading.nitems );
 }
 
-
-int InitdmSML( long working_mb, long buffer_size, const char* input_filename, const char* output_filename, const char* const* scratch_paths, uint64 seed ) {
+extern "C" {
+int InitdmSML( long working_mb, long buffer_size, const char* input_filename, const char* output_filename, const char* const* scratch_paths, sml::uint64 seed ) {
     int i, j;
     offset_t desired_ws_size, actual_ws_size;
-    SMLHeader_t header;
+    // FIX: Use sml::SMLHeader_t
+    sml::SMLHeader_t header;
     struct {
         const char * bin_dev;
         int devnum;
@@ -514,6 +536,7 @@ int InitdmSML( long working_mb, long buffer_size, const char* input_filename, co
 	}
 #else
     {
+	// Use std::string for safer file handling if possible, but stick to C-style for compatibility here
 	FILE *fp = fopen("/proc/meminfo", "r");
 	if ( fp )
 	{
@@ -605,7 +628,8 @@ int InitdmSML( long working_mb, long buffer_size, const char* input_filename, co
     	return INVALID_WS_SIZE;
     }
 	
-	DNA_TABLE = CreateBasicDNATable();
+	// FIX: Use sml::CreateBasicDNATable() since it's now in the namespace
+	DNA_TABLE = sml::CreateBasicDNATable();
 
     Output = aOpen( OutFileName, A_WRITE );
     if( !Output ) {
@@ -613,17 +637,17 @@ int InitdmSML( long working_mb, long buffer_size, const char* input_filename, co
     	return OUTPUT_NOT_OPENED;
     }
 	
-	header = InitSML( Output, NumRecs, seed );
-	seed_mask = header.seed;
-	mask_length = header.seed_length;
-	mask_weight = header.seed_weight;
+	header = sml::InitSML( Output, NumRecs, seed );
+	sml::seed_mask = header.seed;
+	sml::mask_length = header.seed_length;
+	sml::mask_weight = header.seed_weight;
 	
-	if( NumRecs <= static_cast<offset_t>(mask_length) - 1 ){
-	        printf( "Sequence must be at least %d characters in length\n", mask_length );
+	if( NumRecs <= static_cast<offset_t>(sml::mask_length) - 1 ){
+	        printf( "Sequence must be at least %d characters in length\n", sml::mask_length );
 		return SEQUENCE_TOO_SHORT;
 	}
 
-	NumRecs -= static_cast<offset_t>(mask_length) - 1;
+	NumRecs -= static_cast<offset_t>(sml::mask_length) - 1;
 	printf( "NumRecs is: %llu \n", NumRecs );
     RecsProcessed = 0;
     RecsUnread = NumRecs;
@@ -701,6 +725,7 @@ int InitdmSML( long working_mb, long buffer_size, const char* input_filename, co
     }
 	
 	return 0;
+}
 }
 
 void DisplayStatusHeader( void ) {
@@ -1020,14 +1045,14 @@ void SortSorting( void ) {
 void RestructureSMLBinsForWrite( void ) {
     int i;
     offset_t j;
-	position_t* positions;
-	sml_t *sml;
+	sml::position_t* positions;
+	sml::sml_t *sml;
 
     for( i = 0; i < NSortBufs; i++ ) {
         if( SortBufs[i].state == WRITE_RESTRUCTURE ) {
             printf( "restructuring bin %d\n", SortBufs[i].bin );
-            positions = reinterpret_cast<position_t*>(SortBufs[i].buf->recs);
-            sml = reinterpret_cast<sml_t*>(SortBufs[i].buf->recs);
+            positions = reinterpret_cast<sml::position_t*>(SortBufs[i].buf->recs);
+            sml = reinterpret_cast<sml::sml_t*>(SortBufs[i].buf->recs);
             for( j = 0; j < Bins[SortBufs[i].bin].nrecs; j++ ){
             	positions[ j ] = sml[ j ].pos;
             }
@@ -1038,7 +1063,8 @@ void RestructureSMLBinsForWrite( void ) {
 }
 
 int CalculateSortWriteSize( int sortI ){
-     return Bins[SortBufs[sortI].bin].nrecs * sizeof( position_t );
+     // FIX: Use sml::position_t size
+     return Bins[SortBufs[sortI].bin].nrecs * sizeof( sml::position_t );
 }
 
 void SortWriting( void ) {
@@ -1270,7 +1296,7 @@ int dmsort() {
 }
 
 extern "C" {
-int dmSML( const char* input_file, const char* output_file, const char* const* scratch_paths, uint64 seed ) {
+int dmSML( const char* input_file, const char* output_file, const char* const* scratch_paths, sml::uint64 seed ) {
 	int rval = 0;
 	int i = 0;
 	rval = InitdmSML( 0, 0, input_file, output_file, scratch_paths, seed );
@@ -1278,6 +1304,11 @@ int dmSML( const char* input_file, const char* output_file, const char* const* s
 		return rval;
 	rval = dmsort();
 	
+	// FIX: Must free DNA_TABLE memory allocated by sml::CreateBasicDNATable()
+	if( DNA_TABLE )
+		free( DNA_TABLE );
+	DNA_TABLE = nullptr;
+
 	for( i = 0; i < NumBins; i++ ){
 		removeFile( Bins[ i ].fname, FALSE );
 		free( Bins[ i ].fname );

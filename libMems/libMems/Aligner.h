@@ -49,10 +49,11 @@ public:
 	LabeledMemComparator( uint seq ){
 		m_seq = seq;
 	}
+	// Added 'const' to the argument type
 	LabeledMemComparator( const LabeledMemComparator& lmc ){
 		m_seq = lmc.m_seq;
 	}
-	bool operator()(const LabeledMem& a, const LabeledMem& b) const{
+	boolean operator()(const LabeledMem& a, const LabeledMem& b) const{
 		
 		int64 a_start = a.mem->Start( m_seq ), b_start = b.mem->Start( m_seq );
 		if( a_start == NO_MATCH || b_start == NO_MATCH ){
@@ -94,10 +95,11 @@ public:
 	PlacementMatchComparator( uint seq ){
 		m_seq = seq;
 	}
+	// Added 'const' to the argument type
 	PlacementMatchComparator( const PlacementMatchComparator& lmc ){
 		m_seq = lmc.m_seq;
 	}
-	bool operator()(const PlacementMatch& a, const PlacementMatch& b) const{
+	boolean operator()(const PlacementMatch& a, const PlacementMatch& b) const{
 		
 		int64 a_start = a.mem->Start( m_seq ), b_start = b.mem->Start( m_seq );
 		if( a_start == NO_MATCH || b_start == NO_MATCH ){
@@ -165,9 +167,9 @@ public:
 	 *                          an empty string is specified then a temporary file is created.  
 	 * @throws AlignerError 	may be thrown if an error occurs
 	 */
-	void align( MatchList& mlist, IntervalList& interval_list, double LCB_minimum_density, double LCB_minimum_range, bool recursive, bool extend_lcbs, bool gapped_alignment, std::string tree_filename = "" );
+	void align( MatchList& mlist, IntervalList& interval_list, double LCB_minimum_density, double LCB_minimum_range, boolean recursive, boolean extend_lcbs, boolean gapped_alignment, std::string tree_filename = "" );
 	
-	void Recursion( MatchList& r_list, Match* r_begin, Match* r_end, bool nway_only = false );
+	void Recursion( MatchList& r_list, Match* r_begin, Match* r_end, boolean nway_only = false );
 	void GetBestLCB( MatchList& r_list, MatchList& best_lcb );
 	void DoSomethingCool( MatchList& mlist, Interval& iv );
 	
@@ -182,7 +184,7 @@ public:
 	void SetMaxExtensionIterations( uint ext_iters ){ this->max_extension_iters = ext_iters; }
 
 	void SearchWithinLCB( MatchList& mlist, std::vector< search_cache_t >& new_cache, bool leftmost = false, bool rightmost = false );
-	void RecursiveAnchorSearch( MatchList& mlist, gnSeqI minimum_weight, std::vector< MatchList >& LCB_list, bool entire_genome, std::ostream* status_out = NULL );
+	void RecursiveAnchorSearch( MatchList& mlist, gnSeqI minimum_weight, std::vector< MatchList >& LCB_list, boolean entire_genome, std::ostream* status_out = NULL );
 
 	void AlignLCB( MatchList& mlist, Interval& iv );
 	void SetGappedAligner( GappedAligner& gal );
@@ -198,24 +200,30 @@ protected:
 	TLS<MemHash> gap_mh;			/**< Used during recursive alignment */
 	MaskedMemHash nway_mh;	/**< Used during recursive alignment to find nway matches only */
 	uint32 seq_count;		/**< The number of sequences this aligner is working with */
+	boolean debug;			/**< Flag for debugging output */
+	
 	double LCB_minimum_density;
 	double LCB_minimum_range;
-	int64 cur_min_coverage;	/**< Tracks the minimum weight of the least weight LCB */
-	gnSeqI min_recursive_gap_length;	/**< Minimum size of gap regions that will be recursed on */
-	bool collinear_genomes;	/**< Set to true if all genomes are assumed to be collinear */
-	GappedAligner* gal;
-	std::string permutation_filename;
-	int64 permutation_weight;
+
 	uint max_extension_iters;	/**< maximum number of attempts at LCB extension */
-	bool debug;			/**< Flag for debugging output */
+	
+	int64 cur_min_coverage;	/**< Tracks the minimum weight of the least weight LCB */
+	
+	gnSeqI min_recursive_gap_length;	/**< Minimum size of gap regions that will be recursed on */
 
 	void consistencyCheck( uint lcb_count, std::vector< LCB >& adjacencies, std::vector< MatchList >& lcb_list, std::vector< int64 >& weights );
 	
-	bool recursive;		/**< Set to true if a recursive anchor search/gapped alignment should be performed */
-	bool extend_lcbs;	/**< Set to true if LCB extension should be attempted */
-	bool gapped_alignment;	/**< Set to true to complete a gapped alignment */
-	bool currently_recursing;	/**< True when the recursive search has begun */
+	boolean recursive;		/**< Set to true if a recursive anchor search/gapped alignment should be performed */
+	boolean extend_lcbs;	/**< Set to true if LCB extension should be attempted */
+	boolean gapped_alignment;	/**< Set to true to complete a gapped alignment */
+	boolean currently_recursing;	/**< True when the recursive search has begun */
+	boolean collinear_genomes;	/**< Set to true if all genomes are assumed to be collinear */
 	
+	GappedAligner* gal;
+
+	std::string permutation_filename;
+	int64 permutation_weight;
+
 	std::vector< search_cache_t > search_cache; /**< a list of recursive searches that have already been done */
 };
 
@@ -254,7 +262,7 @@ void GetLCBCoverage( MatchList& lcb, uint64& coverage );
 int64 greedyBreakpointElimination( gnSeqI minimum_weight, std::vector< LCB >& adjacencies, std::vector< int64 >& weights, std::ostream* status_out = NULL );
 void filterMatches( std::vector< LCB >& adjacencies, std::vector< MatchList >& lcb_list, std::vector< int64 >& weights );
 
-void CreateGapSearchList( std::vector< LCB >& adjacencies, const std::vector< genome::gnSequence* >& seq_table, std::vector< std::vector< int64 > >& iv_regions, bool entire_genome );
+void CreateGapSearchList( std::vector< LCB >& adjacencies, const std::vector< genome::gnSequence* >& seq_table, std::vector< std::vector< int64 > >& iv_regions, boolean entire_genome );
 void SearchLCBGaps( MatchList& new_matches, const std::vector< std::vector< int64 > >& iv_regions, MaskedMemHash& nway_mh );
 
 static const uint MIN_ANCHOR_LENGTH = 9;

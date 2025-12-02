@@ -6,6 +6,7 @@
  * **************
  ******************************************************************************/
 
+
 #include "libMems/FileSML.h"
 // for CreateTempFileName():
 #include "libMems/Aligner.h"
@@ -13,7 +14,6 @@
 #include "libGenome/gnRAWSource.h"
 #include <algorithm>
 #include <cmath>
-#include <cstring>
 #include "boost/filesystem/operations.hpp"
 
 using namespace std;
@@ -54,7 +54,7 @@ void FileSML::LoadFile(const string& fname){
 	// in case it's bogus
 	SMLHeader tmp_header;
 	sarfile.read((char*)&tmp_header, sizeof(struct SMLHeader));
-	if(static_cast<size_t>(sarfile.gcount()) < sizeof(struct SMLHeader)){
+	if(sarfile.gcount() < (int)sizeof(struct SMLHeader)){
 		sarfile.clear();
 		Throw_gnExMsg( FileUnreadable(), "Unable to read file.");
 	}
@@ -81,7 +81,7 @@ void FileSML::LoadFile(const string& fname){
 	sequence = new uint32[binary_seq_len];
 
 	sarfile.read((char*)sequence, binary_seq_len*sizeof(uint32));
-	if(static_cast<size_t>(sarfile.gcount()) < binary_seq_len*sizeof(uint32)){
+	if(sarfile.gcount() < (int64)(binary_seq_len*sizeof(uint32))){
 		sarfile.clear();
 		Throw_gnExMsg( FileUnreadable(), "Error reading sequence data.");
 	}
@@ -109,9 +109,9 @@ void FileSML::LoadFile(const string& fname){
 	}
 }
 
-void FileSML::OpenForWriting( bool truncate ){
+void FileSML::OpenForWriting( boolean truncate ){
 	// Open smlfile for writing
-	bool was_open = sarfile.is_open();
+	boolean was_open = sarfile.is_open();
 	if(was_open)
 		sarfile.close();
 	if( truncate )
@@ -126,11 +126,11 @@ void FileSML::OpenForWriting( bool truncate ){
 	}
 }
 
-bool FileSML::WriteHeader(){
+boolean FileSML::WriteHeader(){
 	if(!sarfile.is_open()){
 		Throw_gnExMsg(IOStreamFailed(), "File is not valid.");
 	}
-	bool success = true;
+	boolean success = true;
 	const char* errormsg = "";
 	// Open sarfile for writing and write new header.
 	OpenForWriting( false );
@@ -250,7 +250,7 @@ void maskNNNNN( const gnSequence& in_seq, gnSequence& out_seq, vector< int64 >& 
 				}
 				n_count++;
 			}else{
-				if( n_count > static_cast<gnSeqI>(mask_n_length) ){
+				if( n_count > mask_n_length ){
 					if( n_stretch_start - n_stretch_end != 0 ){
 						// Add the sequence region to the output sequence
 						out_seq += in_seq.subseq( n_stretch_end, n_stretch_start - n_stretch_end );
@@ -294,7 +294,7 @@ void FileSML::dmCreate(const gnSequence& seq, const uint64 seed){
 			throw "";
 		}
 		
-		for( size_t coordI = 0; coordI < seq_coords.size(); coordI+=2 ){
+		for( int coordI = 0; coordI < seq_coords.size(); coordI+=2 ){
 			coord_out << seq_coords[ coordI ] << '\t' << seq_coords[ coordI + 1 ] << endl;
 		}
 		coord_out.close();
@@ -382,7 +382,7 @@ bmer FileSML::operator[](gnSeqI index)
 }
 
 
-bool FileSML::Read(vector<bmer>& readVector, gnSeqI size, const gnSeqI offset)
+boolean FileSML::Read(vector<bmer>& readVector, gnSeqI size, const gnSeqI offset)
 {
 	if(!sarfile.is_open()){
 		DebugMsg("FileSML::Read: Error sar file not open.\n");
@@ -404,7 +404,7 @@ bool FileSML::Read(vector<bmer>& readVector, gnSeqI size, const gnSeqI offset)
 		tmp_mer.position = base()[offset+j];
 		if( tmp_mer.position > header.length ){
 			string errmsg = "Corrupted SML, position ";
-			errmsg += std::to_string(tmp_mer.position) + " is out of range\n";
+			errmsg += tmp_mer.position + " is out of range\n";
 			ErrorMsg( errmsg );
 			cerr << errmsg;
 		}else
@@ -530,7 +530,7 @@ STACK_TRACE_START
 	//do some sanity checks on the sars we're merging.
 	if(sa_head.alphabet_bits != sa_head2.alphabet_bits ||
 	  sa_head.version != sa_head2.version ||
-	  std::memcmp(sa_head.translation_table, sa_head2.translation_table, UINT8_MAX)){
+	  memcmp(sa_head.translation_table, sa_head2.translation_table, UINT8_MAX)){
 		Throw_gnExMsg(SMLMergeError(), "Incompatible sorted mer lists.");
 	}
 	

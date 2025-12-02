@@ -30,7 +30,7 @@ public:
 	virtual PairwiseMatchFinder* Clone() const;
 protected:
 
-	virtual bool EnumerateMatches( mems::IdmerList& match_list );
+	virtual boolean EnumerateMatches( mems::IdmerList& match_list );
 };
 
 }

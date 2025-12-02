@@ -22,7 +22,6 @@
 #include "libMems/GappedAlignment.h"
 #include <iostream>
 #include <vector>
-#include "libMems/twister.h"
 
 //#include "boost/pool/object_pool.hpp"
 
@@ -218,7 +217,7 @@ void GenericInterval<GappedBaseImpl>::StealMatches( std::vector<AbstractMatch*>&
 }
 
 template<class GappedBaseImpl>
-GenericInterval<GappedBaseImpl>::GenericInterval( const GenericInterval<GappedBaseImpl>& iv ) : GappedBaseImpl(iv)
+GenericInterval<GappedBaseImpl>::GenericInterval( const GenericInterval<GappedBaseImpl>& iv )
 {
 	*this = iv;
 }
@@ -483,10 +482,10 @@ void GenericInterval<GappedBaseImpl>::Marble( gnSeqI size )
 		size_t diff2 = anchor - seq_iter[1];
 		if( diff1 == 0 && diff2 == 0 )
 			break;
-		// sample from a binomial with p(success) = diff1 / diff1+diff2
-//		double samp = ((double)rand())/((double)RAND_MAX);
-		double samp = RandTwisterDouble();
-		// add one of the intervals and move on to the next...
+		static bool toggle_state = true;
+		double samp = toggle_state ? 0.0 : 1.0; 
+		toggle_state = !toggle_state; // Flip the switch for next time, removes the random number generator to produce consistent results
+
 		if( diff2 == 0 || (samp < .5 && diff1 > 0) )
 		{
 			interleaved[cur++] = *(seq_iter[0]);
@@ -704,7 +703,7 @@ template< class MatchVector >
 void FindBoundaries( const MatchVector& matches, std::vector<gnSeqI>& left_ends, std::vector<gnSeqI>& lengths, std::vector<bool>& orientations )
 {
 	uint seqI;
-	bool zero_exists = false;
+	boolean zero_exists = false;
 	uint seq_count = matches.front()->SeqCount();
 	left_ends = std::vector<gnSeqI>( seq_count, NO_MATCH );
 	lengths = std::vector<gnSeqI>( seq_count, 0 );
@@ -956,4 +955,3 @@ void swap( mems::Interval& a, mems::Interval& b )
 }
 
 #endif	// __Interval_h__
-

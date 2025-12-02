@@ -5,6 +5,10 @@
 #include "config.h"
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 // an opaque timer type.
 typedef struct dmtimer_s dmtimer_t;
 
@@ -20,5 +24,8 @@ void StopTimer( dmtimer_t * t );
 // initialize the timing code.
 void InitTime();
 
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _timing_h_ */

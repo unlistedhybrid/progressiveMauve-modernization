@@ -311,7 +311,9 @@ bfloat Forward(HomologyDPTable** ppOutTable,Params iPar,char *aSeq,int iLen) {
     const bfloat *CurStateMemoryblock2From;
     bfloat *CurStateMemoryblock3To;
     const bfloat *CurStateMemoryblock3From;
+    int iPrevSlowCoord __attribute__((unused));
     int iSymbol[1];
+    (void)iSymbol;  // avoid unused variable warnings
     double iEmission[2];
     /* temporary storage for ordinary reals */
     double iTempResult[1];
@@ -335,6 +337,7 @@ bfloat Forward(HomologyDPTable** ppOutTable,Params iPar,char *aSeq,int iLen) {
     iTransition[7] = iPar.iGoStopFromUnrelated;
     dp.StateMemoryblock1.write()[0] = 1.0;
     dp.StateMemoryblock1.written();
+    iPrevSlowCoord = -1;
     for (int iPos0=0; iPos0<iLen+1; ++iPos0) {
         if ((iPos0+0<=0)) {
         }
@@ -375,8 +378,12 @@ bfloat Forward(HomologyDPTable** ppOutTable,Params iPar,char *aSeq,int iLen) {
             }
             dp.StateMemoryblock3.written();
         }
+        iPrevSlowCoord = iPos0;
     }
+    iPrevSlowCoord = -1;
     {
+        int iPos0=iLen+0;
+        (void)iPos0;  // avoid unused variable warnings
         CurStateMemoryblock3From = dp.StateMemoryblock3.read();
         iTempProb[0] = CurStateMemoryblock3From[0];
     }
@@ -385,6 +392,10 @@ bfloat Forward(HomologyDPTable** ppOutTable,Params iPar,char *aSeq,int iLen) {
     dp.isInCharge = false;
     return iTempProb[0];
 };
+
+
+
+
 
 bfloat Backward(HomologyBaumWelch& bw,HomologyDPTable* pInTable,HomologyDPTable** ppOutTable,Params iPar,char *aSeq,int iLen) {
     const bfloat *CurStateMemoryblock3Secondary;
@@ -398,7 +409,9 @@ bfloat Backward(HomologyBaumWelch& bw,HomologyDPTable* pInTable,HomologyDPTable*
     bfloat *CurStateMemoryblock1To;
     const bfloat *CurStateMemoryblock1Secondary;
     const bfloat *CurStateMemoryblock1From;
+    int iPrevSlowCoord __attribute__((unused));
     int iSymbol[1];
+    (void)iSymbol;  // avoid unused variable warnings
     double iEmission[2];
     /* temporary storage for ordinary reals */
     double iTempResult[1];
@@ -431,11 +444,15 @@ bfloat Backward(HomologyBaumWelch& bw,HomologyDPTable* pInTable,HomologyDPTable*
     }
     dp.StateMemoryblock3.write()[0] = 1.0;
     dp.StateMemoryblock3.written();
+    iPrevSlowCoord = -1;
     {
+        int iPos0=iLen+0;
+        (void)iPos0;  // avoid unused variable warnings
         CurStateMemoryblock3Secondary = dp2.StateMemoryblock3.read();
         iTempProb[2] = CurStateMemoryblock3Secondary[0];
         bw.scaleCounts(iTempProb[2]);
     }
+    iPrevSlowCoord = -1;
     for (int iPos0=(iLen+1)-1; iPos0>=0; --iPos0) {
         if ((iPos0+0>=iLen+0)) {
         }
@@ -513,9 +530,13 @@ bfloat Backward(HomologyBaumWelch& bw,HomologyDPTable* pInTable,HomologyDPTable*
             }
             dp.StateMemoryblock1.written();
         }
+        iPrevSlowCoord = iPos0;
     }
     bw.scaleCounts(1.0 / iTempProb[2]);
+    iPrevSlowCoord = -1;
     {
+        int iPos0=0;
+        (void)iPos0;  // avoid unused variable warnings
         CurStateMemoryblock1From = dp.StateMemoryblock1.read();
         iTempProb[0] = CurStateMemoryblock1From[0];
     }
@@ -525,6 +546,10 @@ bfloat Backward(HomologyBaumWelch& bw,HomologyDPTable* pInTable,HomologyDPTable*
     return iTempProb[0];
 };
 
+
+
+
+
 bfloat Viterbi_recurse(HomologyDPTable** ppOutTable,Params iPar,char *aSeq,int iLen) {
     double iTransition[8];
     bfloat *CurStateMemoryblock2To;
@@ -532,7 +557,9 @@ bfloat Viterbi_recurse(HomologyDPTable** ppOutTable,Params iPar,char *aSeq,int i
     const bfloat *CurStateMemoryblock3From;
     bfloat *CurStateMemoryblock1To;
     const bfloat *CurStateMemoryblock1From;
+    int iPrevSlowCoord __attribute__((unused));
     int iSymbol[1];
+    (void)iSymbol;  // avoid unused variable warnings
     double iEmission[2];
     /* temporary storage for ordinary reals */
     double iTempResult[1];
@@ -556,6 +583,7 @@ bfloat Viterbi_recurse(HomologyDPTable** ppOutTable,Params iPar,char *aSeq,int i
     iTransition[7] = iPar.iGoStopFromUnrelated;
     dp.StateMemoryblock3.write()[0] = 1.0;
     dp.StateMemoryblock3.written();
+    iPrevSlowCoord = -1;
     for (int iPos0=(iLen+1)-1; iPos0>=0; --iPos0) {
         if ((iPos0+0>=iLen+0)) {
         }
@@ -607,8 +635,12 @@ bfloat Viterbi_recurse(HomologyDPTable** ppOutTable,Params iPar,char *aSeq,int i
             }
             dp.StateMemoryblock1.written();
         }
+        iPrevSlowCoord = iPos0;
     }
+    iPrevSlowCoord = -1;
     {
+        int iPos0=0;
+        (void)iPos0;  // avoid unused variable warnings
         CurStateMemoryblock1From = dp.StateMemoryblock1.read();
         iTempProb[0] = CurStateMemoryblock1From[0];
     }
@@ -618,13 +650,20 @@ bfloat Viterbi_recurse(HomologyDPTable** ppOutTable,Params iPar,char *aSeq,int i
     return iTempProb[0];
 };
 
+
+
+
+
 Path& Viterbi_trace(HomologyDPTable* pInTable,Params iPar,char *aSeq,int iLen) {
     double iTransition[8];
+    const bfloat *CurStateMemoryblock1To;
     const bfloat *CurStateMemoryblock2To;
     const bfloat *CurStateMemoryblock3To;
+    int iPrevSlowCoord __attribute__((unused));
     SimplePath* pPath = new SimplePath();
     vector<int> emit;
     int iSymbol[1];
+    (void)iSymbol;  // avoid unused variable warnings
     double iEmission[2];
     /* temporary vector storage */
     bfloat iTempVector[9];
@@ -655,8 +694,10 @@ Path& Viterbi_trace(HomologyDPTable* pInTable,Params iPar,char *aSeq,int iLen) {
     dp.isInCharge = false;
     dp.StateMemoryblock1.write()[0] = 1.0;
     dp.StateMemoryblock1.written();
+    iPrevSlowCoord = -1;
     {
         int iPos0=0;
+        (void)iPos0;  // avoid unused variable warnings
         iTempIntVec[0] = 0;
         while (iTempIntVec[0] != 3) {
             iTempIntVec[1] = 2;
@@ -667,6 +708,7 @@ Path& Viterbi_trace(HomologyDPTable* pInTable,Params iPar,char *aSeq,int iLen) {
                 iSymbol[0] = '1' /* dummy value */;
                 
             }
+            CurStateMemoryblock1To = dp.StateMemoryblock1.read();
             CurStateMemoryblock2To = dp.StateMemoryblock2.read((iPos0-(0))-(1));
             if ((iPos0+1<=iLen+0)) {
                 iTempResult[0] = iPar.aEmitHomologous[ iSymbol[0] - '1' ];
@@ -738,5 +780,7 @@ Path& Viterbi_trace(HomologyDPTable* pInTable,Params iPar,char *aSeq,int iLen) {
     }
     return *pPath;
 };
+
+
 
 /* --- end of HMMoC-generated file --- */

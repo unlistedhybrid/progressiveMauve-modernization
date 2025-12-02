@@ -18,10 +18,9 @@
 #include "libGenome/gnDebug.h"
 #include "libGenome/gnSequence.h"
 #include "libGenome/gnException.h"
-#include <cstdlib>
+#include "stdlib.h"
 #include <string>
 #include <vector>
-#include <algorithm>
 #include "libMems/SeedMasks.h"
 
 namespace mems {
@@ -56,9 +55,9 @@ struct SMLHeader{
 	uint64 length;						/**< length of the sequence before circularity - 8 bytes */
 	uint32 unique_mers;					/**< Number of unique mers in the sequence 4 bytes */
 	uint32 word_size;					/**< Word size on the machine the sequence was translated */
-	bool little_endian;				/**< Is the byte order little endian?  0==no, !0==yes */
+	boolean little_endian;				/**< Is the byte order little endian?  0==no, !0==yes */
 	sarID_t id;							/**< Obsolete ID value - 1 byte, eaten by alignment? */
-	bool circular;					/**< Circularity of sequence - 1 byte */
+	boolean circular;					/**< Circularity of sequence - 1 byte */
 	uint8 translation_table[UINT8_MAX];	/**< Translation table for ascii characters to binary values -- 256 bytes */
 	char description[DESCRIPTION_SIZE]; /**< Freeform text description of sequence data -- 2048 bytes */
 };
@@ -73,7 +72,7 @@ public:
 	SortedMerList();
 	SortedMerList( const SortedMerList& sa );
 	SortedMerList& operator=(const SortedMerList& sa);
-	virtual ~SortedMerList();
+	~SortedMerList();
 	
 	/**
 	 * Set data structures to default values
@@ -100,7 +99,7 @@ public:
 	 * @param offset The mer index in the sorted mer list to start reading from. 
 	 * @return false if a problem was encountered while reading.
 	 */
-	virtual bool Read(std::vector<bmer>& readVector, gnSeqI size, gnSeqI offset) = 0;
+	virtual boolean Read(std::vector<bmer>& readVector, gnSeqI size, gnSeqI offset) = 0;
 	/**
 	 * Merges two SortedMerLists.
 	 */
@@ -124,14 +123,14 @@ public:
 	 * If no matching mer is found, 'result' contains the index that the query
 	 * sequence would be in if it existed in the SML.
 	 */
-	virtual bool Find(const std::string& query_seq, gnSeqI& result);
+	virtual boolean Find(const std::string& query_seq, gnSeqI& result);
 	/**
 	 * Searches the SML for a mer which matches the query mer.
 	 * Returns true if one is found, false otherwise.
 	 * If no matching mer is found, 'result' contains the index that the query
 	 * mer would be in if it existed in the SML.
 	 */
-	virtual bool FindMer(const uint64 query_mer, gnSeqI& result);
+	virtual boolean FindMer(const uint64 query_mer, gnSeqI& result);
 	/**
 	 * Searches the SML for mers which match the query mer.
 	 * Puts the indices of all matching mers into the 'result' vector
@@ -196,7 +195,7 @@ public:
 	/**
 	 * Returns true if this SML is circular.  False otherwise.
 	 */
-	virtual bool IsCircular() const;
+	virtual boolean IsCircular() const;
 	/**
 	 * Returns a mask which can be bitwise AND'ed to a mer in order to
 	 * get only the relevant bits of sequence data without direction bits.
@@ -219,7 +218,8 @@ public:
 	 * Returns a translation table for Protein sequence.
 	 */
 	static const uint8* ProteinTable();
-	/** * Places a copy of the binary encoded sequence data into dest.
+	/** 
+	 * Places a copy of the binary encoded sequence data into dest.
 	 * @param len The length in sequence characters to copy
 	 * @param offset The sequence offset to start copying from
 	 * @throws IndexOutOfBounds if offset or len are invalid
@@ -259,7 +259,7 @@ protected:
 	/** Set the sequence data to the seq_len characters in seq_buf */
 	virtual void SetSequence(gnSeqC* seq_buf, gnSeqI seq_len);
 	/** Fill in the vector of bmers with the initial unsorted bmers for the sequence in seq_buf  */
-	virtual void FillSML(gnSeqC* seq_buf, gnSeqI seq_len, bool circular, std::vector<bmer>& sml_array);
+	virtual void FillSML(gnSeqC* seq_buf, gnSeqI seq_len, boolean circular, std::vector<bmer>& sml_array);
 	virtual void FillSML(const genome::gnSequence& seq, std::vector<bmer>& sml_array);
 	virtual void FillDnaSML(const genome::gnSequence& seq, std::vector<bmer>& sml_array);
 	/** Fill in the vector of positions with the initial unsorted positions for the sequence in seq_buf  */
@@ -294,7 +294,7 @@ CREATE_EXCEPTION(SMLMergeError);
 class MerCompare {
 public:
 	MerCompare( SortedMerList* sa ){ sar = sa; }
-	bool operator()(const gnSeqI a, const gnSeqI b) const{
+	boolean operator()(const gnSeqI a, const gnSeqI b) const{
 		return sar->GetMer(a) < sar->GetMer(b);
 	}
 protected:
@@ -303,7 +303,9 @@ protected:
 
 bool bmer_lessthan(const bmer& a_v, const bmer& m_v);
 bool bmer_id_lessthan(const bmer& a_v, const bmer& m_v);
+
 int bmer_compare(const void* a_v, const void* m_v);
+bool bmer_id_lessthan(const bmer& a_v, const bmer& m_v);
 
 //less than function for STL sort functions
 inline
@@ -312,22 +314,10 @@ bool bmer_lessthan(const bmer& a_v, const bmer& m_v){
 };
 
 inline
-bool bmer_id_lessthan(const bmer& a_v, const bmer& m_v){
-    if (a_v.mer < m_v.mer) return true;
-    if (a_v.mer > m_v.mer) return false;
-    return a_v.position < m_v.position;
-}
-
-inline
 int bmer_compare(const void* a_v, const void* m_v){
-    const bmer* a = (const bmer*)a_v;
-    const bmer* m = (const bmer*)m_v;
-    if (a->mer < m->mer) return -1;
-    if (a->mer > m->mer) return 1;
-    return 0;
+	return (int)((int64)(((bmer*)a_v)->mer) - (int64)(((bmer*)m_v)->mer));
 }
 
 }
 
 #endif   //_SortedMerList_h_
-

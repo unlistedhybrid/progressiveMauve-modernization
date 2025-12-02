@@ -1,6 +1,7 @@
 #include <iostream> // for std::cerr
 #include <cstring>
 #include <limits>
+#include <cstdint> // Ensure standard integer types are available, though usually covered by sml.h
 
 #include "libMems/dmSML/sml.h"
 #include "libMems/SeedMasks.h"
@@ -15,17 +16,20 @@ SMLHeader_t InitSML(aFILE* file, uint64 file_size, uint64 seed) {
     header.seed_length = getSeedLength(seed);
     header.seed_weight = getSeedWeight(seed);
     header.length = file_size;
-    header.unique_mers = std::numeric_limits<uint32_t>::max(); // "unset"
+    
+    header.unique_mers = std::numeric_limits<uint32>::max(); // "unset"
     header.word_size = 32;
     header.little_endian = true;
     header.id = 0;
     header.circular = false;
-    std::memset(header.translation_table, 0, UINT8_MAX_VALUE);
+    
+    std::memset(header.translation_table, 0, sml::UINT8_MAX_VALUE);
 
-    // Fill DNA translation table
     {
+        // bdt is a raw pointer (uint8*) whose ownership was released by CreateBasicDNATable()
         auto bdt = CreateBasicDNATable();
-        std::memcpy(header.translation_table, bdt.get(), UINT8_MAX_VALUE);
+        std::memcpy(header.translation_table, bdt, sml::UINT8_MAX_VALUE);
+        std::free(bdt);
     }
     header.description[0] = '\0';
 

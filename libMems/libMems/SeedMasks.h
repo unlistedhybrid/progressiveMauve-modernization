@@ -299,6 +299,7 @@ int64 getSeed( int weight, int seed_rank ){
 	uint32** masks;
 	int high;
 	int low;
+	int i = 1;
 	int64 seed = 0;
 	if( seed_rank == SOLID_SEED )
 		return getSolidSeed( weight );
@@ -334,7 +335,8 @@ inline static
 int getSeedLength( int64 seed ){
 	int right_bit = -1;
 	int left_bit = -1;
-	for( uint bitI = 0; bitI < 64; ++bitI ){
+	uint bitI = 0;
+	for( ; bitI < 64; ++bitI ){
 		if( (seed & 1) == 1 ){
 			left_bit = bitI;
 			if( right_bit == -1 )
@@ -360,7 +362,8 @@ inline static
 #endif
 int getSeedWeight( int64 seed ){
 	int weight = 0;
-	for( uint bitI = 0; bitI < 64; ++bitI ){
+	uint bitI = 0;
+	for( ; bitI < 64; ++bitI ){
 		if( (seed & 1) == 1 ){
 			++weight;
 		}

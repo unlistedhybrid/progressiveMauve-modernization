@@ -3,6 +3,7 @@
  * This file is copyright 2002-2007 Aaron Darling and authors listed in the AUTHORS file.
  * Please see the file called COPYING for licensing, copying, and modification
  * Please see the file called COPYING for licensing details.
+ * **************
  ******************************************************************************/
 
 #ifdef HAVE_CONFIG_H
@@ -21,190 +22,251 @@
 #include <boost/graph/depth_first_search.hpp>
 #include <boost/graph/undirected_dfs.hpp>
 
-#include <algorithm>
-#include <memory>
-#include <iostream>
-#include <vector>
-#include <string>
-#include <limits>
-#include <set>
-#include <iterator>
-
 using namespace std;
 using namespace genome;
 namespace mems {
 
-template<typename MatchVector>
-void getBpList(const MatchVector& mvect, uint seq, vector<gnSeqI>& bp_list) {
-    bp_list.clear();
-    for (auto* m : mvect) {
-        if (m->LeftEnd(seq) == NO_MATCH) continue;
-        bp_list.push_back(m->LeftEnd(seq));
-        bp_list.push_back(m->RightEnd(seq) + 1);
-    }
-    std::sort(bp_list.begin(), bp_list.end());
+
+template< typename MatchVector >
+void getBpList( MatchVector& mvect, uint seq, vector< gnSeqI >& bp_list )
+{
+	bp_list.clear();
+	for( size_t ivI = 0; ivI < mvect.size(); ivI++ )
+	{
+		if( mvect[ivI]->LeftEnd(seq) == NO_MATCH )
+			continue;
+		bp_list.push_back( mvect[ivI]->LeftEnd(seq) );
+		bp_list.push_back( mvect[ivI]->RightEnd(seq)+1 );
+	}
+	std::sort( bp_list.begin(), bp_list.end() );
 }
 
-template<typename MatchVector>
-void createMap(const MatchVector& mv_from, const MatchVector& mv_to, vector<size_t>& map) {
-    using MatchPtr = typename MatchVector::value_type;
-    vector<pair<MatchPtr, size_t>> m1, m2;
-    for (size_t i = 0; i < mv_from.size(); ++i) m1.emplace_back(mv_from[i], i);
-    for (size_t i = 0; i < mv_to.size(); ++i)   m2.emplace_back(mv_to[i], i);
-    std::sort(m1.begin(), m1.end());
-    std::sort(m2.begin(), m2.end());
-    map.resize(m1.size());
-    for (size_t i = 0; i < m1.size(); ++i) map[m1[i].second] = m2[i].second;
+template< typename MatchVector >
+void createMap( const MatchVector& mv_from, const MatchVector& mv_to, vector< size_t >& map )
+{
+	typedef typename MatchVector::value_type MatchPtr;
+	vector< pair< MatchPtr, size_t > > m1(mv_from.size());
+	vector< pair< MatchPtr, size_t > > m2(mv_to.size());
+	for( size_t i = 0; i < mv_from.size(); ++i )
+		m1[i] = make_pair( mv_from[i], i );
+	for( size_t i = 0; i < mv_to.size(); ++i )
+		m2[i] = make_pair( mv_to[i], i );
+	std::sort( m1.begin(), m1.end() );
+	std::sort( m2.begin(), m2.end() );
+	map.resize( m1.size() );
+	for( size_t i = 0; i < m1.size(); ++i )
+		map[m1[i].second] = m2[i].second;
 }
 
-typedef pair<size_t, Interval*> iv_tracker_t;
-class IvTrackerComp {
+typedef pair< size_t, Interval* > iv_tracker_t;
+class IvTrackerComp
+{
 public:
-    explicit IvTrackerComp(uint seq) : ssc(seq) {}
-    bool operator()(const iv_tracker_t& a, const iv_tracker_t& b) {
-        return ssc(a.second, b.second);
-    }
+	IvTrackerComp( uint seq ) : ssc( seq ) {}
+	bool operator()( const iv_tracker_t& a, const iv_tracker_t& b )
+	{
+		return ssc(a.second, b.second);
+	}
 private:
-    SingleStartComparator<Interval> ssc;
+	SingleStartComparator<Interval> ssc;
 };
 
-constexpr int LEFT_NEIGHBOR = -1;
-constexpr int RIGHT_NEIGHBOR = 1;
-using neighbor_t = vector<size_t>;
+const int LEFT_NEIGHBOR = -1;
+const int RIGHT_NEIGHBOR = 1;
+typedef vector< size_t > neighbor_t;
 
-neighbor_t& getNeighbor(pair<neighbor_t, neighbor_t>& entry, int direction) {
-    return (direction == RIGHT_NEIGHBOR) ? entry.first : entry.second;
+neighbor_t& getNeighbor( pair< neighbor_t, neighbor_t >& entry, int direction )
+{
+	if( direction == RIGHT_NEIGHBOR )
+		return entry.first;
+	else
+		return entry.second;
 }
 
-void collapseCollinear(IntervalList& iv_list) {
-    if (iv_list.empty()) return;
-    const size_t seq_count = iv_list.seq_table.size();
-    vector<Interval*> iv_ptrs;
-    iv_ptrs.reserve(iv_list.size());
-    for (auto& iv : iv_list)
-        if (iv.Multiplicity() >= 2) iv_ptrs.push_back(&iv);
 
-    const size_t NEIGHBOR_UNKNOWN = numeric_limits<size_t>::max();
-    neighbor_t lefties_tmp(seq_count, NEIGHBOR_UNKNOWN);
-    pair<neighbor_t, neighbor_t> neighbor_pair(lefties_tmp, lefties_tmp);
-    vector<pair<neighbor_t, neighbor_t>> neighbor_list(iv_ptrs.size(), neighbor_pair);
-    vector<iv_tracker_t> iv_tracker(iv_ptrs.size());
+void collapseCollinear( IntervalList& iv_list )
+{
+	if( iv_list.size() == 0 )
+		return;	// nothing to see here, move along...
+	const size_t seq_count = iv_list.seq_table.size();
+	std::vector< Interval* > iv_ptrs(iv_list.size());
+	size_t lilI = 0;
+	for( size_t i = 0; i < iv_list.size(); ++i )
+	{
+		// ignore unaligned regions
+		if( iv_list[i].Multiplicity() < 2 )
+			continue;
+		iv_ptrs[lilI++] = &iv_list[i];
+	}
+	iv_ptrs.resize(lilI);
+	const size_t NEIGHBOR_UNKNOWN = (std::numeric_limits<size_t>::max)();
+	neighbor_t lefties_tmp( seq_count, NEIGHBOR_UNKNOWN );
+	pair< neighbor_t, neighbor_t > neighbor_pair( lefties_tmp, lefties_tmp );
+	vector< pair< neighbor_t, neighbor_t > > neighbor_list( iv_ptrs.size(), neighbor_pair );
+	vector< iv_tracker_t > iv_tracker( iv_ptrs.size() );
+	for( size_t i = 0; i < iv_ptrs.size(); ++i )
+	{
+		iv_tracker[i] = make_pair( i, iv_ptrs[i] );
+	}
+	for( size_t seqI = 0; seqI < seq_count; ++seqI )
+	{
+		IvTrackerComp ivc( seqI );
+		sort( iv_tracker.begin(), iv_tracker.end(), ivc );
+		size_t prev_i = NEIGHBOR_UNKNOWN;
+		size_t cur_i = NEIGHBOR_UNKNOWN;
+		for( size_t i = 0; i < iv_tracker.size(); ++i )
+		{
+			if( iv_tracker[i].second->LeftEnd(seqI) == NO_MATCH )
+				continue;
+			if( cur_i != NEIGHBOR_UNKNOWN )
+			{
+				neighbor_list[cur_i].first[seqI] = prev_i;
+				neighbor_list[cur_i].second[seqI] = iv_tracker[i].first;
+			}
+			prev_i = cur_i;
+			cur_i = iv_tracker[i].first;
+		}
+		// get the last one
+		if( cur_i != NEIGHBOR_UNKNOWN )
+		{
+			neighbor_list[cur_i].first[seqI] = prev_i;
+			neighbor_list[cur_i].second[seqI] = NEIGHBOR_UNKNOWN;
+		}
+	}
 
-    for (size_t i = 0; i < iv_ptrs.size(); ++i)
-        iv_tracker[i] = make_pair(i, iv_ptrs[i]);
+	// now look for neighbor pair entries which can be merged
+	for( int d = -1; d < 2; d+= 2 )	// iterate over both directions
+	{
+		size_t unknown_count = 0;
+		for( size_t nI = 0; nI < neighbor_list.size(); ++nI )
+		{
+			size_t nayb = NEIGHBOR_UNKNOWN;
+			size_t seqI = 0;
+			bool parity = false;
+			size_t ct = 0;
+			for( ; seqI < seq_count; ++seqI )
+			{
+				if( iv_ptrs[nI]->Orientation(seqI) == AbstractMatch::undefined )
+					continue;
+				int orient = iv_ptrs[nI]->Orientation(seqI) == AbstractMatch::forward ? 1 : -1;
 
-    for (size_t seqI = 0; seqI < seq_count; ++seqI) {
-        IvTrackerComp ivc(seqI);
-        sort(iv_tracker.begin(), iv_tracker.end(), ivc);
-        size_t prev_i = NEIGHBOR_UNKNOWN, cur_i = NEIGHBOR_UNKNOWN;
-        for (size_t i = 0; i < iv_tracker.size(); ++i) {
-            if (iv_tracker[i].second->LeftEnd(seqI) == NO_MATCH) continue;
-            if (cur_i != NEIGHBOR_UNKNOWN) {
-                neighbor_list[cur_i].first[seqI] = prev_i;
-                neighbor_list[cur_i].second[seqI] = iv_tracker[i].first;
-            }
-            prev_i = cur_i;
-            cur_i = iv_tracker[i].first;
-        }
-        if (cur_i != NEIGHBOR_UNKNOWN) {
-            neighbor_list[cur_i].first[seqI] = prev_i;
-            neighbor_list[cur_i].second[seqI] = NEIGHBOR_UNKNOWN;
-        }
-    }
+				if( nayb == NEIGHBOR_UNKNOWN )
+				{
+					nayb = getNeighbor( neighbor_list[nI], d * orient * -1 )[seqI];
+					if( nayb != NEIGHBOR_UNKNOWN )
+						parity = iv_ptrs[nI]->Orientation(seqI) == iv_ptrs[nayb]->Orientation(seqI);
+				}
+				else if( nayb != getNeighbor( neighbor_list[nI], d * orient * -1 )[seqI] )
+					break;
+				else if( parity != (iv_ptrs[nI]->Orientation(seqI) == iv_ptrs[nayb]->Orientation(seqI)) )
+					break;
+				if( nayb != NEIGHBOR_UNKNOWN )
+					ct++;
+			}
+			if( seqI < seq_count || ct < iv_ptrs[nI]->Multiplicity() )
+				continue;	// not collinear
+			if( nayb == NEIGHBOR_UNKNOWN )
+				continue;
 
-    for (int d : {-1, 1}) {
-        for (size_t nI = 0; nI < neighbor_list.size(); ++nI) {
-            size_t nayb = NEIGHBOR_UNKNOWN, seqI = 0, ct = 0;
-            bool parity = false;
-            for (; seqI < seq_count; ++seqI) {
-                if (iv_ptrs[nI]->Orientation(seqI) == AbstractMatch::undefined) continue;
-                int orient = iv_ptrs[nI]->Orientation(seqI) == AbstractMatch::forward ? 1 : -1;
+			// merge nI and nayb
+			uint fs = iv_ptrs[nI]->FirstStart();
+			gnSeqI nI_lend_fs = iv_ptrs[nI]->LeftEnd(fs);
+			gnSeqI nayb_lend_fs = iv_ptrs[nayb]->LeftEnd(fs);
+			AbstractMatch::orientation o = iv_ptrs[nI]->Orientation(fs);
+			vector< AbstractMatch* > nI_matches;
+			iv_ptrs[nI]->StealMatches( nI_matches );
+			vector< AbstractMatch* > nayb_matches;
+			iv_ptrs[nayb]->StealMatches( nayb_matches );
+			if( !parity )
+			{
+				std::reverse( nI_matches.begin(), nI_matches.end() );
+				for( size_t i = 0; i < nI_matches.size(); ++i )
+					nI_matches[i]->Invert();
+				o = o == AbstractMatch::forward ? AbstractMatch::reverse : AbstractMatch::forward;
+			}
+			if( (o == AbstractMatch::forward && nI_lend_fs > nayb_lend_fs) ||
+				(o == AbstractMatch::reverse && nI_lend_fs < nayb_lend_fs))
+				nayb_matches.insert( nayb_matches.end(), nI_matches.begin(), nI_matches.end() );
+			else
+				nayb_matches.insert( nayb_matches.begin(), nI_matches.begin(), nI_matches.end() );
 
-                if (nayb == NEIGHBOR_UNKNOWN) {
-                    nayb = getNeighbor(neighbor_list[nI], d * orient * -1)[seqI];
-                    if (nayb != NEIGHBOR_UNKNOWN)
-                        parity = iv_ptrs[nI]->Orientation(seqI) == iv_ptrs[nayb]->Orientation(seqI);
-                } else if (nayb != getNeighbor(neighbor_list[nI], d * orient * -1)[seqI]) break;
-                else if (parity != (iv_ptrs[nI]->Orientation(seqI) == iv_ptrs[nayb]->Orientation(seqI))) break;
-                if (nayb != NEIGHBOR_UNKNOWN) ct++;
-            }
-            if (seqI < seq_count || ct < iv_ptrs[nI]->Multiplicity()) continue;
-            if (nayb == NEIGHBOR_UNKNOWN) continue;
+			iv_ptrs[nayb]->SetMatches( nayb_matches );
 
-            uint fs = iv_ptrs[nI]->FirstStart();
-            gnSeqI nI_lend_fs = iv_ptrs[nI]->LeftEnd(fs);
-            gnSeqI nayb_lend_fs = iv_ptrs[nayb]->LeftEnd(fs);
-            AbstractMatch::orientation o = iv_ptrs[nI]->Orientation(fs);
-            vector<AbstractMatch*> nI_matches, nayb_matches;
-            iv_ptrs[nI]->StealMatches(nI_matches);
-            iv_ptrs[nayb]->StealMatches(nayb_matches);
-            if (!parity) {
-                std::reverse(nI_matches.begin(), nI_matches.end());
-                for (auto* m : nI_matches) m->Invert();
-                o = o == AbstractMatch::forward ? AbstractMatch::reverse : AbstractMatch::forward;
-            }
-            if ((o == AbstractMatch::forward && nI_lend_fs > nayb_lend_fs) ||
-                (o == AbstractMatch::reverse && nI_lend_fs < nayb_lend_fs))
-                nayb_matches.insert(nayb_matches.end(), nI_matches.begin(), nI_matches.end());
-            else
-                nayb_matches.insert(nayb_matches.begin(), nI_matches.begin(), nI_matches.end());
-            iv_ptrs[nayb]->SetMatches(nayb_matches);
+			// update all pointers to point to nayb
+			seqI = 0;
+			for( ; seqI < seq_count; ++seqI )
+			{
+				if( getNeighbor( neighbor_list[nI], -1 )[seqI] == NEIGHBOR_UNKNOWN &&
+					getNeighbor( neighbor_list[nI], 1 )[seqI] == NEIGHBOR_UNKNOWN )
+					continue;
+				int orient = iv_ptrs[nayb]->Orientation(seqI) == AbstractMatch::forward ? 1 : -1;
+				size_t other_nayb = getNeighbor( neighbor_list[nI], d * orient * (parity ? 1 : -1) )[seqI];
+				if( other_nayb != NEIGHBOR_UNKNOWN )
+				{
+					if( getNeighbor( neighbor_list[other_nayb], 1 )[seqI] == nI )
+						getNeighbor( neighbor_list[other_nayb], 1 )[seqI] = nayb;
+					else if( getNeighbor( neighbor_list[other_nayb], -1 )[seqI] == nI )
+						getNeighbor( neighbor_list[other_nayb], -1 )[seqI] = nayb;
+					else
+					{
+						cerr << "serious programmer error\n";
+						genome::breakHere();
+					}
+				}
+				if( getNeighbor( neighbor_list[nayb], 1 )[seqI] == nI )
+					getNeighbor( neighbor_list[nayb], 1 )[seqI] = other_nayb;
+				else if( getNeighbor( neighbor_list[nayb], -1 )[seqI] == nI )
+					getNeighbor( neighbor_list[nayb], -1 )[seqI] = other_nayb;
+				else
+				{
+					cerr << "inexcusable programmer error\n";
+					genome::breakHere();
+				}
+				neighbor_list[nI].first[seqI] = NEIGHBOR_UNKNOWN;
+				neighbor_list[nI].second[seqI] = NEIGHBOR_UNKNOWN;
+			}
+		}
+	}
 
-            seqI = 0;
-            for (; seqI < seq_count; ++seqI) {
-                if (getNeighbor(neighbor_list[nI], -1)[seqI] == NEIGHBOR_UNKNOWN &&
-                    getNeighbor(neighbor_list[nI], 1)[seqI] == NEIGHBOR_UNKNOWN)
-                    continue;
-                int orient = iv_ptrs[nayb]->Orientation(seqI) == AbstractMatch::forward ? 1 : -1;
-                size_t other_nayb = getNeighbor(neighbor_list[nI], d * orient * (parity ? 1 : -1))[seqI];
-                if (other_nayb != NEIGHBOR_UNKNOWN) {
-                    if (getNeighbor(neighbor_list[other_nayb], 1)[seqI] == nI)
-                        getNeighbor(neighbor_list[other_nayb], 1)[seqI] = nayb;
-                    else if (getNeighbor(neighbor_list[other_nayb], -1)[seqI] == nI)
-                        getNeighbor(neighbor_list[other_nayb], -1)[seqI] = nayb;
-                    else { cerr << "serious programmer error\n"; genome::breakHere(); }
-                }
-                if (getNeighbor(neighbor_list[nayb], 1)[seqI] == nI)
-                    getNeighbor(neighbor_list[nayb], 1)[seqI] = other_nayb;
-                else if (getNeighbor(neighbor_list[nayb], -1)[seqI] == nI)
-                    getNeighbor(neighbor_list[nayb], -1)[seqI] = other_nayb;
-                else { cerr << "inexcusable programmer error\n"; genome::breakHere(); }
-                neighbor_list[nI].first[seqI] = NEIGHBOR_UNKNOWN;
-                neighbor_list[nI].second[seqI] = NEIGHBOR_UNKNOWN;
-            }
-        }
-    }
-
-    IntervalList new_list;
-    new_list.seq_filename = iv_list.seq_filename;
-    new_list.seq_table = iv_list.seq_table;
-    new_list.resize(iv_ptrs.size());
-    size_t newI = 0;
-    for (size_t ivI = 0; ivI < iv_ptrs.size(); ++ivI) {
-        vector<AbstractMatch*> matches;
-        iv_ptrs[ivI]->StealMatches(matches);
-        if (!matches.empty())
-            new_list[newI++].SetMatches(matches);
-    }
-    new_list.resize(newI);
-    swap(iv_list, new_list);
-    addUnalignedRegions(iv_list);
+	IntervalList new_list;
+	new_list.seq_filename = iv_list.seq_filename;
+	new_list.seq_table = iv_list.seq_table;
+	new_list.resize( iv_ptrs.size() );
+	size_t newI = 0;
+	for( size_t ivI = 0; ivI < iv_ptrs.size(); ++ivI )
+	{
+		vector< AbstractMatch* > matches;
+		iv_ptrs[ivI]->StealMatches( matches );
+		if( matches.size() > 0 )
+			new_list[newI++].SetMatches( matches );
+	}
+	new_list.resize(newI);
+	swap( iv_list, new_list );
+	addUnalignedRegions(iv_list);
 }
 
-void checkForAllGapColumns(IntervalList& iv_list) {
-    for (size_t ivI = 0; ivI < iv_list.size(); ivI++) {
-        vector<string> aln;
-        const Interval& iv = iv_list[ivI];
-        mems::GetAlignment(iv, iv_list.seq_table, aln);
-        for (size_t colI = 0; colI < aln[0].size(); ++colI) {
-            size_t rowI = 0;
-            for (; rowI < aln.size(); ++rowI)
-                if (aln[rowI][colI] != '-') break;
-            if (rowI == aln.size())
-                cerr << "ERROR!  IV " << ivI << " COLUMN " << colI << " IS ALL GAPS!\n";
-        }
-    }
+
+void checkForAllGapColumns( IntervalList& iv_list )
+{
+	// debug: sanity check whether there are all gap columns
+	for( size_t ivI = 0; ivI < iv_list.size(); ivI++ )
+	{
+		vector< string > aln;
+		mems::GetAlignment( iv_list[ivI], iv_list.seq_table, aln );
+		for( size_t colI = 0; colI < aln[0].size(); ++colI )
+		{
+			size_t rowI = 0;
+			for( ; rowI < aln.size(); ++rowI )
+				if( aln[rowI][colI] != '-' )
+					break;
+			if( rowI == aln.size() )
+			{
+				cerr << "ERROR!  IV " << ivI << " COLUMN " << colI << " IS ALL GAPS!\n";
+			}
+		}
+	}
 }
+
 
 
 void translateToPairwiseGenomeHSS( const hss_array_t& hss_array, pairwise_genome_hss_t& hss_cols )
@@ -220,7 +282,7 @@ void translateToPairwiseGenomeHSS( const hss_array_t& hss_array, pairwise_genome
 		{
 			for( size_t ivI = 0; ivI < iv_count; ++ivI )
 			{
-				hss_list_t cur_list = hss_array[seqI][seqJ][ivI];
+				const hss_list_t& cur_list = hss_array[seqI][seqJ][ivI];
 				hss_cols[seqI][seqJ][ivI].resize( cur_list.size() );
 				for( size_t hssI = 0; hssI < cur_list.size(); hssI++ )
 				{
@@ -235,7 +297,7 @@ void translateToPairwiseGenomeHSS( const hss_array_t& hss_array, pairwise_genome
 
 double computeGC( std::vector< gnSequence* >& seq_table )
 {
-	const uint8_t* tab = SortedMerList::BasicDNATable();
+	const uint8* tab = SortedMerList::BasicDNATable();
 	size_t counts[4];
 	for( int i = 0; i < 4; i++ )
 		counts[i] = 0;
@@ -244,7 +306,7 @@ double computeGC( std::vector< gnSequence* >& seq_table )
 		std::string seq;
 		seq_table[seqI]->ToString( seq );
 		for( size_t cI = 0; cI < seq.size(); cI++  )
-			counts[ static_cast<size_t>(tab[ static_cast<uint8_t>(seq[cI]) ]) ]++;
+			counts[ tab[ seq[cI] ] ]++;
 	}
 	return double(counts[1]+counts[2]) / double(counts[1]+counts[2] + counts[0]+counts[3]);
 }
@@ -419,15 +481,15 @@ void mergePairwiseHomologyPredictions( 	vector< CompactGappedAlignment<>* >& iv_
 		{
 			for( size_t seqJ = seqI+1; seqJ < seq_count; ++seqJ )
 			{
-				vector< pair< size_t, size_t > > cur_hss_cols_copy = hss_cols[seqI][seqJ][ivI];
-				vector< ULA* > cur_ulas( cur_hss_cols_copy.size() );
+				vector< pair< size_t, size_t > >& cur_hss_cols = hss_cols[seqI][seqJ][ivI];
+				vector< ULA* > cur_ulas( cur_hss_cols.size() );
 				ULA tmp_ula(seq_count);
-				for( size_t hssI = 0; hssI < cur_hss_cols_copy.size(); ++hssI )
+				for( size_t hssI = 0; hssI < cur_hss_cols.size(); ++hssI )
 				{
 					cur_ulas[hssI] = tmp_ula.Copy();
-					cur_ulas[hssI]->SetStart(seqI, cur_hss_cols_copy[hssI].first+1);
-					cur_ulas[hssI]->SetStart(seqJ, cur_hss_cols_copy[hssI].first+1);
-					cur_ulas[hssI]->SetLength( cur_hss_cols_copy[hssI].second - cur_hss_cols_copy[hssI].first + 1 );
+					cur_ulas[hssI]->SetStart(seqI, cur_hss_cols[hssI].first+1);
+					cur_ulas[hssI]->SetStart(seqJ, cur_hss_cols[hssI].first+1);
+					cur_ulas[hssI]->SetLength( cur_hss_cols[hssI].second - cur_hss_cols[hssI].first + 1 );
 				}
 
 				vector< gnSeqI > iv_bp_list;
@@ -679,7 +741,7 @@ void unalignIslands( IntervalList& iv_list, vector< CompactGappedAlignment<>* >&
 				vector< size_t > id_map;
 				typedef boost::adjacency_list< boost::vecS, boost::vecS, boost::directedS, boost::property<boost::vertex_color_t, boost::default_color_type> > Graph;
 				typedef boost::graph_traits<Graph>::vertex_descriptor Vertex;
-				typedef std::pair< size_t, size_t > Pair;
+				typedef std::pair< int, int > Pair;
 				vector< Pair > edges;
 				for( size_t seqI = 0; seqI < seq_count; ++seqI )
 				{
@@ -689,7 +751,7 @@ void unalignIslands( IntervalList& iv_list, vector< CompactGappedAlignment<>* >&
 					int prev = -1;
 					int first = -1;
 					bool reverse = false;
-					for( size_t mI = 0; mI < cur_d_matches.size(); ++mI )
+					for( int mI = 0; mI < cur_d_matches.size(); ++mI )
 					{
 						if( cur_d_matches[mI]->LeftEnd(seqI) == NO_MATCH )
 							continue;
@@ -702,9 +764,9 @@ void unalignIslands( IntervalList& iv_list, vector< CompactGappedAlignment<>* >&
 						}else
 						{
 							reverse = cur_d_matches[mI]->Start(seqI) < 0;
-							first = static_cast<int>(mI);
+							first = mI;
 						}
-						prev = static_cast<int>(mI);
+						prev = mI;
 					}
 					if( prev != -1 && !reverse )
 						edges.push_back( Pair( id_map[prev], cur_d_matches.size() ) );
@@ -945,7 +1007,7 @@ void addUniqueSegments( std::vector< bb_seqentry_t >& bb_seq_list, size_t min_le
 			if( bb_seq_list[bbI][sI].first == 0 )
 				continue;
 			int64 diff = genome::absolut(bb_seq_list[bbI][sI].first) - genome::absolut(bb_seq_list[bbI-1][sI].second); 
-			if( genome::absolut(diff) > static_cast<int64>(min_length) )
+			if( genome::absolut(diff) > min_length )
 			{
 				bb_seqentry_t newb( seq_count, make_pair( 0,0 ) );
 				newb[sI].first = genome::absolut(bb_seq_list[bbI-1][sI].second) + 1;
@@ -977,7 +1039,7 @@ void mergeAdjacentSegments( std::vector< bb_seqentry_t >& bb_seq_list )
 			size_t j = 0;
 			for( ; j < seq_count; j++ )
 			{
-				if( (bb_seq_list[bbI][j].first == 0) != (bb_seq_list[bbI-1][j].first == 0))
+				if( bb_seq_list[bbI][j].first == 0 ^ bb_seq_list[bbI-1][j].first == 0)
 					break;
 				if( bb_seq_list[bbI][j].first == 0)
 					continue;
@@ -1106,7 +1168,7 @@ void writeBackboneSeqCoordinates( backbone_list_t& bb_list, IntervalList& iv_lis
 					{
 						swap( leftI, rightI );	// must be reverse complement
 					}
-					if( static_cast<int64>(rightI) + 1 == leftI )
+					if( rightI + 1 == leftI )
 					{
 						bb_out << "0\t0";
 						continue;
@@ -1121,7 +1183,7 @@ void writeBackboneSeqCoordinates( backbone_list_t& bb_list, IntervalList& iv_lis
 					}
 					if( leftI == 0 )
 						leftI = iv_cga.LeftEnd(seqI);
-					if( rightI == static_cast<int64>(iv_cga.RightEnd(seqI))+1 )
+					if( rightI == iv_cga.RightEnd(seqI)+1 )
 						rightI--;
 					if( iv_cga.Orientation(seqI) == AbstractMatch::reverse )
 					{
@@ -1136,6 +1198,6 @@ void writeBackboneSeqCoordinates( backbone_list_t& bb_list, IntervalList& iv_lis
 	}
 }
 
-}  // namespace mems
 
+}  // namespace mems
 

@@ -55,7 +55,7 @@ void Shift64( int amt, int * hi, int * lo ) {
 
 
 
-void AddTo64( unsigned int amt, unsigned int *hi, unsigned int *lo ) {
+void AddTo64( size_t amt, size_t *hi, size_t *lo ) {
 
     int i;
     int in[8], out[8], tmp[8];

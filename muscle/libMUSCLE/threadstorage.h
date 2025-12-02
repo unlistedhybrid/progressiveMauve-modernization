@@ -21,7 +21,6 @@
 
 #define NELEMS(o)	sizeof(o)/sizeof(o[0])
 
-// Base template for non-pointer types
 template<typename T>
 class TLS
 {
@@ -37,42 +36,9 @@ public:
 	{
 		return t[OMP_GET_THREAD_NUM];
 	}
-
 private:
 	TLS( const TLS& tls );	// disallow copying
 	T t[MAX_THREAD_COUNT];
-};
-
-// Template specialization for pointer types
-template<typename T>
-class TLS<T*>
-{
-public:
-	TLS(){};
-
-	TLS( T* t_val ){
-		for(int i = 0; i < MAX_THREAD_COUNT; i++)
-			t[i] = t_val;
-	}
-
-	T*& get()
-	{
-		return t[OMP_GET_THREAD_NUM];
-	}
-
-	T* operator->()
-	{
-		return t[OMP_GET_THREAD_NUM];
-	}
-
-	T* operator*()
-	{
-		return t[OMP_GET_THREAD_NUM];
-	}
-
-private:
-	TLS( const TLS& tls );	// disallow copying
-	T* t[MAX_THREAD_COUNT];
 };
 
 
@@ -86,9 +52,9 @@ class TLSstr
 public:
 	TLSstr(){};
 
-	TLSstr( const T& t_val ){
+	TLSstr( T t_val ){
 		for(int i = 0; i < MAX_THREAD_COUNT; i++)
-			memcpy(t[i], t_val, sizeof(T));
+			memcpy(t[i], t_val, sizeof(t_val));
 	}
 
 	T& get()
@@ -102,3 +68,4 @@ private:
 
 
 #endif	// _threadstorage_h_
+
