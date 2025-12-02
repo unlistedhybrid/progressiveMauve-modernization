@@ -12,14 +12,20 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 # Disable BoostConfig.cmake (b2 does NOT generate per-component config files)
 set(Boost_NO_BOOST_CMAKE ON)
 
-# NEVER use system Boost — always use our boost-install
-set(Boost_NO_SYSTEM_PATHS ON)
-
 # Static libs everywhere
 set(Boost_USE_STATIC_LIBS ON)
 
-# Avoid CMake policy issues
-cmake_policy(SET CMP0167 NEW)
+# Disable the new BoostConfig.cmake lookup (b2 does NOT create component configs)
+cmake_policy(SET CMP0167 OLD)
+
+# Force classic FindBoost mode
+set(Boost_NO_BOOST_CMAKE ON)
+
+# DO NOT search system Boost
+set(Boost_NO_SYSTEM_PATHS ON)
+
+find_package(Boost 1.89 REQUIRED COMPONENTS filesystem iostreams program_options regex system)
+
 
 # ============================================================
 # COMPILER FLAGS
@@ -47,7 +53,9 @@ endif()
 # DEPENDENCIES
 # ============================================================
 
-find_package(Boost 1.89 REQUIRED COMPONENTS filesystem iostreams program_options regex system)
+find_package(Boost 1.89 REQUIRED COMPONENTS
+    filesystem iostreams program_options regex
+)
 find_package(ICU REQUIRED COMPONENTS uc data i18n)
 
 if(ENABLE_ZLIB)
@@ -66,7 +74,6 @@ target_link_libraries(BoostInterface INTERFACE
     Boost::iostreams
     Boost::program_options
     Boost::regex
-    Boost::system
     ICU::uc ICU::data ICU::i18n
 )
 
