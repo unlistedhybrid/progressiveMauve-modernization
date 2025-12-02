@@ -30,6 +30,13 @@ option(ENABLE_OPENMP "Enable OpenMP" ON)
 # Disable ZLIB to match original logic
 option(ENABLE_ZLIB "Enable ZLIB compression" OFF) 
 
+if(WIN32)
+    # Prevents windows.h from defining min() and max() macros
+    # that conflict with std::min() and std::max()
+    add_compile_definitions(NOMINMAX)
+    add_compile_definitions(WIN32_LEAN_AND_MEAN)
+endif()
+
 # ============================================================
 # 3. DEPENDENCIES (SYSTEM BOOST 1.89)
 # ============================================================
