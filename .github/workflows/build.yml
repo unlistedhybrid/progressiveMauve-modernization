@@ -30,7 +30,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ github.workspace }}/boost-install
-          key: ${{ runner.os }}-boost-${{ env.BOOST_VERSION }}-v11
+          key: ${{ runner.os }}-boost-${{ env.BOOST_VERSION }}-v12
 
       - name: Build Boost ${{ env.BOOST_VERSION }}
         if: steps.cache-boost-linux.outputs.cache-hit != 'true'
@@ -43,7 +43,7 @@ jobs:
 
       - name: Configure CMake
         env:
-          CXXFLAGS: "-O3 -fno-fast-math -fno-strict-aliasing -DCOMMAND_LINE -fopenmp"
+          CXXFLAGS: "-O3 -fno-fast-math -fno-strict-aliasing -DCOMMAND_LINE"
         run: |
           mkdir -p build build_logs
           cmake -S . -B build \
@@ -65,6 +65,7 @@ jobs:
             build/progressiveMauve
             build_logs/
 
+
   # ==============================================================================
   # 2. MACOS BUILD (ARM64)
   # ==============================================================================
@@ -83,7 +84,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ github.workspace }}/boost-install
-          key: ${{ runner.os }}-boost-${{ env.BOOST_VERSION }}-arm64-v11
+          key: ${{ runner.os }}-boost-${{ env.BOOST_VERSION }}-arm64-v12
 
       - name: Build Boost ${{ env.BOOST_VERSION }}
         if: steps.cache-boost-mac.outputs.cache-hit != 'true'
@@ -96,7 +97,6 @@ jobs:
 
       - name: Configure CMake
         env:
-          # Note: We rely on CMakeLists.txt to handle -Xpreprocessor via OpenMP package now
           CXXFLAGS: "-O3 -fno-fast-math -fno-strict-aliasing -DCOMMAND_LINE -I/opt/homebrew/opt/libomp/include"
           LDFLAGS: "-L/opt/homebrew/opt/libomp/lib -lomp"
         run: |
@@ -119,6 +119,7 @@ jobs:
             build/progressiveMauve
             build_logs/
 
+
   # ==============================================================================
   # 3. WINDOWS BUILD (MSVC)
   # ==============================================================================
@@ -136,7 +137,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ github.workspace }}/boost-install
-          key: ${{ runner.os }}-boost-${{ env.BOOST_VERSION }}-msvc-v11
+          key: ${{ runner.os }}-boost-${{ env.BOOST_VERSION }}-msvc-v12
 
       - name: Build Boost ${{ env.BOOST_VERSION }}
         if: steps.cache-boost-win.outputs.cache-hit != 'true'
@@ -152,7 +153,6 @@ jobs:
         shell: bash
         run: |
           mkdir -p build build_logs
-          # IMPORTANT: We check for failure and print the log if it fails
           if ! cmake -S . -B build \
             -DCMAKE_TOOLCHAIN_FILE="$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" \
             -DVCPKG_TARGET_TRIPLET=x64-windows-static \

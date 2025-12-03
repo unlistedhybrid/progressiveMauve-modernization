@@ -72,7 +72,7 @@ endif()
 # 5. SUBDIRECTORIES
 # ============================================================
 
-# We add subdirectories. They now handle their own OpenMP flags.
+# The subdirectories now handle their own OpenMP flags explicitly
 add_subdirectory(libGenome)
 target_link_libraries(libGenome PUBLIC BoostInterface)
 
@@ -105,12 +105,17 @@ target_include_directories(progressiveMauve PRIVATE
     ${PROJECT_SOURCE_DIR}/mauveAligner/src
 )
 
-# OpenMP for the main executable
+# Explicitly add OpenMP flags for the main executable too
 if(ENABLE_OPENMP)
     find_package(OpenMP REQUIRED)
     target_link_libraries(progressiveMauve PUBLIC OpenMP::OpenMP_CXX)
-    if(OpenMP_CXX_FOUND)
-        target_compile_options(progressiveMauve PRIVATE ${OpenMP_CXX_FLAGS})
+    
+    if(MSVC)
+        target_compile_options(progressiveMauve PRIVATE /openmp)
+    elseif(APPLE)
+        target_compile_options(progressiveMauve PRIVATE -Xpreprocessor -fopenmp)
+    else()
+        target_compile_options(progressiveMauve PRIVATE -fopenmp)
     endif()
 endif()
 

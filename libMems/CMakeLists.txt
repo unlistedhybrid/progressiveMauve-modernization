@@ -19,7 +19,6 @@ target_include_directories(libMems PUBLIC
     "${PROJECT_SOURCE_DIR}/muscle"
 )
 
-# 1. Link the library
 target_link_libraries(libMems PUBLIC
     libGenome
     libMUSCLE
@@ -27,7 +26,13 @@ target_link_libraries(libMems PUBLIC
     OpenMP::OpenMP_CXX
 )
 
-# 2. FORCE the Compile Options (Crucial for ParallelMemHash.cpp)
+# CRITICAL FIX: Explicitly force the compilation flags so _OPENMP is defined
 if(OpenMP_CXX_FOUND)
-    target_compile_options(libMems PRIVATE ${OpenMP_CXX_FLAGS})
+    if(MSVC)
+        target_compile_options(libMems PRIVATE /openmp)
+    elseif(APPLE)
+        target_compile_options(libMems PRIVATE -Xpreprocessor -fopenmp)
+    else()
+        target_compile_options(libMems PRIVATE -fopenmp)
+    endif()
 endif()

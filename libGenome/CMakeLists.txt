@@ -14,13 +14,20 @@ target_include_directories(libGenome PUBLIC
     "${CMAKE_CURRENT_SOURCE_DIR}/"
 )
 
-# 1. Link the library (Handles linking)
 target_link_libraries(libGenome PUBLIC
     BoostInterface
     OpenMP::OpenMP_CXX
 )
 
-# 2. FORCE the Compile Options (Handles the -fopenmp flag)
+# CRITICAL FIX: Explicitly force the compilation flags
 if(OpenMP_CXX_FOUND)
-    target_compile_options(libGenome PRIVATE ${OpenMP_CXX_FLAGS})
+    if(MSVC)
+        target_compile_options(libGenome PRIVATE /openmp)
+    elseif(APPLE)
+        # Apple Clang specific flags
+        target_compile_options(libGenome PRIVATE -Xpreprocessor -fopenmp)
+    else()
+        # GCC / Linux
+        target_compile_options(libGenome PRIVATE -fopenmp)
+    endif()
 endif()
