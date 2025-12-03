@@ -4,7 +4,31 @@ cmake_policy(SET CMP0167 NEW)
 project(ProgressiveMauveModern LANGUAGES C CXX)
 
 # ============================================================
-# 1. GLOBAL SETTINGS
+# 1. OPENMP
+# ============================================================
+
+option(ENABLE_OPENMP "Enable OpenMP" ON)
+
+if(ENABLE_OPENMP)
+    find_package(OpenMP REQUIRED)
+    
+    # Force flags into the global CXX flags variable.
+    # This ensures EVERY file sees them, period.
+    if(MSVC)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /openmp")
+    elseif(APPLE)
+        # Apple Clang needs explicit preprocessor flags AND explicit macro definition
+        # to guarantee the header sees the 2-argument function.
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Xpreprocessor -fopenmp -D_OPENMP")
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lomp")
+    else()
+        # Linux / GCC
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
+    endif()
+endif()
+
+# ============================================================
+# 2. GLOBAL SETTINGS
 # ============================================================
 
 set(CMAKE_CXX_STANDARD 17)
@@ -13,11 +37,10 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(Boost_USE_STATIC_LIBS ON)
 
 option(ENABLE_SANITIZERS "Enable ASAN + UBSAN" OFF)
-option(ENABLE_OPENMP "Enable OpenMP" ON)
 option(ENABLE_ZLIB "Enable ZLIB compression" OFF) 
 
 # ============================================================
-# 2. COMPILER FLAGS
+# 3. COMPILER FLAGS
 # ============================================================
 
 if(MSVC)
@@ -31,13 +54,8 @@ else()
     endif()
 endif()
 
-if(ENABLE_SANITIZERS AND NOT MSVC)
-    add_compile_options(-fsanitize=address,undefined)
-    add_link_options(-fsanitize=address,undefined)
-endif()
-
 # ============================================================
-# 3. DEPENDENCIES
+# 4. DEPENDENCIES
 # ============================================================
 
 set(Boost_NO_SYSTEM_PATHS OFF)
@@ -52,7 +70,7 @@ endif()
 find_package(ICU REQUIRED COMPONENTS uc data i18n)
 
 # ============================================================
-# 4. BOOST INTERFACE
+# 5. BOOST INTERFACE
 # ============================================================
 
 add_library(BoostInterface INTERFACE)
@@ -69,10 +87,9 @@ if(ENABLE_ZLIB)
 endif()
 
 # ============================================================
-# 5. SUBDIRECTORIES
+# 6. SUBDIRECTORIES
 # ============================================================
 
-# The subdirectories now handle their own OpenMP flags explicitly
 add_subdirectory(libGenome)
 target_link_libraries(libGenome PUBLIC BoostInterface)
 
@@ -82,7 +99,7 @@ target_link_libraries(libMems PUBLIC BoostInterface)
 add_subdirectory(muscle)
 
 # ============================================================
-# 6. EXECUTABLE
+# 7. EXECUTABLE
 # ============================================================
 
 set(PM_SRC
@@ -105,18 +122,9 @@ target_include_directories(progressiveMauve PRIVATE
     ${PROJECT_SOURCE_DIR}/mauveAligner/src
 )
 
-# Explicitly add OpenMP flags for the main executable too
+# Link OpenMP libraries (Compiling is handled by Global Flags, Linking is handled here)
 if(ENABLE_OPENMP)
-    find_package(OpenMP REQUIRED)
     target_link_libraries(progressiveMauve PUBLIC OpenMP::OpenMP_CXX)
-    
-    if(MSVC)
-        target_compile_options(progressiveMauve PRIVATE /openmp)
-    elseif(APPLE)
-        target_compile_options(progressiveMauve PRIVATE -Xpreprocessor -fopenmp)
-    else()
-        target_compile_options(progressiveMauve PRIVATE -fopenmp)
-    endif()
 endif()
 
 target_link_libraries(progressiveMauve

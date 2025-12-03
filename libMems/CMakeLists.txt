@@ -2,8 +2,6 @@
 # libMems/CMakeLists.txt
 # ============================================================
 
-find_package(OpenMP REQUIRED)
-
 file(GLOB LIBMEMS_SRC
     "${CMAKE_CURRENT_SOURCE_DIR}/libMems/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/libMems/*.c"
@@ -23,16 +21,8 @@ target_link_libraries(libMems PUBLIC
     libGenome
     libMUSCLE
     BoostInterface
-    OpenMP::OpenMP_CXX
 )
 
-# CRITICAL FIX: Explicitly force the compilation flags so _OPENMP is defined
 if(OpenMP_CXX_FOUND)
-    if(MSVC)
-        target_compile_options(libMems PRIVATE /openmp)
-    elseif(APPLE)
-        target_compile_options(libMems PRIVATE -Xpreprocessor -fopenmp)
-    else()
-        target_compile_options(libMems PRIVATE -fopenmp)
-    endif()
+    target_link_libraries(libMems PUBLIC OpenMP::OpenMP_CXX)
 endif()
