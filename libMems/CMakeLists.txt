@@ -1,3 +1,7 @@
+# ============================================================
+# libMems/CMakeLists.txt
+# ============================================================
+
 file(GLOB LIBMEMS_SRC
     "${CMAKE_CURRENT_SOURCE_DIR}/libMems/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/libMems/*.c"
@@ -18,3 +22,11 @@ target_link_libraries(libMems PUBLIC
     libMUSCLE
     BoostInterface
 )
+
+# On Windows (MSVC), the /openmp flag handles everything.
+# Explicitly linking OpenMP::OpenMP_CXX causes LNK1104 errors.
+if(NOT MSVC)
+    if(OpenMP_CXX_FOUND)
+        target_link_libraries(libMems PUBLIC OpenMP::OpenMP_CXX)
+    endif()
+endif()

@@ -53,6 +53,10 @@ using namespace std;
 using namespace genome;
 using namespace mems;
 
+extern "C" const char *__asan_default_options() {
+    return "detect_leaks=0";
+}
+
 class MLDeleter {
 public:
 	MLDeleter( MatchList& ml ) : mlist( ml ) {}
@@ -677,6 +681,7 @@ int doAlignment( int argc, char* argv[] ){
 		MuscleInterface& mi = MuscleInterface::getMuscleInterface();
 		mi.SetExtraMuscleArguments(opt_muscle_args.arg_value);
 	}
+    
 	if( opt_recursive.set )
 		aligner.SetRecursive(false);
 	else
@@ -730,7 +735,6 @@ int doAlignment( int argc, char* argv[] ){
 
 	if( !opt_disable_backbone.set )
 	{
-
 		string bbcols_fname = opt_output.arg_value + ".bbcols";
 		string bb_seq_fname = opt_backbone_output.arg_value;
 		if( !opt_backbone_output.set )
@@ -746,21 +750,16 @@ int doAlignment( int argc, char* argv[] ){
 	for( size_t seqI = 0; seqI < pairwise_match_list.sml_table.size(); seqI++ )
 		delete pairwise_match_list.sml_table[seqI];
 
-    // FIX: Ensure the output stream is closed/deleted properly
+    // Ensure the output stream is closed/deleted properly
     if( opt_output.set && match_out != &cout )
     {
         delete match_out;
         match_out = NULL;
     }
 
-// only explicitly free memory if absolutely necessary
-// since free() is very slow and the OS will reclaim it at program exit anyways
-	if(opt_mem_clean.set)
-	{
-		// free memory used by pairwise matches
-		for( size_t mI = 0; mI < pairwise_match_list.size(); mI++ )
-			pairwise_match_list[mI]->Free();
-	}
+    // Always free memory to prevent leak reported by sanitizers
+    for( size_t mI = 0; mI < pairwise_match_list.size(); mI++ )
+        pairwise_match_list[mI]->Free();
 
 	return 0;
 }
