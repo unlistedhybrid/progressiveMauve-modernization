@@ -30,7 +30,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ github.workspace }}/boost-install
-          key: ${{ runner.os }}-boost-${{ env.BOOST_VERSION }}-v13
+          key: ${{ runner.os }}-boost-${{ env.BOOST_VERSION }}-v14
 
       - name: Build Boost ${{ env.BOOST_VERSION }}
         if: steps.cache-boost-linux.outputs.cache-hit != 'true'
@@ -63,7 +63,6 @@ jobs:
             build/progressiveMauve
             build_logs/
 
-
   # ==============================================================================
   # 2. MACOS BUILD (ARM64)
   # ==============================================================================
@@ -82,7 +81,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ github.workspace }}/boost-install
-          key: ${{ runner.os }}-boost-${{ env.BOOST_VERSION }}-arm64-v13
+          key: ${{ runner.os }}-boost-${{ env.BOOST_VERSION }}-arm64-v14
 
       - name: Build Boost ${{ env.BOOST_VERSION }}
         if: steps.cache-boost-mac.outputs.cache-hit != 'true'
@@ -95,7 +94,7 @@ jobs:
 
       - name: Configure CMake
         env:
-          # Just path helpers. Flags are now in CMakeLists.txt
+          # removed -D_OPENMP. CMakeLists.txt handles flags.
           CXXFLAGS: "-I/opt/homebrew/opt/libomp/include"
           LDFLAGS: "-L/opt/homebrew/opt/libomp/lib"
         run: |
@@ -118,7 +117,6 @@ jobs:
             build/progressiveMauve
             build_logs/
 
-
   # ==============================================================================
   # 3. WINDOWS BUILD (MSVC)
   # ==============================================================================
@@ -136,7 +134,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ github.workspace }}/boost-install
-          key: ${{ runner.os }}-boost-${{ env.BOOST_VERSION }}-msvc-v13
+          key: ${{ runner.os }}-boost-${{ env.BOOST_VERSION }}-msvc-v14
 
       - name: Build Boost ${{ env.BOOST_VERSION }}
         if: steps.cache-boost-win.outputs.cache-hit != 'true'

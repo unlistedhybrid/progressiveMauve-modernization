@@ -4,25 +4,24 @@ cmake_policy(SET CMP0167 NEW)
 project(ProgressiveMauveModern LANGUAGES C CXX)
 
 # ============================================================
-# 1. OPENMP
+# 1. OPENMP CONFIGURATION
 # ============================================================
-
 option(ENABLE_OPENMP "Enable OpenMP" ON)
 
 if(ENABLE_OPENMP)
     find_package(OpenMP REQUIRED)
     
-    # Force flags into the global CXX flags variable.
-    # This ensures EVERY file sees them, period.
+    # Apply flags globally to CMAKE_CXX_FLAGS.
+    # This ensures every single file inherits them.
     if(MSVC)
+        # Windows
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /openmp")
     elseif(APPLE)
-        # Apple Clang needs explicit preprocessor flags AND explicit macro definition
-        # to guarantee the header sees the 2-argument function.
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Xpreprocessor -fopenmp -D_OPENMP")
+        # Mac: Needs preprocessor flag, but NOT -D_OPENMP (Compiler sets it)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Xpreprocessor -fopenmp")
         set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lomp")
     else()
-        # Linux / GCC
+        # Linux
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
     endif()
 endif()
@@ -122,7 +121,6 @@ target_include_directories(progressiveMauve PRIVATE
     ${PROJECT_SOURCE_DIR}/mauveAligner/src
 )
 
-# Link OpenMP libraries (Compiling is handled by Global Flags, Linking is handled here)
 if(ENABLE_OPENMP)
     target_link_libraries(progressiveMauve PUBLIC OpenMP::OpenMP_CXX)
 endif()

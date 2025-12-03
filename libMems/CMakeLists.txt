@@ -23,6 +23,6 @@ target_link_libraries(libMems PUBLIC
     BoostInterface
 )
 
-if(OpenMP_CXX_FOUND)
-    target_link_libraries(libMems PUBLIC OpenMP::OpenMP_CXX)
-endif()
+# We find OpenMP just for the linking targets, but flags are global now
+find_package(OpenMP REQUIRED)
+target_link_libraries(libMems PUBLIC OpenMP::OpenMP_CXX)
