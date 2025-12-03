@@ -4,26 +4,32 @@ cmake_policy(SET CMP0167 NEW)
 project(ProgressiveMauveModern LANGUAGES C CXX)
 
 # ============================================================
-# 1. OPENMP CONFIGURATION
+# 1. THE NUCLEAR OPENMP FIX (GLOBAL FLAGS)
 # ============================================================
+# We set these flags GLOBALLY for C++ files. This forces libMems
+# to compile with OpenMP support, defining _OPENMP correctly.
+
 option(ENABLE_OPENMP "Enable OpenMP" ON)
 
 if(ENABLE_OPENMP)
     find_package(OpenMP REQUIRED)
-    
-    # Apply flags globally to CMAKE_CXX_FLAGS.
-    # This ensures every single file inherits them.
+
     if(MSVC)
         # Windows
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /openmp")
     elseif(APPLE)
-        # Mac: Needs preprocessor flag, but NOT -D_OPENMP (Compiler sets it)
+        # Mac (Apple Clang)
+        # We DO NOT manually define -D_OPENMP here, the compiler does it
+        # when it sees -fopenmp.
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Xpreprocessor -fopenmp")
         set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lomp")
     else()
-        # Linux
+        # Linux (GCC)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
     endif()
+    
+    # DEBUG: Print the flags to the log to confirm they are set
+    message(STATUS ">>> GLOBAL CXX FLAGS: ${CMAKE_CXX_FLAGS}")
 endif()
 
 # ============================================================
@@ -121,6 +127,7 @@ target_include_directories(progressiveMauve PRIVATE
     ${PROJECT_SOURCE_DIR}/mauveAligner/src
 )
 
+# Link OpenMP libraries (Compilation is handled by Global Flags above)
 if(ENABLE_OPENMP)
     target_link_libraries(progressiveMauve PUBLIC OpenMP::OpenMP_CXX)
 endif()
