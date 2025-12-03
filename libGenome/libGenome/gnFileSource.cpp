@@ -22,22 +22,31 @@
 using namespace std;
 namespace genome {
 
+// ==========================================================
+// Default Constructor
+// ==========================================================
 gnFileSource::gnFileSource() :
-m_pFilter(gnFilter::fullDNASeqFilter())
+    m_pFilter(gnFilter::fullDNASeqFilter()),
+    m_newlineType(gnNewlineUnix),  // Initialize to safe default
+    m_newlineSize(1)               // Initialize to safe default
 {}
 
-//copy constructor
+// ==========================================================
+// Copy Constructor
+// ==========================================================
 gnFileSource::gnFileSource(const gnFileSource& gnfs){
-	m_openString = gnfs.m_openString;
-	m_pFilter = gnfs.m_pFilter;
-	m_newlineType = gnfs.m_newlineType;
-	m_newlineSize = gnfs.m_newlineSize;
+    m_openString = gnfs.m_openString;
+    m_pFilter = gnfs.m_pFilter;
+    
+    m_newlineType = gnfs.m_newlineType;
+    m_newlineSize = gnfs.m_newlineSize;
+
 #pragma omp critical
-{
-	m_ifstream.open( m_openString.c_str(), ios::in | ios::binary );
-	if( !m_ifstream.is_open() )
-		m_ifstream.clear();
-}
+    {
+        m_ifstream.open( m_openString.c_str(), ios::in | ios::binary );
+        if( !m_ifstream.is_open() )
+            m_ifstream.clear();
+    }
 }
 
 // Open, Close	

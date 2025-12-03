@@ -23,6 +23,12 @@
 #include <float.h>
 #include "libGenome/gnSetup.h"
 
+// --- ADDED STANDARD LIBRARIES TO REPLACE CUSTOM ABS() ---
+#include <cmath>
+#include <cstdlib>
+#include <algorithm>
+// ------------------------------------------------------
+
 // bool	
 typedef unsigned char        boolean;
 typedef unsigned char        int1;
@@ -174,13 +180,6 @@ typedef uint64				gnSeqI;		// Sequence Index
 
 
 #define CONTIG_SECTION_SIZE 3
-
-// some compilers don't have abs() for 64 bit ints
-#if (defined(__GNUG__) && ( __GNUC__ <= 2 )) || defined(__INTEL_COMPILER) || (defined _MSC_VER && defined __cplusplus)
-
-int64 abs( int64 a );
-
-#endif
 
 #ifdef __cplusplus
 namespace genome {

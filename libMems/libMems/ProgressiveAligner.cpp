@@ -236,7 +236,7 @@ template<class MatchType>
 void ProgressiveAligner::propagateDescendantBreakpoints( node_id_t node1, uint seqI, std::vector<MatchType*>& iv_list )
 {
 	SSC<MatchType> ilc(seqI);
-	sort( iv_list.begin(), iv_list.end(), ilc );
+	std::stable_sort( iv_list.begin(), iv_list.end(), ilc );
 	vector< SuperInterval >& ord = alignment_tree[ node1 ].ordering;
 	vector<gnSeqI> bp_list;
 	for( size_t sI = 0; sI < ord.size(); sI++ )
@@ -262,7 +262,7 @@ void applyAncestralBreakpoints( const vector< SuperInterval >& siv_list, vector<
 	}
 	bp_list.resize(cur);
 	// sort the breakpoints and apply...
-	sort( bp_list.begin(), bp_list.end() );
+	std::stable_sort( bp_list.begin(), bp_list.end() );
 	applyBreakpoints( bp_list, ord, m );
 }
 
@@ -342,7 +342,7 @@ void ProgressiveAligner::translateGappedCoordinates( vector<AbstractMatch*>& ml,
 		// then apply the coordinate translation with transposeCoordinates
 		// then shift each match's coordinates to the global ancestral coordinate space
 		SSC<AbstractMatch> ssc(seqI);
-		sort(ml.begin(), ml.end(), ssc);
+		std::stable_sort(ml.begin(), ml.end(), ssc);
 
 		// split on superinterval boundaries
 		vector< SuperInterval >& siv_list = alignment_tree[trans_path[nI]].ordering;
@@ -362,7 +362,7 @@ void ProgressiveAligner::translateGappedCoordinates( vector<AbstractMatch*>& ml,
 		applyAncestralBreakpoints(siv_list, ml, cur_child, amsm );
 		
 		// sort matches again because new ones were added at the end
-		sort(ml.begin(), ml.end(), ssc);
+		std::stable_sort(ml.begin(), ml.end(), ssc);
 
 		// assign each match to a siv, and convert coords to siv-local
 		for( size_t mI = 0; mI < ml.size(); mI++ )
@@ -546,7 +546,7 @@ void ProgressiveAligner::recursiveApplyAncestralBreakpoints( node_id_t ancestor 
 			for( size_t sivI = 0; sivI < atn.ordering.size(); ++sivI )
 				siv_ptr_list[sivI] = &(atn.ordering[sivI]);
 			SuperIntervalPtrComp sipc;
-			sort( siv_ptr_list.begin(), siv_ptr_list.end(), sipc );
+			std::stable_sort( siv_ptr_list.begin(), siv_ptr_list.end(), sipc );
 			vector< SuperInterval > siv_list;
 			for( size_t sivI = 0; sivI < siv_ptr_list.size(); ++sivI )
 				siv_list.push_back(*siv_ptr_list[sivI]);
@@ -1622,7 +1622,7 @@ void ProgressiveAligner::constructLcbTrackingMatches(
 		vector< SuperInterval >& siv_list = alignment_tree[cur_node].ordering;
 		SingleStartComparator< CompactGappedAlignment<> > ssc(cur_node);
 		CgaBsComp< SingleStartComparator< CompactGappedAlignment<> > > comp( ssc );
-		sort(cga_list.begin(), cga_list.end(), comp);
+		std::stable_sort(cga_list.begin(), cga_list.end(), comp);
 		size_t mI = 0;
 		size_t sivI = 0;
 		while( mI < cga_list.size() && sivI < siv_list.size() )
@@ -2196,7 +2196,7 @@ void ProgressiveAligner::alignProfileToProfile( node_id_t node1, node_id_t node2
 			cout << "there are " << pair_lcb_count << " pairwise LCBs\n";
 			printMemUsage();
 
-			sort( t_matches.begin(), t_matches.end() );
+			std::stable_sort( t_matches.begin(), t_matches.end() );
 
 			// other possibility, choose pairwise LCBs to remove.  a score improvement is always guaranteed
 			// compute LCBs among descendant nodes
@@ -2256,7 +2256,7 @@ void ProgressiveAligner::alignProfileToProfile( node_id_t node1, node_id_t node2
 			ancestral_matches.clear();
 
 			// free memory from deleted matches here
-			std::sort(final.begin(), final.end());
+			std::stable_sort(final.begin(), final.end());
 			vector< TrackingMatch* > deleted_t_matches( t_matches.size(), NULL );
 			std::set_difference( t_matches.begin(), t_matches.end(), final.begin(), final.end(), deleted_t_matches.begin() );
 			for( size_t delI = 0; delI < deleted_t_matches.size(); ++delI )
@@ -2368,6 +2368,16 @@ void ProgressiveAligner::alignProfileToProfile( node_id_t node1, node_id_t node2
 		gnSeqI cur_ancestral_seq_len = 0;
 		for( size_t aI = 0; aI < alignment_tree[ancestor].ordering.size(); aI++ )
 			cur_ancestral_seq_len += alignment_tree[ancestor].ordering[aI].Length();
+		// --- DEBUG BLOCK START ---
+        cout << "DEBUG: Anchoring Logic Check:\n";
+        cout << "  Scoring Scheme: " << (collinear_genomes ? "Collinear" : "Non-Collinear (BPE)") << "\n";
+        cout << "  Prev Score: " << prev_anchoring_score << "\n";
+        cout << "  New Score:  " << cur_anchoring_score << "\n";
+        cout << "  Improvement Threshold: " << (prev_anchoring_score + (genome::absolut(prev_anchoring_score)/200.0)) << "\n";
+        cout << "  Infinite Loop Breaker: " << (collinear_genomes && cur_ancestral_seq_len >= prev_ancestral_seq_len) << "\n";
+        cout << "  Recursive Flag: " << recursive << "\n";
+        cout.flush();
+        // --- DEBUG BLOCK END ---
 
 		if( !collinear_genomes )
 			cout << "Previous anchoring score: " << prev_anchoring_score << ", new anchor score: " << cur_anchoring_score << endl;
@@ -2474,8 +2484,8 @@ void ProgressiveAligner::alignProfileToProfile( node_id_t node1, node_id_t node2
 		for( seqI = 0; seqI < node1_seqs.size(); seqI++ )
 			for( seqJ = 0; seqJ < node2_seqs.size(); seqJ++ )
 			{
-				std::sort( iv_regions[seqI][seqJ][0].begin(), iv_regions[seqI][seqJ][0].end() );
-				std::sort( iv_regions[seqI][seqJ][1].begin(), iv_regions[seqI][seqJ][1].end() );
+				std::stable_sort( iv_regions[seqI][seqJ][0].begin(), iv_regions[seqI][seqJ][0].end() );
+				std::stable_sort( iv_regions[seqI][seqJ][1].begin(), iv_regions[seqI][seqJ][1].end() );
 				MatchList new_matches;
 				new_matches.seq_table.resize(2);
 				new_matches.seq_table[0] = bseqs[seqI];
@@ -2502,17 +2512,8 @@ void ProgressiveAligner::alignProfileToProfile( node_id_t node1, node_id_t node2
 				search_cache_db(seqI,seqJ).clear();
 				if(new_cache_db(seqI, seqJ).size() > 0)
 				{
-					// try sorting using C's qsort -- maybe there's something wrong with std::sort?
-					search_cache_t* sc_array = new search_cache_t[new_cache_db(seqI,seqJ).size()];
-					for( size_t i = 0; i < new_cache_db(seqI,seqJ).size(); i++ )
-						sc_array[i] = new_cache_db(seqI,seqJ)[i];
-					qsort(sc_array, new_cache_db(seqI,seqJ).size(), sizeof(AbstractMatch*), cachecomp);
-
-					search_cache_db(seqI, seqJ).resize(new_cache_db(seqI,seqJ).size());
-					for( size_t i = 0; i < new_cache_db(seqI,seqJ).size(); i++ )
-						search_cache_db(seqI, seqJ)[i] = sc_array[i];
-					delete[] sc_array;
-
+					search_cache_db(seqI, seqJ) = new_cache_db(seqI, seqJ); // Copy vector
+					std::stable_sort( search_cache_db(seqI, seqJ).begin(), search_cache_db(seqI, seqJ).end(), cache_comparator );
 					new_cache_db(seqI, seqJ).clear();
 				}
 				if( pairwise_matches(seqI,seqJ).size() > 0 )
@@ -2639,7 +2640,7 @@ void addGuy( uint seqI, AbstractMatch::orientation orient,
 void mergeUnalignedIntervals( uint seqI, vector< Interval* >& iv_list, vector< Interval* >& new_list )
 {
 	SSC<Interval> ivlcJ(seqI);
-	sort( iv_list.begin(), iv_list.end(), ivlcJ );
+	std::stable_sort( iv_list.begin(), iv_list.end(), ivlcJ );
 
 	Interval tmp_iv;
 	AbstractMatch::orientation orient = AbstractMatch::undefined;
@@ -2888,7 +2889,7 @@ boolean ProgressiveAligner::validatePairwiseIntervals(node_id_t node1, node_id_t
 	for( uint seqI = 0; seqI < 2; seqI++ )
 	{
 		SSC<Interval> ssc(seqI);
-		sort( tmp_iv_list.begin(), tmp_iv_list.end(), ssc );
+		std::stable_sort( tmp_iv_list.begin(), tmp_iv_list.end(), ssc );
 		for( size_t ivI = 1; ivI < tmp_iv_list.size(); ivI++ )
 		{
 			if( tmp_iv_list[ivI-1]->LeftEnd(seqI) == NO_MATCH || tmp_iv_list[ivI]->LeftEnd(seqI) == NO_MATCH )
@@ -2911,7 +2912,7 @@ boolean ProgressiveAligner::validatePairwiseIntervals(node_id_t node1, node_id_t
 		if( n2_len < real_n2len )
 		{
 			SSC<Interval> sortie(1);
-			sort( pair_iv.begin(), pair_iv.end(), sortie );
+			std::stable_sort( pair_iv.begin(), pair_iv.end(), sortie );
 			size_t prev_iv = 9999999;
 			for( size_t ivI = 0; ivI < pair_iv.size(); ++ivI)
 			{
@@ -2926,7 +2927,7 @@ boolean ProgressiveAligner::validatePairwiseIntervals(node_id_t node1, node_id_t
 		}else if( n2_len > real_n2len )
 		{
 			SSC<Interval> sortie(1);
-			sort( pair_iv.begin(), pair_iv.end(), sortie );
+			std::stable_sort( pair_iv.begin(), pair_iv.end(), sortie );
 			for( size_t ivI = 0; ivI < pair_iv.size(); ++ivI)
 			{
 				if( pair_iv[ivI]->LeftEnd(1) < real_n2len )
@@ -3301,7 +3302,7 @@ void ProgressiveAligner::extractAlignment( node_id_t ancestor, size_t super_iv, 
 			cerr << "huh?";
 			genome::breakHere();
 			SingleStartComparator<AbstractMatch> ssc( 0 );
-			sort( aml.begin(), aml.end(), ssc );	// huh?
+			std::stable_sort( aml.begin(), aml.end(), ssc );	// huh?
 		}
 		CompactGappedAlignment<>* trans_cga = dynamic_cast<CompactGappedAlignment<>*>(aml[0]);
 		if( trans_cga == NULL )
@@ -3415,6 +3416,29 @@ void ProgressiveAligner::CreatePairwiseBPDistance( boost::multi_array<double, 2>
 		ComputeLCBs_v2( ml, breakpoints, LCB_list );
 		vector< double > lcb_scores( LCB_list.size() );
 		cout << "Pair " << seq_pairs[i].first << ", " << seq_pairs[i].second << " has " << LCB_list.size() << " initial LCBs\n";
+
+		// --- START CORRECTED DEBUG BLOCK (v2) ---
+		if( LCB_list.size() > 0 ){
+			cout << "DEBUG_LCB_DUMP_START Pair " << seqI << "," << seqJ << endl;
+			size_t count = LCB_list.size();
+			for(size_t k=0; k<count; ++k) {
+				// Print first 5 and last 5
+				if(k < 5 || k > count - 6) {
+					if(LCB_list[k].size() > 0) {
+						// FIX: Use Start() instead of Left()
+						cout << "LCB[" << k << "]: "
+							 << " S1_Start=" << LCB_list[k][0]->Start(0)
+							 << " S1_Len=" << LCB_list[k][0]->Length(0)
+							 << " S2_Start=" << LCB_list[k][0]->Start(1)
+							 << " S2_Len=" << LCB_list[k][0]->Length(1)
+							 << " Matches=" << LCB_list[k].size()
+							 << endl;
+					}
+				}
+			}
+			cout << "DEBUG_LCB_DUMP_END" << endl;
+		}
+		// --- END CORRECTED DEBUG BLOCK ---
 		for( size_t lcbI = 0; lcbI < LCB_list.size(); ++lcbI )
 			lcb_scores[lcbI] = GetPairwiseAnchorScore( LCB_list[lcbI], ml.seq_table, this->subst_scoring, sol_list[seqI], sol_list[seqJ] );
 

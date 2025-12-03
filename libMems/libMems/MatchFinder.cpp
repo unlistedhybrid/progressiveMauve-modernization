@@ -229,8 +229,6 @@ boolean MatchFinder::SearchRange(vector<gnSeqI>& start_points, vector<gnSeqI>& s
 	cerr << "First mers are: " << mer_vector[2][0].mer << endl;
 	print_sp = false;
 	}	
-	//nobody reads these fucking things.  why am i writing this.because my fucking 
-	//roomate needs a goddamn roadmap......   ohhh ecstasy.... haptic pumpkins
 
 	//loop while there is data to hash.
 	cur_mers.sort(&idmer_lessthan);
