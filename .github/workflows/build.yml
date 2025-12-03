@@ -52,12 +52,14 @@ jobs:
 
       - name: Configure CMake
         env:
-          CXXFLAGS: "-O3 -fno-fast-math -fno-strict-aliasing -DCOMMAND_LINE"
+          # Explicit -fopenmp for GCC
+          CXXFLAGS: "-O3 -fno-fast-math -fno-strict-aliasing -DCOMMAND_LINE -fopenmp"
         run: |
           mkdir -p build build_logs
           cmake -S . -B build \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_PREFIX_PATH="${{ github.workspace }}/boost-install" \
+            -DENABLE_OPENMP=ON \
             -DENABLE_ZLIB=OFF \
             -DENABLE_SANITIZERS=OFF 2>&1 | tee build_logs/configure.log
 
@@ -115,19 +117,16 @@ jobs:
 
       - name: Configure CMake
         env:
-          CXXFLAGS: "-O3 -fno-fast-math -fno-strict-aliasing -DCOMMAND_LINE"
-          OpenMP_ROOT: /opt/homebrew/opt/libomp
+          # Explicit Apple Clang OpenMP flags
+          CXXFLAGS: "-O3 -fno-fast-math -fno-strict-aliasing -DCOMMAND_LINE -Xpreprocessor -fopenmp -D_OPENMP -I/opt/homebrew/opt/libomp/include"
+          LDFLAGS: "-L/opt/homebrew/opt/libomp/lib -lomp"
         run: |
           mkdir -p build build_logs
 
           cmake -S . -B build \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_PREFIX_PATH="${{ github.workspace }}/boost-install;/opt/homebrew/opt/icu4c" \
-            -DOpenMP_C_FLAGS="-Xclang -fopenmp -I/opt/homebrew/opt/libomp/include" \
-            -DOpenMP_CXX_FLAGS="-Xclang -fopenmp -I/opt/homebrew/opt/libomp/include" \
-            -DOpenMP_C_LIB_NAMES="omp" \
-            -DOpenMP_CXX_LIB_NAMES="omp" \
-            -DOpenMP_omp_LIBRARY="/opt/homebrew/opt/libomp/lib/libomp.dylib" \
+            -DENABLE_OPENMP=ON \
             -DENABLE_ZLIB=OFF 2>&1 | tee build_logs/configure.log
 
       - name: Build
@@ -166,9 +165,9 @@ jobs:
         if: steps.cache-boost-win.outputs.cache-hit != 'true'
         shell: cmd
         run: |
-          curl -L -o boost.tar.gz %BOOST_URL%
+          curl -L -o boost.tar.gz ${{ env.BOOST_URL }}
           tar xzf boost.tar.gz
-          cd %BOOST_DIR%
+          cd ${{ env.BOOST_DIR }}
 
           call bootstrap.bat
 
@@ -189,6 +188,7 @@ jobs:
             -DCMAKE_TOOLCHAIN_FILE="$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" \
             -DVCPKG_TARGET_TRIPLET=x64-windows-static \
             -DCMAKE_PREFIX_PATH="${{ github.workspace }}/boost-install" \
+            -DENABLE_OPENMP=ON \
             -DENABLE_ZLIB=OFF \
             -DCMAKE_BUILD_TYPE=Release > build_logs/configure.log 2>&1
 
