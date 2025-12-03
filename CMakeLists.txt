@@ -109,10 +109,12 @@ target_include_directories(progressiveMauve PRIVATE
 # OpenMP for the main executable
 if(ENABLE_OPENMP)
     find_package(OpenMP REQUIRED)
+    # Using 'PUBLIC' here...
     target_link_libraries(progressiveMauve PUBLIC OpenMP::OpenMP_CXX)
 endif()
 
 target_link_libraries(progressiveMauve
+    PUBLIC  # <--- FIXED: Added PUBLIC here to match the OpenMP block above
     libGenome
     libMems
     libMUSCLE
