@@ -326,5 +326,36 @@ void MemHash::WriteFile(ostream& mem_file) const{
 	}
 }
 
+MatchHashEntry* MemHash::AddHashEntry(MatchHashEntry& mhe, std::vector< std::vector<MatchHashEntry*> >& dest_table){
+	int64 offset = mhe.Offset();
+
+	uint32 local_table_size = dest_table.size();
+	uint32 bucketI = ((offset % local_table_size) + local_table_size) % local_table_size;
+	
+	vector<MatchHashEntry*>::iterator insert_he;
+	insert_he = std::lower_bound(dest_table[bucketI].begin(), dest_table[bucketI].end(), &mhe, mhecomp);
+
+	if( insert_he != dest_table[bucketI].end() && (!mhecomp(*insert_he, &mhe) && !mhecomp(&mhe, *insert_he)) ){
+		return *insert_he;
+	}
+	
+	vector<MatchHashEntry> subset_matches;
+	if( !mhe.Extended() )
+		ExtendMatch(mhe, subset_matches);
+
+	MatchHashEntry* new_mhe = allocator.Allocate();
+	new_mhe = new(new_mhe) MatchHashEntry(mhe); 
+
+	insert_he = std::lower_bound(dest_table[bucketI].begin(), dest_table[bucketI].end(), new_mhe, mhecomp);
+	dest_table[bucketI].insert(insert_he, new_mhe);
+
+	for(uint32 subsetI = 0; subsetI < subset_matches.size(); ++subsetI){
+		MatchHashEntry* submem = AddHashEntry( subset_matches[ subsetI ], dest_table );
+	}
+	
+	// Do NOT increment global counters (mem_table_count, m_mem_count) here.
+	return new_mhe;
+}
+// ----------------------------------------
 
 } // namespace mems

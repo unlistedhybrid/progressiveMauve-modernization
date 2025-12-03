@@ -157,6 +157,7 @@ protected:
 	virtual boolean HashMatch(IdmerList& match_list);
 	virtual void SetDirection(MatchHashEntry& mhe);
 	virtual MatchHashEntry* AddHashEntry(MatchHashEntry& mhe);
+	virtual MatchHashEntry* AddHashEntry(MatchHashEntry& mhe, std::vector< std::vector<MatchHashEntry*> >& dest_table);
 	virtual uint32 quadratic_li(uint32 listI){return (listI*(listI+1))/2;}
 		
 	uint32 table_size;
