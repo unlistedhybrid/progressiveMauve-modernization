@@ -30,7 +30,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ github.workspace }}/boost-install
-          key: ${{ runner.os }}-boost-${{ env.BOOST_VERSION }}-v9
+          key: ${{ runner.os }}-boost-${{ env.BOOST_VERSION }}-v10
 
       - name: Build Boost ${{ env.BOOST_VERSION }}
         if: steps.cache-boost-linux.outputs.cache-hit != 'true'
@@ -39,7 +39,6 @@ jobs:
           tar xzf ${{ env.BOOST_DIR }}.tar.gz
           cd ${{ env.BOOST_DIR }}
 
-          # Removed 'system' from libraries list
           ./bootstrap.sh --prefix=${{ github.workspace }}/boost-install --with-libraries=filesystem,iostreams,program_options,regex
 
           ./b2 install \
@@ -94,7 +93,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ github.workspace }}/boost-install
-          key: ${{ runner.os }}-boost-${{ env.BOOST_VERSION }}-arm64-v9
+          key: ${{ runner.os }}-boost-${{ env.BOOST_VERSION }}-arm64-v10
 
       - name: Build Boost ${{ env.BOOST_VERSION }}
         if: steps.cache-boost-mac.outputs.cache-hit != 'true'
@@ -103,7 +102,6 @@ jobs:
           tar xzf boost.tar.gz
           cd ${{ env.BOOST_DIR }}
 
-          # Removed 'system' from libraries list
           ./bootstrap.sh --prefix=${{ github.workspace }}/boost-install --with-libraries=filesystem,iostreams,program_options,regex
 
           ./b2 install \
@@ -118,7 +116,9 @@ jobs:
 
       - name: Configure CMake
         env:
-          CXXFLAGS: "-O3 -fno-fast-math -fno-strict-aliasing -DCOMMAND_LINE -Xpreprocessor -fopenmp -D_OPENMP -I/opt/homebrew/opt/libomp/include"
+          # REMOVED -D_OPENMP to fix warning.
+          # KEPT -Xpreprocessor -fopenmp because Apple Clang needs it.
+          CXXFLAGS: "-O3 -fno-fast-math -fno-strict-aliasing -DCOMMAND_LINE -Xpreprocessor -fopenmp -I/opt/homebrew/opt/libomp/include"
           LDFLAGS: "-L/opt/homebrew/opt/libomp/lib -lomp"
         run: |
           mkdir -p build build_logs
@@ -159,7 +159,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ github.workspace }}/boost-install
-          key: ${{ runner.os }}-boost-${{ env.BOOST_VERSION }}-msvc-v9
+          key: ${{ runner.os }}-boost-${{ env.BOOST_VERSION }}-msvc-v10
 
       - name: Build Boost ${{ env.BOOST_VERSION }}
         if: steps.cache-boost-win.outputs.cache-hit != 'true'
