@@ -6,29 +6,21 @@ project(ProgressiveMauveModern LANGUAGES C CXX)
 # ============================================================
 # 1. THE NUCLEAR OPENMP FIX (GLOBAL FLAGS)
 # ============================================================
-# We set these flags GLOBALLY for C++ files. This forces libMems
-# to compile with OpenMP support, defining _OPENMP correctly.
-
 option(ENABLE_OPENMP "Enable OpenMP" ON)
 
 if(ENABLE_OPENMP)
     find_package(OpenMP REQUIRED)
-
+    
+    # Force flags into the global CXX flags.
     if(MSVC)
-        # Windows
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /openmp")
     elseif(APPLE)
-        # Mac (Apple Clang)
-        # We DO NOT manually define -D_OPENMP here, the compiler does it
-        # when it sees -fopenmp.
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Xpreprocessor -fopenmp")
         set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lomp")
     else()
-        # Linux (GCC)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
     endif()
     
-    # DEBUG: Print the flags to the log to confirm they are set
     message(STATUS ">>> GLOBAL CXX FLAGS: ${CMAKE_CXX_FLAGS}")
 endif()
 
@@ -45,11 +37,17 @@ option(ENABLE_SANITIZERS "Enable ASAN + UBSAN" OFF)
 option(ENABLE_ZLIB "Enable ZLIB compression" OFF) 
 
 # ============================================================
-# 3. COMPILER FLAGS
+# 3. COMPILER FLAGS & RUNTIME
 # ============================================================
 
 if(MSVC)
+    # CRITICAL FIXES FOR WINDOWS:
+    # 1. Use Static Runtime (/MT)
     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded")
+    
+    # 2. Tell CMake to look for Boost libraries built with Static Runtime
+    set(Boost_USE_STATIC_RUNTIME ON)
+    
     add_compile_definitions(NOMINMAX WIN32_LEAN_AND_MEAN _CRT_SECURE_NO_WARNINGS)
     add_compile_options(/O2 /fp:precise /DCOMMAND_LINE)
 else()
@@ -127,7 +125,6 @@ target_include_directories(progressiveMauve PRIVATE
     ${PROJECT_SOURCE_DIR}/mauveAligner/src
 )
 
-# Link OpenMP libraries (Compilation is handled by Global Flags above)
 if(ENABLE_OPENMP)
     target_link_libraries(progressiveMauve PUBLIC OpenMP::OpenMP_CXX)
 endif()
