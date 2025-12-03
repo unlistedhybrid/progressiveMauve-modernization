@@ -119,7 +119,7 @@ jobs:
             build_logs/
 
 
-  # ==============================================================================
+# ==============================================================================
   # 3. WINDOWS BUILD (MSVC)
   # ==============================================================================
   build-windows:
@@ -141,6 +141,7 @@ jobs:
       - name: Build Boost ${{ env.BOOST_VERSION }}
         if: steps.cache-boost-win.outputs.cache-hit != 'true'
         shell: cmd
+        # runtime-link=static is CRITICAL here (produces mt-s libraries)
         run: |
           curl -L -o boost.tar.gz ${{ env.BOOST_URL }}
           tar xzf boost.tar.gz
@@ -152,10 +153,12 @@ jobs:
         shell: bash
         run: |
           mkdir -p build build_logs
+          # ADDED: -DBoost_USE_STATIC_RUNTIME=ON to fix the "variant rejected" error
           if ! cmake -S . -B build \
             -DCMAKE_TOOLCHAIN_FILE="$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" \
             -DVCPKG_TARGET_TRIPLET=x64-windows-static \
             -DCMAKE_PREFIX_PATH="${{ github.workspace }}/boost-install" \
+            -DBoost_USE_STATIC_RUNTIME=ON \
             -DENABLE_OPENMP=ON \
             -DENABLE_ZLIB=OFF \
             -DCMAKE_BUILD_TYPE=Release > build_logs/configure.log 2>&1; then
@@ -167,7 +170,7 @@ jobs:
       - name: Build
         shell: bash
         run: |
-          cmake --build build --config Release --verbose >> build_logs/build.log 2>&1
+          cmake --build build --config Release --verbose 2>&1 | tee build_logs/build.log
 
       - name: Upload Artifacts (Windows)
         uses: actions/upload-artifact@v4
