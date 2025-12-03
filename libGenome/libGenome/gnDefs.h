@@ -23,11 +23,15 @@
 #include <float.h>
 #include "libGenome/gnSetup.h"
 
-// --- ADDED STANDARD LIBRARIES TO REPLACE CUSTOM ABS() ---
-#include <cmath>
-#include <cstdlib>
-#include <algorithm>
-// ------------------------------------------------------
+#ifdef __cplusplus
+    #include <cmath>
+    #include <cstdlib>
+    #include <algorithm>
+#else
+    // For C compilers, use standard C math headers
+    #include <math.h>
+    #include <stdlib.h>
+#endif
 
 // bool	
 typedef unsigned char        boolean;
