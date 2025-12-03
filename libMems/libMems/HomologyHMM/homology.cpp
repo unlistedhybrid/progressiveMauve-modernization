@@ -20,6 +20,11 @@ along with HMMoC; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+#ifdef _MSC_VER
+    // MSVC doesn't support __attribute__((unused)).
+    // We define it as an empty macro to make the compiler ignore it.
+    #define __attribute__(x)
+#endif
 
 #include "homology.h"
 
