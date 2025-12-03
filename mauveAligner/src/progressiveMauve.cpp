@@ -678,9 +678,9 @@ int doAlignment( int argc, char* argv[] ){
 		mi.SetExtraMuscleArguments(opt_muscle_args.arg_value);
 	}
 	if( opt_recursive.set )
-		aligner.SetRecursive(true);
-	else
 		aligner.SetRecursive(false);
+	else
+		aligner.SetRecursive(true);
 
 	PairwiseScoringScheme pss;
 	if( opt_gap_open.set )
