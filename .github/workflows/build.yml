@@ -38,21 +38,12 @@ jobs:
           wget ${{ env.BOOST_URL }}
           tar xzf ${{ env.BOOST_DIR }}.tar.gz
           cd ${{ env.BOOST_DIR }}
-
           ./bootstrap.sh --prefix=${{ github.workspace }}/boost-install --with-libraries=filesystem,iostreams,program_options,regex
-
-          ./b2 install \
-            --prefix=${{ github.workspace }}/boost-install \
-            --with-filesystem \
-            --with-iostreams \
-            --with-program_options \
-            --with-regex \
-            link=static threading=multi variant=release \
-            -j$(nproc)
+          ./b2 install --prefix=${{ github.workspace }}/boost-install link=static threading=multi variant=release -j$(nproc)
 
       - name: Configure CMake
         env:
-          CXXFLAGS: "-O3 -fno-fast-math -fno-strict-aliasing -DCOMMAND_LINE"
+          CXXFLAGS: "-O3 -fno-fast-math -fno-strict-aliasing -DCOMMAND_LINE -fopenmp"
         run: |
           mkdir -p build build_logs
           cmake -S . -B build \
@@ -73,7 +64,6 @@ jobs:
           path: |
             build/progressiveMauve
             build_logs/
-
 
   # ==============================================================================
   # 2. MACOS BUILD (ARM64)
@@ -101,27 +91,16 @@ jobs:
           curl -L -o boost.tar.gz ${{ env.BOOST_URL }}
           tar xzf boost.tar.gz
           cd ${{ env.BOOST_DIR }}
-
           ./bootstrap.sh --prefix=${{ github.workspace }}/boost-install --with-libraries=filesystem,iostreams,program_options,regex
-
-          ./b2 install \
-            --prefix=${{ github.workspace }}/boost-install \
-            --with-filesystem \
-            --with-iostreams \
-            --with-program_options \
-            --with-regex \
-            link=static threading=multi variant=release \
-            address-model=64 architecture=arm \
-            -j$(sysctl -n hw.ncpu)
+          ./b2 install --prefix=${{ github.workspace }}/boost-install link=static threading=multi variant=release address-model=64 architecture=arm -j$(sysctl -n hw.ncpu)
 
       - name: Configure CMake
         env:
-          # Cleaned up flags. CMake now handles -Xpreprocessor via add_compile_options
+          # Note: We rely on CMakeLists.txt to handle -Xpreprocessor via OpenMP package now
           CXXFLAGS: "-O3 -fno-fast-math -fno-strict-aliasing -DCOMMAND_LINE -I/opt/homebrew/opt/libomp/include"
           LDFLAGS: "-L/opt/homebrew/opt/libomp/lib -lomp"
         run: |
           mkdir -p build build_logs
-
           cmake -S . -B build \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_PREFIX_PATH="${{ github.workspace }}/boost-install;/opt/homebrew/opt/icu4c" \
@@ -139,7 +118,6 @@ jobs:
           path: |
             build/progressiveMauve
             build_logs/
-
 
   # ==============================================================================
   # 3. WINDOWS BUILD (MSVC)
@@ -167,29 +145,25 @@ jobs:
           curl -L -o boost.tar.gz ${{ env.BOOST_URL }}
           tar xzf boost.tar.gz
           cd ${{ env.BOOST_DIR }}
-
           call bootstrap.bat
-
-          b2 install ^
-            --prefix=%GITHUB_WORKSPACE%\boost-install ^
-            --with-filesystem ^
-            --with-iostreams ^
-            --with-program_options ^
-            --with-regex ^
-            toolset=msvc address-model=64 link=static threading=multi runtime-link=static variant=release
+          b2 install --prefix=%GITHUB_WORKSPACE%\boost-install --with-filesystem --with-iostreams --with-program_options --with-regex toolset=msvc address-model=64 link=static threading=multi runtime-link=static variant=release
 
       - name: Configure CMake
         shell: bash
         run: |
           mkdir -p build build_logs
-
-          cmake -S . -B build \
+          # IMPORTANT: We check for failure and print the log if it fails
+          if ! cmake -S . -B build \
             -DCMAKE_TOOLCHAIN_FILE="$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" \
             -DVCPKG_TARGET_TRIPLET=x64-windows-static \
             -DCMAKE_PREFIX_PATH="${{ github.workspace }}/boost-install" \
             -DENABLE_OPENMP=ON \
             -DENABLE_ZLIB=OFF \
-            -DCMAKE_BUILD_TYPE=Release > build_logs/configure.log 2>&1
+            -DCMAKE_BUILD_TYPE=Release > build_logs/configure.log 2>&1; then
+              echo "CMake Configuration Failed. Here is the log:"
+              cat build_logs/configure.log
+              exit 1
+          fi
 
       - name: Build
         shell: bash

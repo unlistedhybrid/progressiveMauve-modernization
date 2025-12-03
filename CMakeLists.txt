@@ -72,12 +72,11 @@ endif()
 # 5. SUBDIRECTORIES
 # ============================================================
 
+# We add subdirectories. They now handle their own OpenMP flags.
 add_subdirectory(libGenome)
-# Just link Boost (OpenMP is now handled INSIDE libGenome)
 target_link_libraries(libGenome PUBLIC BoostInterface)
 
 add_subdirectory(libMems)
-# Just link Boost (OpenMP is now handled INSIDE libMems)
 target_link_libraries(libMems PUBLIC BoostInterface)
 
 add_subdirectory(muscle)
@@ -109,12 +108,14 @@ target_include_directories(progressiveMauve PRIVATE
 # OpenMP for the main executable
 if(ENABLE_OPENMP)
     find_package(OpenMP REQUIRED)
-    # Using 'PUBLIC' here...
     target_link_libraries(progressiveMauve PUBLIC OpenMP::OpenMP_CXX)
+    if(OpenMP_CXX_FOUND)
+        target_compile_options(progressiveMauve PRIVATE ${OpenMP_CXX_FLAGS})
+    endif()
 endif()
 
 target_link_libraries(progressiveMauve
-    PUBLIC  # <--- FIXED: Added PUBLIC here to match the OpenMP block above
+    PUBLIC
     libGenome
     libMems
     libMUSCLE

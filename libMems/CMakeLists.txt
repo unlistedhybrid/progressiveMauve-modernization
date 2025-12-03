@@ -2,7 +2,6 @@
 # libMems/CMakeLists.txt
 # ============================================================
 
-# 1. Find OpenMP to fix the "AddHashEntry" argument mismatch
 find_package(OpenMP REQUIRED)
 
 file(GLOB LIBMEMS_SRC
@@ -20,9 +19,15 @@ target_include_directories(libMems PUBLIC
     "${PROJECT_SOURCE_DIR}/muscle"
 )
 
+# 1. Link the library
 target_link_libraries(libMems PUBLIC
     libGenome
     libMUSCLE
     BoostInterface
     OpenMP::OpenMP_CXX
 )
+
+# 2. FORCE the Compile Options (Crucial for ParallelMemHash.cpp)
+if(OpenMP_CXX_FOUND)
+    target_compile_options(libMems PRIVATE ${OpenMP_CXX_FLAGS})
+endif()

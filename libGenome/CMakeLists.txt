@@ -2,7 +2,6 @@
 # libGenome/CMakeLists.txt
 # ============================================================
 
-# 1. Find OpenMP to ensure flags (-fopenmp) are applied
 find_package(OpenMP REQUIRED)
 
 file(GLOB LIBGENOME_SRC
@@ -15,7 +14,13 @@ target_include_directories(libGenome PUBLIC
     "${CMAKE_CURRENT_SOURCE_DIR}/"
 )
 
+# 1. Link the library (Handles linking)
 target_link_libraries(libGenome PUBLIC
     BoostInterface
     OpenMP::OpenMP_CXX
 )
+
+# 2. FORCE the Compile Options (Handles the -fopenmp flag)
+if(OpenMP_CXX_FOUND)
+    target_compile_options(libGenome PRIVATE ${OpenMP_CXX_FLAGS})
+endif()
