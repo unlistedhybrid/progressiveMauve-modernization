@@ -4,17 +4,20 @@ cmake_policy(SET CMP0167 NEW)
 project(ProgressiveMauveModern LANGUAGES C CXX)
 
 # ============================================================
-# 1. GLOBAL BUILD SETTINGS
+# 1. GLOBAL SETTINGS
 # ============================================================
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-
 set(Boost_USE_STATIC_LIBS ON)
 
+option(ENABLE_SANITIZERS "Enable ASAN + UBSAN" OFF)
+option(ENABLE_OPENMP "Enable OpenMP" ON)
+option(ENABLE_ZLIB "Enable ZLIB compression" OFF) 
+
 # ============================================================
-# COMPILER FLAGS
+# 2. COMPILER FLAGS
 # ============================================================
 
 if(MSVC)
@@ -28,22 +31,16 @@ else()
     endif()
 endif()
 
-option(ENABLE_SANITIZERS "Enable ASAN + UBSAN" OFF)
-option(ENABLE_OPENMP "Enable OpenMP" ON)
-option(ENABLE_ZLIB "Enable ZLIB compression" OFF) 
-
 if(ENABLE_SANITIZERS AND NOT MSVC)
     add_compile_options(-fsanitize=address,undefined)
     add_link_options(-fsanitize=address,undefined)
 endif()
 
 # ============================================================
-# 2. DEPENDENCIES
+# 3. DEPENDENCIES
 # ============================================================
 
 set(Boost_NO_SYSTEM_PATHS OFF)
-
-# Removed 'system' component
 find_package(Boost 1.89 REQUIRED COMPONENTS filesystem iostreams program_options regex)
 
 if(ENABLE_ZLIB)
@@ -55,7 +52,7 @@ endif()
 find_package(ICU REQUIRED COMPONENTS uc data i18n)
 
 # ============================================================
-# 3. BOOST INTERFACE (Holds Flags & Includes)
+# 4. BOOST INTERFACE
 # ============================================================
 
 add_library(BoostInterface INTERFACE)
@@ -71,27 +68,22 @@ if(ENABLE_ZLIB)
     target_link_libraries(BoostInterface INTERFACE ZLIB::ZLIB BZip2::BZip2)
 endif()
 
-if(ENABLE_OPENMP)
-    find_package(OpenMP REQUIRED)
-    target_link_libraries(BoostInterface INTERFACE OpenMP::OpenMP_CXX)
-endif()
-
 # ============================================================
-# 4. SUBDIRECTORIES (FIXED LINKING)
+# 5. SUBDIRECTORIES
 # ============================================================
 
 add_subdirectory(libGenome)
-# CRITICAL FIX: Propagate OpenMP/Boost flags to libGenome
+# Just link Boost (OpenMP is now handled INSIDE libGenome)
 target_link_libraries(libGenome PUBLIC BoostInterface)
 
 add_subdirectory(libMems)
-# CRITICAL FIX: Propagate OpenMP/Boost flags to libMems
+# Just link Boost (OpenMP is now handled INSIDE libMems)
 target_link_libraries(libMems PUBLIC BoostInterface)
 
 add_subdirectory(muscle)
 
 # ============================================================
-# 5. EXECUTABLE
+# 6. EXECUTABLE
 # ============================================================
 
 set(PM_SRC
@@ -113,6 +105,12 @@ target_include_directories(progressiveMauve PRIVATE
     ${PROJECT_SOURCE_DIR}/muscle
     ${PROJECT_SOURCE_DIR}/mauveAligner/src
 )
+
+# OpenMP for the main executable
+if(ENABLE_OPENMP)
+    find_package(OpenMP REQUIRED)
+    target_link_libraries(progressiveMauve PUBLIC OpenMP::OpenMP_CXX)
+endif()
 
 target_link_libraries(progressiveMauve
     libGenome

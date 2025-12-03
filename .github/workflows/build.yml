@@ -30,7 +30,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ github.workspace }}/boost-install
-          key: ${{ runner.os }}-boost-${{ env.BOOST_VERSION }}-v10
+          key: ${{ runner.os }}-boost-${{ env.BOOST_VERSION }}-v11
 
       - name: Build Boost ${{ env.BOOST_VERSION }}
         if: steps.cache-boost-linux.outputs.cache-hit != 'true'
@@ -52,7 +52,7 @@ jobs:
 
       - name: Configure CMake
         env:
-          CXXFLAGS: "-O3 -fno-fast-math -fno-strict-aliasing -DCOMMAND_LINE -fopenmp"
+          CXXFLAGS: "-O3 -fno-fast-math -fno-strict-aliasing -DCOMMAND_LINE"
         run: |
           mkdir -p build build_logs
           cmake -S . -B build \
@@ -93,7 +93,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ github.workspace }}/boost-install
-          key: ${{ runner.os }}-boost-${{ env.BOOST_VERSION }}-arm64-v10
+          key: ${{ runner.os }}-boost-${{ env.BOOST_VERSION }}-arm64-v11
 
       - name: Build Boost ${{ env.BOOST_VERSION }}
         if: steps.cache-boost-mac.outputs.cache-hit != 'true'
@@ -116,9 +116,8 @@ jobs:
 
       - name: Configure CMake
         env:
-          # REMOVED -D_OPENMP to fix warning.
-          # KEPT -Xpreprocessor -fopenmp because Apple Clang needs it.
-          CXXFLAGS: "-O3 -fno-fast-math -fno-strict-aliasing -DCOMMAND_LINE -Xpreprocessor -fopenmp -I/opt/homebrew/opt/libomp/include"
+          # Cleaned up flags. CMake now handles -Xpreprocessor via add_compile_options
+          CXXFLAGS: "-O3 -fno-fast-math -fno-strict-aliasing -DCOMMAND_LINE -I/opt/homebrew/opt/libomp/include"
           LDFLAGS: "-L/opt/homebrew/opt/libomp/lib -lomp"
         run: |
           mkdir -p build build_logs
@@ -159,7 +158,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ github.workspace }}/boost-install
-          key: ${{ runner.os }}-boost-${{ env.BOOST_VERSION }}-msvc-v10
+          key: ${{ runner.os }}-boost-${{ env.BOOST_VERSION }}-msvc-v11
 
       - name: Build Boost ${{ env.BOOST_VERSION }}
         if: steps.cache-boost-win.outputs.cache-hit != 'true'
