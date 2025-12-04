@@ -825,7 +825,7 @@ int InitdmSML( long working_mb, long buffer_size, const char* input_filename, co
 		if ( fgets(buf, sizeof(buf), fp) )
 		{
 			sscanf(buf, "MemTotal: %ld kB", &memTotal);
-			fprintf( stderr, buf );
+			fprintf( stderr, "%s", buf );
 		}
 		fclose(fp);
 		// allocate about 6/10 of physical memory

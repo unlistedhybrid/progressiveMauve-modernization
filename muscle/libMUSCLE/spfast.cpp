@@ -13,18 +13,18 @@ enum
 	GG = 3,
 	};
 
-static char *GapTypeToStr(int GapType)
-	{
+static const char *GapTypeToStr(int GapType)
+{
 	switch (GapType)
-		{
+	{
 	case LL: return "LL";
 	case LG: return "LG";
 	case GL: return "GL";
 	case GG: return "GG";
-		}
+	}
 	Quit("Invalid gap type");
 	return "?";
-	}
+}
 
 static TLS<SCORE[4][4]> GapScoreMatrix;
 

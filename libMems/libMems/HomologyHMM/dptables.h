@@ -29,38 +29,14 @@
 #ifndef __dptable_h_
 #define __dptable_h_
 
-
 #include <map>
 #include <cassert>
 
-
-#ifdef __GNUC__
- #define HAVE_HASH_MAP
- #if __GNUC__ < 3
-  #include <hash_map.h>
-  namespace Sgi { using ::hash_map; }; // inherit globals
- #else
-  #include <ext/hash_map>
-  #if __GNUC_MINOR__ + __GNUC__ == 3
-   namespace Sgi = std;               // GCC 3.0
-  #else
-   namespace Sgi = ::__gnu_cxx;       // GCC 3.1 and later
-  #endif
- #endif
-#else      // ...there are other compilers, right?
-#ifdef _MSC_VER
-// visual studio 2005 has no hash map.  older versions did.
-#else
-// default for all other compilers
-#define HAVE_HASH_MAP
-namespace Sgi = std;
-#endif
-#endif
-
+template<typename Key, typename Value, typename... Args>
+using hash_map = std::map<Key, Value>;
 
 using std::map;
-#ifdef HAVE_HASH_MAP
-using Sgi::hash_map;
+
 #endif
 
 // Define aliases for two maps: red-black trees, and hashes

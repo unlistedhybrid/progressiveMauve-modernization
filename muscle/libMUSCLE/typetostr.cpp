@@ -12,7 +12,7 @@ const char *SecsToStr(unsigned long Secs)
 	mm = (Secs/60)%60;
 	ss = Secs%60;
 
-	sprintf(Str.get(), "%02d:%02d:%02d", hh, mm, ss);
+	sprintf(Str.get(), "%02ld:%02ld:%02ld", hh, mm, ss);
 	return Str.get();
 	}
 

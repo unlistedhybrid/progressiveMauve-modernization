@@ -26,9 +26,6 @@
 #if defined(WIN64)&&defined(FASTDEBUG)&&defined(_OPENMP)
 #pragma comment(lib, "MUSCLE64fdomp.lib")
 #endif
-#if defined(WIN32)&&!defined(WIN64)&&defined(NDEBUG)&&!defined(FASTDEBUG)&&defined(_OPENMP)
-#pragma comment(lib, "MUSCLEomp.lib")
-#endif
 #if defined(WIN32)&&!defined(WIN64)&&defined(FASTDEBUG)&&defined(_OPENMP)
 #pragma comment(lib, "MUSCLEfdomp.lib")
 #endif
