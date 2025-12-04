@@ -234,7 +234,7 @@ void GappedMatchRecord::finalize( std::vector<genome::gnSequence *> seq_table)
 		mse_list[cI].first = chained_matches[cI];
 		mse_list[cI].second = &chained_component_maps[cI];
 	}
-	std::sort( mse_list.begin(), mse_list.end(), msec );
+	std::stable_sort( mse_list.begin(), mse_list.end(), msec );
 	// add lowest multiplicity matches first, progressively add higher mult. matches
 	std::vector< mems::AbstractMatch* > chain;
 	for( size_t cI = 0; cI < mse_list.size(); ++cI )
@@ -290,7 +290,7 @@ void GappedMatchRecord::finalize( std::vector<genome::gnSequence *> seq_table)
 		return;
 	}
 	mems::MatchStartComparator< mems::AbstractMatch > asc(0);
-	std::sort( chain.begin(), chain.end(), asc );
+	std::stable_sort( chain.begin(), chain.end(), asc );
 	// aed: At this point the matches in chain are in sorted order, so the region betweeen each of them is what should get fed to muscle
 	//      will need to feed AbstractMatch instead of Match to MuscleInterface::Align though
 	std::vector< mems::AbstractMatch* >::iterator chain_begin = chain.begin();

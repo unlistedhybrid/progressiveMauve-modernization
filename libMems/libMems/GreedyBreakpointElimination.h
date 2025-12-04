@@ -166,7 +166,7 @@ void IdentifyBreakpoints( MatchVector& mlist, std::vector<gnSeqI>& breakpoints )
 	breakpoints = std::vector<gnSeqI>(1, mlist.size()-1);
 
 	mems::SSC<mems::AbstractMatch> ssc(0);
-	std::sort( mlist.begin(), mlist.end(), ssc );
+	std::stable_sort( mlist.begin(), mlist.end(), ssc );
 	typedef typename MatchVector::value_type value_type;
 	typedef std::pair< value_type, size_t > LabelPairType;
 	std::vector< LabelPairType > label_list;
@@ -184,7 +184,7 @@ void IdentifyBreakpoints( MatchVector& mlist, std::vector<gnSeqI>& breakpoints )
 	for( uint seqI = 1; seqI < seq_count; seqI++ )
 	{
 		LabelSort< LabelPairType > ls(seqI); 
-		std::sort( label_list.begin(), label_list.end(), ls );
+		std::stable_sort( label_list.begin(), label_list.end(), ls );
 
 		typename std::vector< LabelPairType >::const_iterator prev = label_list.begin();
 		typename std::vector< std::pair< typename MatchVector::value_type, size_t > >::const_iterator iter = label_list.begin();
@@ -220,7 +220,7 @@ void IdentifyBreakpoints( MatchVector& mlist, std::vector<gnSeqI>& breakpoints )
 		if( prev_orient )
 			breakpoints.push_back( prev->second );
 	}
-	std::sort( breakpoints.begin(), breakpoints.end() );
+	std::stable_sort( breakpoints.begin(), breakpoints.end() );
 	std::vector<gnSeqI>::iterator uni = std::unique( breakpoints.begin(), breakpoints.end() );
 	breakpoints.erase( uni, breakpoints.end() );
 }
@@ -289,7 +289,7 @@ void computeLCBAdjacencies_v3( const std::vector< MatchVector >& lcb_list, std::
 
 	for( seqI = 0; seqI < seq_count; seqI++ ){
 		mems::LCBLeftComparator llc( seqI );
-		std::sort( adjacencies.begin(), adjacencies.end(), llc );
+		std::stable_sort( adjacencies.begin(), adjacencies.end(), llc );
 		for( lcbI = 1; lcbI + 1 < lcb_list.size(); lcbI++ ){
 			adjacencies[ lcbI ].left_adjacency[ seqI ] = adjacencies[ lcbI - 1 ].lcb_id;
 			adjacencies[ lcbI ].right_adjacency[ seqI ] = adjacencies[ lcbI + 1 ].lcb_id;
@@ -306,7 +306,7 @@ void computeLCBAdjacencies_v3( const std::vector< MatchVector >& lcb_list, std::
 		}
 	}
 	mems::LCBIDComparator lic;
-	std::sort( adjacencies.begin(), adjacencies.end(), lic );
+	std::stable_sort( adjacencies.begin(), adjacencies.end(), lic );
 
 }
 
@@ -385,7 +385,7 @@ void filterMatches_v2( std::vector< mems::LCB >& adjacencies, std::vector< Match
 	// sort the matches inside consolidated LCBs
 	mems::MatchStartComparator<mems::AbstractMatch> msc( 0 );
 	for( lcbI = 0; lcbI < lcb_list.size(); lcbI++ ){
-		std::sort( lcb_list[ lcbI ].begin(), lcb_list[ lcbI ].end(), msc );
+		std::stable_sort( lcb_list[ lcbI ].begin(), lcb_list[ lcbI ].end(), msc );
 	}
 
 	// calculate the LCB adjacencies

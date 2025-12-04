@@ -66,7 +66,7 @@ void EliminateOverlaps( MatchList& ml ){
 	uint seq_count = ml[0]->SeqCount();
 	for( uint seqI = 0; seqI < seq_count; seqI++ ){
 		SingleStartComparator<AbstractMatch> msc( seqI );
-		sort( ml.begin(), ml.end(), msc );
+		std::stable_sort( ml.begin(), ml.end(), msc );
 		int64 matchI = 0;
 		int64 nextI = 0;
 		int64 deleted_count = 0;
@@ -371,7 +371,7 @@ void AaronsLCB( MatchList& mlist, set<uint>& breakpoints ){
 	uint seq_count = mlist[0]->SeqCount();
 
 	SingleStartComparator<AbstractMatch> msc( 0 );
-	sort( mlist.begin(), mlist.end(), msc );
+	std::stable_sort( mlist.begin(), mlist.end(), msc );
 	vector<Match*>::iterator mem_iter = mlist.begin();
 	list<LabeledMem> pair_list;
 	
@@ -486,7 +486,7 @@ void AaronsLCB( MatchList& mlist, set<uint>& breakpoints ){
 	for( uint seqI = 1; seqI < seq_count; seqI++ ){
 		// sort the list on the current genome
 		LabeledMemComparator lmc( seqI );
-		sort( pair_vec.begin(), pair_vec.end(), lmc );
+		std::stable_sort( pair_vec.begin(), pair_vec.end(), lmc );
 		set< uint > no_match_labels;
 
 		// debugging code
@@ -680,7 +680,7 @@ void computeLCBAdjacencies_v2( IntervalList& iv_list, vector< int64 >& weights, 
 
 	for( seqI = 0; seqI < seq_count; seqI++ ){
 		LCBLeftComparator llc( seqI );
-		sort( adjacencies.begin(), adjacencies.end(), llc );
+		std::stable_sort( adjacencies.begin(), adjacencies.end(), llc );
 		for( lcbI = 1; lcbI + 1 < iv_list.size(); lcbI++ ){
 			adjacencies[ lcbI ].left_adjacency[ seqI ] = adjacencies[ lcbI - 1 ].lcb_id;
 			adjacencies[ lcbI ].right_adjacency[ seqI ] = adjacencies[ lcbI + 1 ].lcb_id;
@@ -697,7 +697,7 @@ void computeLCBAdjacencies_v2( IntervalList& iv_list, vector< int64 >& weights, 
 		}
 	}
 	LCBIDComparator lic;
-	sort( adjacencies.begin(), adjacencies.end(), lic );
+	std::stable_sort( adjacencies.begin(), adjacencies.end(), lic );
 	
 }
 
@@ -977,7 +977,7 @@ void transposeMatches( MatchList& mlist, uint seqI, const vector< int64 >& seq_r
 
 	uint matchI = 0;
 	MatchLeftEndComparator msc( seqI );
-	sort( mlist.begin(), mlist.end(), msc );
+	std::stable_sort( mlist.begin(), mlist.end(), msc );
 	uint regionI = 0;
 	gnSeqI region_sum = seq_regions[ 1 ] - seq_regions[ 0 ];
 	gnSeqI region_start_sum = 0;
@@ -1871,7 +1871,7 @@ void filterMatches( vector< LCB >& adjacencies, vector< MatchList >& lcb_list, v
 	// sort the matches inside consolidated LCBs
 	MatchStartComparator<AbstractMatch> msc( 0 );
 	for( lcbI = 0; lcbI < lcb_list.size(); lcbI++ ){
-		sort( lcb_list[ lcbI ].begin(), lcb_list[ lcbI ].end(), msc );
+		std::stable_sort( lcb_list[ lcbI ].begin(), lcb_list[ lcbI ].end(), msc );
 	}
 
 	// sort the LCBs themselves

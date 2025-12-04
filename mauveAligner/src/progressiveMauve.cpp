@@ -538,7 +538,7 @@ int doAlignment( int argc, char* argv[] ){
 		length_ranks[0] = make_pair( getSeedLength( getSeed(mer_size, 0) ), 0 );
 		length_ranks[1] = make_pair( getSeedLength( getSeed(mer_size, 1) ), 1 );
 		length_ranks[2] = make_pair( getSeedLength( getSeed(mer_size, 2) ), 2 );
-		std::sort( length_ranks.begin(), length_ranks.end() );
+		std::stable_sort( length_ranks.begin(), length_ranks.end() );
 
 		UniqueMatchFinder umf;
 		for( int seedI = 2; seedI >= 0; seedI-- )

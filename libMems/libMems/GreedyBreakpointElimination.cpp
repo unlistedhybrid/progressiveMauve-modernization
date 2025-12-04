@@ -107,7 +107,7 @@ void getPairwiseLCBs(
 		for( size_t mI = 0; mI < LCB_list[lcbI].size(); ++mI )
 			t_lcbs[lcbI].matches[mI] = ((PairwiseMatchAdapter*)LCB_list[lcbI][mI])->tm;
 		// sort them by ptr
-		sort( t_lcbs[lcbI].matches.begin(), t_lcbs[lcbI].matches.end() );
+		std::stable_sort( t_lcbs[lcbI].matches.begin(), t_lcbs[lcbI].matches.end() );
 
 		// set the match LCB ids appropriately
 		for( size_t mI = 0; mI < t_lcbs[lcbI].matches.size(); ++mI )
@@ -260,7 +260,7 @@ uint RemoveLCBandCoalesce( size_t lcbI, uint seq_count, LcbVector& adjacencies, 
 		removed_count++;
 	}
 	// uniquify the impact list and get rid of empty entries
-	std::sort( impact_list.begin(), impact_list.end() );
+	std::stable_sort( impact_list.begin(), impact_list.end() );
 	vector< uint >::iterator imp_end = std::unique( impact_list.begin(), impact_list.end() );
 	vector< uint >::iterator imp_preend = std::lower_bound( impact_list.begin(), imp_end, LCB_UNASSIGNED );
 	impact_list.erase( imp_preend, impact_list.end() );
@@ -354,7 +354,7 @@ EvenFasterSumOfPairsBreakpointScorer::EvenFasterSumOfPairsBreakpointScorer(
   seqJ_last(seqJ_end),
   first_time(true)
 {
-	std::sort(tracking_matches.begin(), tracking_matches.end());
+	std::stable_sort(tracking_matches.begin(), tracking_matches.end());
 	pairwise_lcb_count.resize( boost::extents[pairwise_adjacencies.shape()[0]][pairwise_adjacencies.shape()[1]] );
 	pairwise_lcb_score.resize( boost::extents[pairwise_adjacencies.shape()[0]][pairwise_adjacencies.shape()[1]] );;
 	all_id_remaps.resize( boost::extents[pairwise_lcb_count.shape()[0]][pairwise_lcb_count.shape()[1]] );
@@ -590,7 +590,7 @@ bool EvenFasterSumOfPairsBreakpointScorer::remove( pair< double, size_t >& the_m
 			for( size_t mI = 0; mI < matches.size(); ++mI )
 				lcb_ids[mI] = tm_lcb_id_array[matches[mI]->match_id][i][j];
 			size_t lcb_id_count = matches.size();
-			std::sort(lcb_ids.begin(), lcb_ids.begin()+lcb_id_count);
+			std::stable_sort(lcb_ids.begin(), lcb_ids.begin()+lcb_id_count);
 			vector< size_t >::iterator last = std::unique(lcb_ids.begin(), lcb_ids.begin()+lcb_id_count);
 			lcb_id_count = last - lcb_ids.begin();
 			// delete the last one if its unassigned
@@ -681,7 +681,7 @@ bool EvenFasterSumOfPairsBreakpointScorer::remove( pair< double, size_t >& the_m
 						for( size_t mI = 0; mI < src_matches.size(); ++mI )
 							tm_lcb_id_array[src_matches[mI]->match_id][i][j] = id_remaps[rI].second;
 						dest_matches.insert( dest_matches.end(), src_matches.begin(), src_matches.end() );
-						std::sort( dest_matches.begin(), dest_matches.end() );
+						std::stable_sort( dest_matches.begin(), dest_matches.end() );
 						src_matches.clear();
 					}
 				}
@@ -702,7 +702,7 @@ bool EvenFasterSumOfPairsBreakpointScorer::remove( pair< double, size_t >& the_m
 			{
 				vector< TrackingLCB< TrackingMatch* > >& adjs = pairwise_adjacencies[i][j];
 				std::vector< uint >& fimp_list = full_impact_list[i][j];
-				sort( fimp_list.begin(), fimp_list.end() );
+				std::stable_sort( fimp_list.begin(), fimp_list.end() );
 				vector< uint >::iterator iter = std::unique( fimp_list.begin(), fimp_list.end() );
 				fimp_list.erase( iter, fimp_list.end() );
 				for( size_t fI = 0; fI < fimp_list.size(); fI++ )
@@ -744,7 +744,7 @@ bool EvenFasterSumOfPairsBreakpointScorer::remove( pair< double, size_t >& the_m
 
 vector< TrackingMatch* > EvenFasterSumOfPairsBreakpointScorer::getResults() 
 {
-	std::sort(deleted_tracking_matches.begin(), deleted_tracking_matches.end());
+	std::stable_sort(deleted_tracking_matches.begin(), deleted_tracking_matches.end());
 	vector< TrackingMatch* > result_matches(tracking_matches.size()-deleted_tracking_matches.size());
 	std::set_difference( tracking_matches.begin(), tracking_matches.end(), deleted_tracking_matches.begin(), deleted_tracking_matches.end(), result_matches.begin() );
 	return result_matches;
@@ -826,11 +826,11 @@ vector< TrackingMatch* > EvenFasterSumOfPairsBreakpointScorer::getResults()
 
 		// compare matches...
 		vector< AbstractMatch* > ms(adjs[adjI].matches.size()+LCB_list[lcbI].size(), (AbstractMatch*)NULL);
-		std::sort( LCB_list[lcbI].begin(), LCB_list[lcbI].end() );
+		std::stable_sort( LCB_list[lcbI].begin(), LCB_list[lcbI].end() );
 		vector< AbstractMatch* > asdf(adjs[adjI].matches.size());
 		for( size_t mI = 0; mI < adjs[adjI].matches.size(); ++mI )
 			asdf[mI] = adjs[adjI].matches[mI]->original_match;
-		std::sort( asdf.begin(), asdf.end() );
+		std::stable_sort( asdf.begin(), asdf.end() );
 		std::set_symmetric_difference( LCB_list[lcbI].begin(), LCB_list[lcbI].end(), asdf.begin(), asdf.end(), ms.begin() );
 		// this should throw a fit if the sets aren't equal.
 		if( ms[0] != NULL )
@@ -849,7 +849,7 @@ vector< TrackingMatch* > EvenFasterSumOfPairsBreakpointScorer::getResults()
 			}
 			cerr << "\nAll matches ssc1\n";
 			SingleStartComparator<AbstractMatch> ssc1(1);
-			std::sort(new_matches.begin(), new_matches.end(), ssc1);
+			std::stable_sort(new_matches.begin(), new_matches.end(), ssc1);
 			for( size_t mI = 0; mI < new_matches.size(); mI++ )
 			{
 				printMatch(new_matches[mI], cerr);
@@ -858,7 +858,7 @@ vector< TrackingMatch* > EvenFasterSumOfPairsBreakpointScorer::getResults()
 
 			cerr << "\nAll matches ssc0\n";
 			SingleStartComparator<AbstractMatch> ssc0(0);
-			std::sort(new_matches.begin(), new_matches.end(), ssc0);
+			std::stable_sort(new_matches.begin(), new_matches.end(), ssc0);
 			for( size_t mI = 0; mI < new_matches.size(); mI++ )
 			{
 				printMatch(new_matches[mI], cerr);

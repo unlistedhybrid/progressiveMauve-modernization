@@ -38,7 +38,7 @@ void getBpList( MatchVector& mvect, uint seq, vector< gnSeqI >& bp_list )
 		bp_list.push_back( mvect[ivI]->LeftEnd(seq) );
 		bp_list.push_back( mvect[ivI]->RightEnd(seq)+1 );
 	}
-	std::sort( bp_list.begin(), bp_list.end() );
+	stable_sort( bp_list.begin(), bp_list.end() );
 }
 
 template< typename MatchVector >
@@ -51,8 +51,8 @@ void createMap( const MatchVector& mv_from, const MatchVector& mv_to, vector< si
 		m1[i] = make_pair( mv_from[i], i );
 	for( size_t i = 0; i < mv_to.size(); ++i )
 		m2[i] = make_pair( mv_to[i], i );
-	std::sort( m1.begin(), m1.end() );
-	std::sort( m2.begin(), m2.end() );
+	stable_sort( m1.begin(), m1.end() );
+	stable_sort( m2.begin(), m2.end() );
 	map.resize( m1.size() );
 	for( size_t i = 0; i < m1.size(); ++i )
 		map[m1[i].second] = m2[i].second;
@@ -111,7 +111,7 @@ void collapseCollinear( IntervalList& iv_list )
 	for( size_t seqI = 0; seqI < seq_count; ++seqI )
 	{
 		IvTrackerComp ivc( seqI );
-		sort( iv_tracker.begin(), iv_tracker.end(), ivc );
+		stable_sort( iv_tracker.begin(), iv_tracker.end(), ivc );
 		size_t prev_i = NEIGHBOR_UNKNOWN;
 		size_t cur_i = NEIGHBOR_UNKNOWN;
 		for( size_t i = 0; i < iv_tracker.size(); ++i )
@@ -370,20 +370,20 @@ void makeAllPairwiseGenomeHSS( IntervalList& iv_list, vector< CompactGappedAlign
 			getBpList( iv_ptrs, seqI, bp_list );
 			GenericMatchSeqManipulator< CompactGappedAlignment<> > gmsm(0);
 			SingleStartComparator< CompactGappedAlignment<> > ssc(0);
-			std::sort(hss_list.begin(), hss_list.end(), ssc );
+			stable_sort(hss_list.begin(), hss_list.end(), ssc );
 			applyBreakpoints( bp_list, hss_list, gmsm );
 			// and again on seqJ
 			getBpList( iv_ptrs, seqJ, bp_list );
 			GenericMatchSeqManipulator< CompactGappedAlignment<> > gmsm1(1);
 			SingleStartComparator< CompactGappedAlignment<> > ssc1(1);
-			std::sort(hss_list.begin(), hss_list.end(), ssc1 );
+			stable_sort(hss_list.begin(), hss_list.end(), ssc1 );
 			applyBreakpoints( bp_list, hss_list, gmsm1 );
 
 			// now transform into interval-specific columns
-			std::sort(hss_list.begin(), hss_list.end(), ssc );
+			stable_sort(hss_list.begin(), hss_list.end(), ssc );
 
 			SingleStartComparator< CompactGappedAlignment<> > ivcomp(seqI);
-			std::sort( iv_ptrs.begin(), iv_ptrs.end(), ivcomp );
+			stable_sort( iv_ptrs.begin(), iv_ptrs.end(), ivcomp );
 			vector< size_t > iv_map;
 			createMap( iv_ptrs, iv_orig_ptrs, iv_map );
 			size_t ivI = 0;
@@ -495,8 +495,8 @@ void mergePairwiseHomologyPredictions( 	vector< CompactGappedAlignment<>* >& iv_
 				vector< gnSeqI > iv_bp_list;
 				vector< gnSeqI > cur_bp_list;
 				SingleStartComparator<ULA> ulacompI(seqI);
-				std::sort( iv_ulas.begin(), iv_ulas.end(), ulacompI );
-				std::sort( cur_ulas.begin(), cur_ulas.end(), ulacompI );
+				stable_sort( iv_ulas.begin(), iv_ulas.end(), ulacompI );
+				stable_sort( cur_ulas.begin(), cur_ulas.end(), ulacompI );
 				getBpList( iv_ulas, seqI, iv_bp_list );
 				getBpList( cur_ulas, seqI, cur_bp_list );
 				GenericMatchSeqManipulator< ULA > gmsm(seqI);
@@ -504,8 +504,8 @@ void mergePairwiseHomologyPredictions( 	vector< CompactGappedAlignment<>* >& iv_
 				applyBreakpoints( cur_bp_list, iv_ulas, gmsm );
 
 				SingleStartComparator<ULA> ulacompJ(seqJ);
-				std::sort( iv_ulas.begin(), iv_ulas.end(), ulacompJ );
-				std::sort( cur_ulas.begin(), cur_ulas.end(), ulacompJ );
+				stable_sort( iv_ulas.begin(), iv_ulas.end(), ulacompJ );
+				stable_sort( cur_ulas.begin(), cur_ulas.end(), ulacompJ );
 				getBpList( iv_ulas, seqJ, iv_bp_list );
 				getBpList( cur_ulas, seqJ, cur_bp_list );
 				GenericMatchSeqManipulator< ULA > gmsmJ(seqJ);
@@ -513,15 +513,15 @@ void mergePairwiseHomologyPredictions( 	vector< CompactGappedAlignment<>* >& iv_
 				applyBreakpoints( cur_bp_list, iv_ulas, gmsmJ );
 
 				// do seqI a second time to propagate any breakpoints introduced by seqJ
-				std::sort( iv_ulas.begin(), iv_ulas.end(), ulacompI );
-				std::sort( cur_ulas.begin(), cur_ulas.end(), ulacompI );
+				stable_sort( iv_ulas.begin(), iv_ulas.end(), ulacompI );
+				stable_sort( cur_ulas.begin(), cur_ulas.end(), ulacompI );
 				getBpList( iv_ulas, seqI, iv_bp_list );
 				getBpList( cur_ulas, seqI, cur_bp_list );
 				applyBreakpoints( iv_bp_list, cur_ulas, gmsm );
 				applyBreakpoints( cur_bp_list, iv_ulas, gmsm );
 
-				std::sort( iv_ulas.begin(), iv_ulas.end(), ulacompI );
-				std::sort( cur_ulas.begin(), cur_ulas.end(), ulacompI );
+				stable_sort( iv_ulas.begin(), iv_ulas.end(), ulacompI );
+				stable_sort( cur_ulas.begin(), cur_ulas.end(), ulacompI );
 				// now that cur_ulas and iv_ulas are all broken up according to each other's boundaries
 				// we can simply scan along and add
 				size_t iv_ulas_size = iv_ulas.size();
@@ -559,11 +559,11 @@ void mergePairwiseHomologyPredictions( 	vector< CompactGappedAlignment<>* >& iv_
 				}
 
 				// delete to_delete...
-				std::sort( to_delete.begin(), to_delete.end() );
+				stable_sort( to_delete.begin(), to_delete.end() );
 				vector< ULA* >::iterator last = std::unique( to_delete.begin(), to_delete.end() );
 				to_delete.erase( last, to_delete.end() );
 				vector< ULA* > new_iv_ulas( iv_ulas.size() - to_delete.size() );
-				std::sort( iv_ulas.begin(), iv_ulas.end() );
+				stable_sort( iv_ulas.begin(), iv_ulas.end() );
 				std::set_difference( iv_ulas.begin(), iv_ulas.end(), to_delete.begin(), to_delete.end(), new_iv_ulas.begin() );
 				swap( iv_ulas, new_iv_ulas );
 				for( size_t delI = 0; delI < to_delete.size(); ++delI )
@@ -571,8 +571,8 @@ void mergePairwiseHomologyPredictions( 	vector< CompactGappedAlignment<>* >& iv_
 
 				vector< ULA* > orig_ula_order = cur_ulas;
 				// now do something similar for seqJ
-				std::sort( iv_ulas.begin(), iv_ulas.end(), ulacompJ );
-				std::sort( cur_ulas.begin(), cur_ulas.end(), ulacompJ );
+				stable_sort( iv_ulas.begin(), iv_ulas.end(), ulacompJ );
+				stable_sort( cur_ulas.begin(), cur_ulas.end(), ulacompJ );
 
 				vector< size_t > added_map;
 				createMap( cur_ulas, orig_ula_order, added_map );
@@ -613,7 +613,7 @@ void mergePairwiseHomologyPredictions( 	vector< CompactGappedAlignment<>* >& iv_
 
 				// anything with a null added_to entry needs to be added to iv_ulas
 				// everything else needs to get freed
-				std::sort( cur_ulas.begin(), cur_ulas.end(), ulacompI );
+				stable_sort( cur_ulas.begin(), cur_ulas.end(), ulacompI );
 				for( curuI = 0; curuI < cur_ulas.size(); ++curuI )
 				{
 					if( added_to[curuI] == NULL )
@@ -622,11 +622,11 @@ void mergePairwiseHomologyPredictions( 	vector< CompactGappedAlignment<>* >& iv_
 						cur_ulas[curuI]->Free();
 				}
 				// delete to_delete...
-				std::sort( to_delete.begin(), to_delete.end() );
+				stable_sort( to_delete.begin(), to_delete.end() );
 				last = std::unique( to_delete.begin(), to_delete.end() );
 				to_delete.erase( last, to_delete.end() );
 				new_iv_ulas = vector< ULA* >( iv_ulas.size() - to_delete.size() );
-				std::sort( iv_ulas.begin(), iv_ulas.end() );
+				stable_sort( iv_ulas.begin(), iv_ulas.end() );
 				std::set_difference( iv_ulas.begin(), iv_ulas.end(), to_delete.begin(), to_delete.end(), new_iv_ulas.begin() );
 				swap( iv_ulas, new_iv_ulas );
 				for( size_t delI = 0; delI < to_delete.size(); ++delI )
@@ -746,7 +746,7 @@ void unalignIslands( IntervalList& iv_list, vector< CompactGappedAlignment<>* >&
 				for( size_t seqI = 0; seqI < seq_count; ++seqI )
 				{
 					SingleStartComparator<AbstractMatch> ssc(seqI);
-					std::sort( cur_d_matches.begin(), cur_d_matches.end(), ssc );
+					stable_sort( cur_d_matches.begin(), cur_d_matches.end(), ssc );
 					createMap( cur_d_matches, orig_order, id_map );
 					int prev = -1;
 					int first = -1;
@@ -773,7 +773,7 @@ void unalignIslands( IntervalList& iv_list, vector< CompactGappedAlignment<>* >&
 					else if( prev != -1 && reverse )
 						edges.push_back( Pair( id_map[first], cur_d_matches.size() ) );
 				}
-				std::sort( edges.begin(), edges.end() );
+				stable_sort( edges.begin(), edges.end() );
 				vector< Pair >::iterator ee_iter = std::unique( edges.begin(), edges.end() );
 				edges.erase( ee_iter, edges.end() );
 				Pair* edge_array = new Pair[edges.size()];
@@ -1001,7 +1001,7 @@ void addUniqueSegments( std::vector< bb_seqentry_t >& bb_seq_list, size_t min_le
 	for( size_t sI = 0; sI < seq_count; sI++ )
 	{
 		BbSeqEntrySorter bbs(sI);
-		std::sort( bb_seq_list.begin(), bb_seq_list.end(), bbs );
+		stable_sort( bb_seq_list.begin(), bb_seq_list.end(), bbs );
 		for( size_t bbI = 1; bbI < bb_seq_list.size(); bbI++ )
 		{
 			if( bb_seq_list[bbI][sI].first == 0 )
@@ -1029,7 +1029,7 @@ void mergeAdjacentSegments( std::vector< bb_seqentry_t >& bb_seq_list )
 	for( size_t sI = 0; sI < seq_count; sI++ )
 	{
 		BbSeqEntrySorter bbs(sI);
-		std::sort( bb_seq_list.begin(), bb_seq_list.end(), bbs );
+		stable_sort( bb_seq_list.begin(), bb_seq_list.end(), bbs );
 		bitset_t merged;
 		merged.resize( bb_seq_list.size() );
 		for( size_t bbI = 1; bbI < bb_seq_list.size(); bbI++ )

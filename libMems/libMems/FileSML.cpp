@@ -341,7 +341,7 @@ void FileSML::Create(const gnSequence& seq, const uint64 seed){
 	}
 
 //	RadixSort(s_array);
-	sort(sml_array.begin(), sml_array.end(), &bmer_lessthan);
+	std::stable_sort(sml_array.begin(), sml_array.end(), &bmer_lessthan);
 	
 	/* now write out the file header */
 	sarfile.write((char*)&header, sizeof(struct SMLHeader));
@@ -588,7 +588,7 @@ STACK_TRACE_START
 		mid_mer.mer = GetMer(midI);
 		middle_mers.push_back(mid_mer);
 	}
-	sort(middle_mers.begin(), middle_mers.end(), &bmer_lessthan);
+	std::stable_sort(middle_mers.begin(), middle_mers.end(), &bmer_lessthan);
 	//put a special mer at the end which will never go into the sorted mer list
 	//since every possible mer is less than it.
 	mid_mer.mer = 0xFFFFFFFF;
@@ -653,7 +653,7 @@ STACK_TRACE_START
 	for(;midI < middle_mers.size() - 1; midI++)
 		remaining_mers.push_back(middle_mers[midI]);
 	//merge them with the remaining middle_mers
-	sort(remaining_mers.begin(), remaining_mers.end(), &bmer_lessthan);
+	std::stable_sort(remaining_mers.begin(), remaining_mers.end(), &bmer_lessthan);
 	uint32 remI = 0;
 	for(;remI < remaining_mers.size(); remI++)
 		seq_buf.data[remI] = remaining_mers[remI].position;

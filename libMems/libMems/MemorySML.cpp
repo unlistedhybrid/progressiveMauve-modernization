@@ -51,7 +51,7 @@ void MemorySML::Create(const gnSequence& seq, const uint64 seed ){
 		FillDnaSeedSML( seq, sml_array );
 	else
 		FillSML( seq, sml_array );
-	sort( sml_array.begin(), sml_array.end(), &bmer_lessthan );
+	std::stable_sort( sml_array.begin(), sml_array.end(), &bmer_lessthan );
 	positions.reserve( sml_array.size() );
 	for(gnSeqI merI = 0; merI < sml_array.size(); merI++ ){
 		positions.push_back( sml_array[merI].position );

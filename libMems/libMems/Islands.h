@@ -325,7 +325,7 @@ void addUnalignedRegions( IntervalListType& iv_list)
 	for( size_t seqI = 0; seqI < iv_list.seq_table.size(); ++seqI )
 	{
 		SingleStartComparator< AbstractMatch > ssc( seqI );
-		std::sort( iv_ptrs.begin(), iv_ptrs.end(), ssc );
+		std::stable_sort( iv_ptrs.begin(), iv_ptrs.end(), ssc );
 		size_t ivI = 0;
 		for( ; ivI < iv_ptrs.size(); ++ivI )
 			if( iv_ptrs[ivI]->LeftEnd(seqI) != NO_MATCH )

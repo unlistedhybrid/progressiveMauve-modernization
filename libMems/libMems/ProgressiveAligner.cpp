@@ -2375,7 +2375,7 @@ void ProgressiveAligner::alignProfileToProfile( node_id_t node1, node_id_t node2
         cout << "  New Score:  " << cur_anchoring_score << "\n";
         cout << "  Improvement Threshold: " << (prev_anchoring_score + (genome::absolut(prev_anchoring_score)/200.0)) << "\n";
         cout << "  Infinite Loop Breaker: " << (collinear_genomes && cur_ancestral_seq_len >= prev_ancestral_seq_len) << "\n";
-        cout << "  Recursive Flag: " << recursive << "\n";
+        cout << "  Recursive Flag: " << (int)recursive << "\n";
         cout.flush();
         // --- DEBUG BLOCK END ---
 
