@@ -34,10 +34,7 @@
 
 template<typename Key, typename Value, typename... Args>
 using hash_map = std::map<Key, Value>;
-
 using std::map;
-
-#endif
 
 // Define aliases for two maps: red-black trees, and hashes
 // (GNU C++ does not define a hash function for long long int, so we have to define our own)
