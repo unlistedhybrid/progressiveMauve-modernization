@@ -4,7 +4,7 @@ cmake_policy(SET CMP0167 NEW)
 project(ProgressiveMauveModern LANGUAGES C CXX)
 
 # ============================================================
-# 1. THE NUCLEAR OPENMP FIX (GLOBAL FLAGS)
+# 1. OPENMP
 # ============================================================
 option(ENABLE_OPENMP "Enable OpenMP" ON)
 
@@ -13,7 +13,7 @@ if(ENABLE_OPENMP)
     
     # Force flags into the global CXX flags.
     if(MSVC)
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /openmp")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /openmp") 
     elseif(APPLE)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Xpreprocessor -fopenmp")
         set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lomp")
@@ -41,13 +41,8 @@ option(ENABLE_ZLIB "Enable ZLIB compression" OFF)
 # ============================================================
 
 if(MSVC)
-    # CRITICAL FIXES FOR WINDOWS:
-    # 1. Use Static Runtime (/MT)
     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded")
-    
-    # 2. Tell CMake to look for Boost libraries built with Static Runtime
     set(Boost_USE_STATIC_RUNTIME ON)
-    
     add_compile_definitions(NOMINMAX WIN32_LEAN_AND_MEAN _CRT_SECURE_NO_WARNINGS)
     add_compile_options(/O2 /fp:precise /DCOMMAND_LINE)
 else()
@@ -127,6 +122,16 @@ target_include_directories(progressiveMauve PRIVATE
 
 if(ENABLE_OPENMP AND NOT MSVC)
     target_link_libraries(progressiveMauve PUBLIC OpenMP::OpenMP_CXX)
+endif()
+
+if(MSVC)
+    # The functions timeGetTime/timeBeginPeriod are in winmm.lib
+    # The function GetProcessMemoryInfo is in psapi.lib
+    target_link_libraries(progressiveMauve
+        PRIVATE
+        winmm
+        psapi
+    )
 endif()
 
 target_link_libraries(progressiveMauve
