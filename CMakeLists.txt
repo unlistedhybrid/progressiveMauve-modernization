@@ -125,10 +125,8 @@ target_include_directories(progressiveMauve PRIVATE
     ${PROJECT_SOURCE_DIR}/mauveAligner/src
 )
 
-if(ENABLE_OPENMP)
-    if(NOT MSVC)
-        target_link_libraries(progressiveMauve PUBLIC OpenMP::OpenMP_CXX)
-    endif()
+if(ENABLE_OPENMP AND NOT MSVC)
+    target_link_libraries(progressiveMauve PUBLIC OpenMP::OpenMP_CXX)
 endif()
 
 target_link_libraries(progressiveMauve

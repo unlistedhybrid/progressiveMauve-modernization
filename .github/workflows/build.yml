@@ -127,21 +127,37 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # ----------------------------------------------------------------
+      # NEW: Cache VCPKG (Saves ~20 minutes)
+      # ----------------------------------------------------------------
+      - name: Cache VCPKG (ICU)
+        id: cache-vcpkg
+        uses: actions/cache@v4
+        with:
+          # VCPKG on windows-latest is located at C:\vcpkg
+          # We cache the 'installed' folder where the compiled libs live
+          path: C:\vcpkg\installed
+          key: ${{ runner.os }}-vcpkg-icu-x64-static-v1
+
       - name: Install ICU via vcpkg
+        # VCPKG is smart: if the cache restored the files, this command 
+        # will see them and finish instantly.
         shell: bash
         run: vcpkg install icu:x64-windows-static
 
+      # ----------------------------------------------------------------
+      # Boost Caching & Build
+      # ----------------------------------------------------------------
       - name: Cache Boost
         id: cache-boost-win
         uses: actions/cache@v4
         with:
           path: ${{ github.workspace }}/boost-install
-          key: ${{ runner.os }}-boost-${{ env.BOOST_VERSION }}-msvc-v15
+          key: ${{ runner.os }}-boost-${{ env.BOOST_VERSION }}-msvc-v16
 
       - name: Build Boost ${{ env.BOOST_VERSION }}
         if: steps.cache-boost-win.outputs.cache-hit != 'true'
         shell: cmd
-        # runtime-link=static is CRITICAL here (produces mt-s libraries)
         run: |
           curl -L -o boost.tar.gz ${{ env.BOOST_URL }}
           tar xzf boost.tar.gz
@@ -149,11 +165,17 @@ jobs:
           call bootstrap.bat
           b2 install --prefix=%GITHUB_WORKSPACE%\boost-install --with-filesystem --with-iostreams --with-program_options --with-regex toolset=msvc address-model=64 link=static threading=multi runtime-link=static variant=release
 
+      # ----------------------------------------------------------------
+      # CMake & Build
+      # ----------------------------------------------------------------
       - name: Configure CMake
         shell: bash
         run: |
+          # Clean previous builds to prevent cached link errors
+          rm -rf build build_logs
           mkdir -p build build_logs
-          # ADDED: -DBoost_USE_STATIC_RUNTIME=ON to fix the "variant rejected" error
+          
+          # Added -DBoost_USE_STATIC_RUNTIME=ON to fix the Boost detection error
           if ! cmake -S . -B build \
             -DCMAKE_TOOLCHAIN_FILE="$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" \
             -DVCPKG_TARGET_TRIPLET=x64-windows-static \
@@ -169,6 +191,7 @@ jobs:
 
       - name: Build
         shell: bash
+        # Uses 'tee' to show output live and save to file
         run: |
           cmake --build build --config Release --verbose 2>&1 | tee build_logs/build.log
 

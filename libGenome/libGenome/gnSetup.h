@@ -37,9 +37,9 @@
 #if defined(WIN64)&&defined(FASTDEBUG)&&defined(_OPENMP)
 #pragma comment(lib, "genome64fdomp.lib")
 #endif
-#if defined(WIN32)&&!defined(WIN64)&&defined(NDEBUG)&&!defined(FASTDEBUG)&&defined(_OPENMP)
-#pragma comment(lib, "genomeomp.lib")
-#endif
+//#if defined(WIN32)&&!defined(WIN64)&&defined(NDEBUG)&&!defined(FASTDEBUG)&&defined(_OPENMP)
+//#pragma comment(lib, "genomeomp.lib")
+//#endif
 #if defined(WIN32)&&!defined(WIN64)&&defined(FASTDEBUG)&&defined(_OPENMP)
 #pragma comment(lib, "genomefdomp.lib")
 #endif
