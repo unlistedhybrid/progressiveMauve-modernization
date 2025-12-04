@@ -305,7 +305,7 @@ void EliminateOverlaps_v2( MatchVector& ml, const std::vector< uint >& seq_ids, 
 	for( uint sidI = 0; sidI < seq_ids.size(); sidI++ ){
 		uint seqI = seq_ids[ sidI ];
 		mems::SingleStartComparator<mems::AbstractMatch> msc( seqI );
-		std::std::stable_sort( ml.begin(), ml.end(), msc );
+		std::stable_sort( ml.begin(), ml.end(), msc );
 		int64 matchI = 0;
 		int64 nextI = 0;
 		int64 deleted_count = 0;
