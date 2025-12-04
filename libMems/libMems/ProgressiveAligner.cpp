@@ -2368,16 +2368,6 @@ void ProgressiveAligner::alignProfileToProfile( node_id_t node1, node_id_t node2
 		gnSeqI cur_ancestral_seq_len = 0;
 		for( size_t aI = 0; aI < alignment_tree[ancestor].ordering.size(); aI++ )
 			cur_ancestral_seq_len += alignment_tree[ancestor].ordering[aI].Length();
-		// --- DEBUG BLOCK START ---
-        cout << "DEBUG: Anchoring Logic Check:\n";
-        cout << "  Scoring Scheme: " << (collinear_genomes ? "Collinear" : "Non-Collinear (BPE)") << "\n";
-        cout << "  Prev Score: " << prev_anchoring_score << "\n";
-        cout << "  New Score:  " << cur_anchoring_score << "\n";
-        cout << "  Improvement Threshold: " << (prev_anchoring_score + (genome::absolut(prev_anchoring_score)/200.0)) << "\n";
-        cout << "  Infinite Loop Breaker: " << (collinear_genomes && cur_ancestral_seq_len >= prev_ancestral_seq_len) << "\n";
-        cout << "  Recursive Flag: " << (int)recursive << "\n";
-        cout.flush();
-        // --- DEBUG BLOCK END ---
 
 		if( !collinear_genomes )
 			cout << "Previous anchoring score: " << prev_anchoring_score << ", new anchor score: " << cur_anchoring_score << endl;
@@ -3417,28 +3407,6 @@ void ProgressiveAligner::CreatePairwiseBPDistance( boost::multi_array<double, 2>
 		vector< double > lcb_scores( LCB_list.size() );
 		cout << "Pair " << seq_pairs[i].first << ", " << seq_pairs[i].second << " has " << LCB_list.size() << " initial LCBs\n";
 
-		// --- START CORRECTED DEBUG BLOCK (v2) ---
-		if( LCB_list.size() > 0 ){
-			cout << "DEBUG_LCB_DUMP_START Pair " << seqI << "," << seqJ << endl;
-			size_t count = LCB_list.size();
-			for(size_t k=0; k<count; ++k) {
-				// Print first 5 and last 5
-				if(k < 5 || k > count - 6) {
-					if(LCB_list[k].size() > 0) {
-						// FIX: Use Start() instead of Left()
-						cout << "LCB[" << k << "]: "
-							 << " S1_Start=" << LCB_list[k][0]->Start(0)
-							 << " S1_Len=" << LCB_list[k][0]->Length(0)
-							 << " S2_Start=" << LCB_list[k][0]->Start(1)
-							 << " S2_Len=" << LCB_list[k][0]->Length(1)
-							 << " Matches=" << LCB_list[k].size()
-							 << endl;
-					}
-				}
-			}
-			cout << "DEBUG_LCB_DUMP_END" << endl;
-		}
-		// --- END CORRECTED DEBUG BLOCK ---
 		for( size_t lcbI = 0; lcbI < LCB_list.size(); ++lcbI )
 			lcb_scores[lcbI] = GetPairwiseAnchorScore( LCB_list[lcbI], ml.seq_table, this->subst_scoring, sol_list[seqI], sol_list[seqJ] );
 
