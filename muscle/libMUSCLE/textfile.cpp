@@ -128,7 +128,7 @@ void TextFile::PutFormat(const char szFormat[], ...)
 	char szStr[4096];
 	va_list ArgList;
 	va_start(ArgList, szFormat);
-	vsprintf(szStr, szFormat, ArgList);
+	vsnprintf(szStr, sizeof(szStr), szFormat, ArgList);
 	PutString(szStr);
 	}
 

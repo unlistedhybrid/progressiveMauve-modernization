@@ -397,7 +397,7 @@ static void FmtInt(unsigned u, unsigned uWidth)
 	static TLS<char[1024]> szStr;
 	assert(uWidth < sizeof(szStr.get()));
 	if (u > 0)
-		sprintf(szStr.get(), "%u", u);
+		snprintf(szStr.get(), 32, "%u", u);
 	else
 		strcpy(szStr.get(), ".");
 	Log(szStr.get());
@@ -411,7 +411,7 @@ static void FmtInt0(unsigned u, unsigned uWidth)
 	{
 	static TLS<char[1024]> szStr;
 	assert(uWidth < sizeof(szStr.get()));
-	sprintf(szStr.get(), "%u", u);
+	snprintf(szStr.get(), 32, "%u", u);
 	Log(szStr.get());
 	unsigned n = (unsigned) strlen(szStr.get());
 	if (n < uWidth)
@@ -495,24 +495,6 @@ bool MSA::IsEmptyCol(unsigned uColIndex) const
 			return false;
 	return true;
 	}
-
-//void MSA::DeleteEmptyCols(bool bProgress)
-//	{
-//	unsigned uColCount = GetColCount();
-//	for (unsigned uColIndex = 0; uColIndex < uColCount; ++uColIndex)
-//		{
-//		if (IsEmptyCol(uColIndex))
-//			{
-//			if (bProgress)
-//				{
-//				Log("Deleting col %u of %u\n", uColIndex, uColCount);
-//				printf("Deleting col %u of %u\n", uColIndex, uColCount);
-//				}
-//			DeleteCol(uColIndex);
-//			--uColCount;
-//			}
-//		}
-//	}
 
 unsigned MSA::AlignedColIndexToColIndex(unsigned uAlignedColIndex) const
 	{

@@ -50,7 +50,7 @@ double GetMemUseMB()
 		{
 		PageSize.get() = sysconf(_SC_PAGESIZE);
 		pid_t pid = getpid();
-		sprintf(statm.get(), "/proc/%d/statm", (int) pid);
+		snprintf(statm.get(), 64, "/proc/%d/statm", (int) pid);
 		}
 
 	int fd = open(statm.get(), O_RDONLY);

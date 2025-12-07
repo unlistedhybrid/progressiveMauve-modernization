@@ -87,13 +87,15 @@ static unsigned GetAlphaSize(ALPHA Alpha)
 		{
 	case ALPHA_Amino:
 		return 20;
-
+		
 	case ALPHA_RNA:
 	case ALPHA_DNA:
 		return 4;
+		
+	default:
+		Quit("Invalid Alpha=%d", Alpha);
+		return 0;
 		}
-	Quit("Invalid Alpha=%d", Alpha);
-	return 0;
 	}
 
 static void InitArrays()

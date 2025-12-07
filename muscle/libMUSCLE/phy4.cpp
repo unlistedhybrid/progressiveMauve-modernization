@@ -241,7 +241,7 @@ void Tree::PruneTree(const Tree &tree, unsigned Subfams[],
 	for (unsigned uSubfamIndex = 0; uSubfamIndex < uSubfamCount; ++uSubfamIndex)
 		{
 		char szName[32];
-		sprintf(szName, "Subfam_%u", uSubfamIndex + 1);
+		snprintf(szName, 32, "Subfam_%u", uSubfamIndex + 1);
 		m_ptrName[uSubfamIndex] = strsave(szName);
 		}
 

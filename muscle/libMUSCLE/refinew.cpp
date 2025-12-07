@@ -194,15 +194,15 @@ void RefineW(const MSA &msaIn, MSA &msaOut)
 			MSAFromColRange(msaIn, uColFrom, un, msaInTmp);
 
 			char fn[256];
-			sprintf(fn, "win%d_inaln.tmp", uWindowIndex);
+			snprintf(fn, sizeof(fn), "win%d_inaln.tmp", uWindowIndex);
 			TextFile fIn(fn, true);
 			msaInTmp.ToFile(fIn);
 
-			sprintf(fn, "win%d_inseqs.tmp", uWindowIndex);
+			snprintf(fn, sizeof(fn), "win%d_inseqs.tmp", uWindowIndex);
 			TextFile fv(fn, true);
 			v.ToFile(fv);
 
-			sprintf(fn, "win%d_outaln.tmp", uWindowIndex);
+			snprintf(fn, sizeof(fn), "win%d_outaln.tmp", uWindowIndex);
 			TextFile fOut(fn, true);
 			msaTmp.ToFile(fOut);
 			}

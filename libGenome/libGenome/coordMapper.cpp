@@ -6,9 +6,9 @@
 #include <iostream>
 #include <fstream>
 #include <algorithm>
-#include <vector>  // Added: Fixes 'undeclared identifier vector'
-#include <list>    // Added: Fixes 'undeclared identifier list'
-#include <string>  // Added: Fixes 'undeclared identifier string'
+#include <vector>
+#include <list>
+#include <string>
 
 using namespace std;
 using namespace genome;
@@ -300,19 +300,21 @@ int main(int argc, char* argv[]){
 
 		for(uint32 featI = 0; featI < ex_feat_list.size(); featI++){
 			string featName = ex_feat_list[featI]->GetName();
-			if(featName == "mRNA" || featName == "CDS" || featName == "gene" )
+			if(featName == "mRNA" || featName == "CDS" || featName == "gene" ){
 				if(ex_feat_list[featI]->GetLocationType() == gnLocation::LT_Complement)
 					ex_reverse.push_back(ex_feat_list[featI]);
 				else
 					ex_forward.push_back(ex_feat_list[featI]);
+			}
 		}
 		for(uint32 featI = 0; featI < in_feat_list.size(); featI++){
 			string featName = in_feat_list[featI]->GetName();
-			if(featName == "mRNA" || featName == "CDS" || featName == "gene" )
+			if(featName == "mRNA" || featName == "CDS" || featName == "gene" ){
 				if(in_feat_list[featI]->GetLocationType() == gnLocation::LT_Complement)
 					in_reverse.push_back(in_feat_list[featI]);
 				else
 					in_forward.push_back(in_feat_list[featI]);
+			}
 		}
 
 		if(complement){
@@ -349,10 +351,5 @@ int main(int argc, char* argv[]){
 			delete ex_feat_list[featI];
 		for(uint32 featI = 0; featI < in_feat_list.size(); featI++)
 			delete in_feat_list[featI];
-		
-		//loop while there is stuff to match
-//		while(cur_match_len > 0){
-		
-//		}
 	}
 }

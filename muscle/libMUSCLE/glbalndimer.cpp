@@ -1,6 +1,6 @@
 #include "libMUSCLE/muscle.h"
 #include <math.h>
-#include <stdio.h>	// for sprintf
+#include <stdio.h>
 #include "libMUSCLE/pwpath.h"
 #include "libMUSCLE/profile.h"
 #include "libMUSCLE/gapscoredimer.h"
@@ -19,7 +19,7 @@ static const char *LocalScoreToStr(SCORE s)
 	static TLS<char[16]> str;
 	if (MINUS_INFINITY == s)
 		return "     *";
-	sprintf(str.get(), "%6.3g", s);
+	snprintf(str.get(), 32, "%6.3g", s);
 	return str.get();
 	}
 

@@ -5,14 +5,14 @@ namespace muscle {
 
 const char *SecsToStr(unsigned long Secs)
 	{
-	static TLS<char[16]> Str;
+	static TLS<char[32]> Str; // Increased buffer size for safety
 	long hh, mm, ss;
 
 	hh = Secs/(60*60);
 	mm = (Secs/60)%60;
 	ss = Secs%60;
 
-	sprintf(Str.get(), "%02ld:%02ld:%02ld", hh, mm, ss);
+	snprintf(Str.get(), 32, "%02ld:%02ld:%02ld", hh, mm, ss);
 	return Str.get();
 	}
 
@@ -33,7 +33,7 @@ const char *ScoreToStr(SCORE Score)
 	static TLS<int> iBufferIndex(0);
 	iBufferIndex.get() = (iBufferIndex.get() + 1)%iBufferCount;
 	char *pStr = szStr.get() + iBufferIndex.get()*iBufferLength;
-	sprintf(pStr, "%8g", Score);
+	snprintf(pStr, iBufferLength, "%8g", Score);
 	return pStr;
 	}
 
@@ -50,7 +50,7 @@ const char *ScoreToStrL(SCORE Score)
 	static TLS<int> iBufferIndex(0);
 	iBufferIndex.get() = (iBufferIndex.get() + 1)%iBufferCount;
 	char *pStr = szStr.get() + iBufferIndex.get()*iBufferLength;
-	sprintf(pStr, "%.3g", Score);
+	snprintf(pStr, iBufferLength, "%.3g", Score);
 	return pStr;
 	}
 

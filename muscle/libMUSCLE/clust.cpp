@@ -176,8 +176,9 @@ void Clust::ChooseJoin(unsigned *ptruLeftIndex, unsigned *ptruRightIndex,
 		ChooseJoinNeighborJoining(ptruLeftIndex, ptruRightIndex, ptrdLeftLength,
 		  ptrdRightLength);
 		return;
+	default:
+		Quit("Clust::ChooseJoin, Invalid join style %u", m_JoinStyle);
 		}
-	Quit("Clust::ChooseJoin, Invalid join style %u", m_JoinStyle);
 	}
 
 void Clust::ChooseJoinNearestNeighbor(unsigned *ptruLeftIndex,
@@ -310,9 +311,10 @@ float Clust::ComputeDist(unsigned uNewNodeIndex, unsigned uNodeIndex)
 
 	case LINKAGE_NeighborJoining:
 		return ComputeDistNeighborJoining(uNewNodeIndex, uNodeIndex);
+	default:
+		Quit("Clust::ComputeDist, invalid centroid style %u", m_CentroidStyle);
+		return (float) g_dNAN.get();
 		}
-	Quit("Clust::ComputeDist, invalid centroid style %u", m_CentroidStyle);
-	return (float) g_dNAN.get();
 	}
 
 float Clust::ComputeDistMinLinkage(unsigned uNewNodeIndex, unsigned uNodeIndex)
@@ -617,9 +619,10 @@ float Clust::ComputeMetric(unsigned uIndex1, unsigned uIndex2) const
 
 	case JOIN_NeighborJoining:
 		return ComputeMetricNeighborJoining(uIndex1, uIndex2);
+	default: // Handles JOIN_Undefined
+		Quit("Clust::ComputeMetric");
+		return 0;
 		}
-	Quit("Clust::ComputeMetric");
-	return 0;
 	}
 
 float Clust::ComputeMetricNeighborJoining(unsigned i, unsigned j) const

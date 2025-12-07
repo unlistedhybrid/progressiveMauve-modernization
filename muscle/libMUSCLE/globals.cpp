@@ -69,7 +69,7 @@ void Log(const char szFormat[], ...)
 	char szStr[4096];
 	va_list ArgList;
 	va_start(ArgList, szFormat);
-	vsprintf(szStr, szFormat, ArgList);
+	vsnprintf(szStr, sizeof(szStr), szFormat, ArgList);
 	fprintf(f.get(), "%s", szStr);
 	fflush(f.get());
 	}
@@ -93,7 +93,7 @@ void Quit(const char szFormat[], ...)
 	char szStr[4096];
 
 	va_start(ArgList, szFormat);
-	vsprintf(szStr, szFormat, ArgList);
+	vsnprintf(szStr, sizeof(szStr), szFormat, ArgList);
 
 	fprintf(stderr, "\n*** ERROR ***  %s\n", szStr);
 
@@ -120,7 +120,7 @@ void Warning(const char szFormat[], ...)
 	char szStr[4096];
 
 	va_start(ArgList, szFormat);
-	vsprintf(szStr, szFormat, ArgList);
+	vsnprintf(szStr, sizeof(szStr), szFormat, ArgList);
 
 	fprintf(stderr, "\n*** WARNING *** %s\n", szStr);
 	Log("\n*** WARNING ***  %s\n", szStr);

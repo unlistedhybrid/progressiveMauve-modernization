@@ -60,7 +60,7 @@ const char *MemToStr(double MB)
 	double Pct = (MaxMB*100.0)/RAMMB;
 	if (Pct > 100)
 		Pct = 100;
-	sprintf(Str, "%.0f MB(%.0f%%)", MaxMB, Pct);
+	snprintf(Str, 11, "%.0f MB(%.0f%%)", MaxMB, Pct);
 	return Str;
 	}
 
@@ -130,7 +130,7 @@ void Progress(const char *szFormat, ...)
 	char szStr[4096];
 	va_list ArgList;
 	va_start(ArgList, szFormat);
-	vsprintf(szStr, szFormat, ArgList);
+	vsnprintf(szStr, sizeof(szStr), szFormat, ArgList);
 
 	fprintf(g_fProgress, "%8.8s  %12s  %s",
 	  ElapsedTimeAsStr(),

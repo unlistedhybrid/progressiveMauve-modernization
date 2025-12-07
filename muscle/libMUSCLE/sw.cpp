@@ -15,7 +15,7 @@ static const char *LocalScoreToStr(SCORE s)
 	static TLS<char[16]> str;
 	if (MINUS_INFINITY == s)
 		return "     *";
-	sprintf(str.get(), "%6.2f", s);
+	snprintf(str.get(), 16, "%6.2f", s);
 	return str.get();
 	}
 

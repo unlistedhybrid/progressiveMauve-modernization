@@ -250,7 +250,7 @@ static const char *LocalScoreToStr(SCORE s)
 	static TLS<char[16]> str;
 	if (s < -100000)
 		return "     *";
-	sprintf(str.get(), "%6.1f", s);
+	snprintf(str.get(), 16, "%6.1f", s);
 	return str.get();
 	}
 
@@ -369,7 +369,7 @@ static const char *BitsToStr(char Bits)
 	{
 	static TLS<char[9]> Str;
 
-	sprintf(Str.get(), "%cM %cD %cI",
+	snprintf(Str.get(), 9, "%cM %cD %cI",
 	  Get_M_Char(Bits),
 	  Get_D_Char(Bits),
 	  Get_I_Char(Bits));

@@ -17,7 +17,7 @@ static char XlatEdgeType(char c)
 
 static const char *BitsToStr(char Bits)
 	{
-	static TLSstr<char[9]> Str((char*)"xM xD xI");
+	static TLSstr<char[9]> Str("xM xD xI");
 
 	switch (Bits & BIT_xM)
 		{

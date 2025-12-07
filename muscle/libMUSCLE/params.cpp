@@ -472,14 +472,11 @@ void SetPPScore(bool bRespectFlagOpts)
 			{
 			size_t n = strlen(Path) + 1 + strlen(FileName) + 1;
 			char *NewFileName = new char[n];
-			sprintf(NewFileName, "%s/%s", Path, FileName);
+			snprintf(NewFileName, n, "%s/%s", Path, FileName); // Use 'n' as the size
 			FileName = NewFileName;
 			}
 		TextFile File(FileName);
 		UserMatrix = ReadMx(File);
-// AED 21/12/2006: allow a custom nucleotide substitution matrix (don't force AA alignment)
-//		g_Alpha.get() = ALPHA_Amino;
-//		g_PPScore.get() = PPSCORE_SP;
 		}
 	if (0 != UserMatrix)
 		g_ptrScoreMatrix.get() = UserMatrix;
