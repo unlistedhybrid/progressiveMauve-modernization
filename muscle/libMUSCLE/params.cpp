@@ -408,6 +408,7 @@ static void SetPPDefaultParams()
 			}
 		break;
 
+    case PPSCORE_Undefined:
 	default:
 		Quit("Invalid g_PPScore.get()");
 		}

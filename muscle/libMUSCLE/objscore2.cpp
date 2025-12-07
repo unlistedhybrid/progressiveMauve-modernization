@@ -35,9 +35,11 @@ SCORE TermGapScore(bool Gap)
 		if (Gap)
 			return g_scoreGapExtend.get();
 		return 0;
+        
+	default: // Handles TERMGAPS_Undefined
+		Quit("TermGapScore?!");
+		return 0;
 		}
-	Quit("TermGapScore?!");
-	return 0;
 	}
 
 SCORE ScoreSeqPairLetters(const MSA &msa1, unsigned uSeqIndex1,

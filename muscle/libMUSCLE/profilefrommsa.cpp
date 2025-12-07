@@ -238,9 +238,11 @@ unsigned ResidueGroupFromFCounts(const FCOUNT fcCounts[])
 	case ALPHA_DNA:
 	case ALPHA_RNA:
 		return NucleoGroupFromFCounts(fcCounts);
+
+	default: // Handles ALPHA_Undefined
+		Quit("ResidueGroupFromFCounts: bad alpha");
+		return 0;
 		}
-	Quit("ResidueGroupFromFCounts: bad alpha");
-	return 0;
 	}
 
 ProfPos *ProfileFromMSA(const MSA &a)

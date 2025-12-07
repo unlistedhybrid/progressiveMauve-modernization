@@ -382,8 +382,10 @@ void SetMSAWeightsMuscle(MSA &msa)
 	case SEQWEIGHT_ThreeWay:
 		SetThreeWayWeightsMuscle(msa);
 		return;
+        
+    default: // Handles SEQWEIGHT_Undefined
+		Quit("SetMSAWeightsMuscle, Invalid method=%d", Method);
 		}
-	Quit("SetMSAWeightsMuscle, Invalid method=%d", Method);
 	}
 
 static TLS<WEIGHT *> g_MuscleWeights;

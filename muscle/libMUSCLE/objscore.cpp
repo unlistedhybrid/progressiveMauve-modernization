@@ -71,7 +71,9 @@ SCORE ObjScore(const MSA &msa, const unsigned SeqIndexes1[],
 	case OBJSCORE_SPF:
 		Score = ObjScoreSPDimer(msa);
 		break;
-	
+
+    case OBJSCORE_SPM:
+	case OBJSCORE_Undefined:
 	default:
 		Quit("Invalid g_ObjScore.get()=%d", g_ObjScore.get());
 		}

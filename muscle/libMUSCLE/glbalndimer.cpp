@@ -16,7 +16,7 @@ static SCORE TraceBackDimer(  const SCORE *DPM_, const SCORE *DPD_, const SCORE 
 
 static const char *LocalScoreToStr(SCORE s)
 	{
-	static TLS<char[16]> str;
+	static TLS<char[32]> str;
 	if (MINUS_INFINITY == s)
 		return "     *";
 	snprintf(str.get(), 32, "%6.3g", s);
@@ -131,9 +131,11 @@ static SCORE ScoreProfPosDimer(const ProfPos &PPA, const ProfPos &PPB)
 	case PPSCORE_SP:
 	case PPSCORE_SV:
 		return ScoreProfPosDimerPSP(PPA, PPB);
+        
+	default: // Handles PPSCORE_Undefined, PPSCORE_SPN, and any future unhandled values
+		Quit("Invalid g_PPScore.get()");
+		return 0;
 		}
-	Quit("Invalid g_PPScore.get()");
-	return 0;
 	}
 
 // Global alignment dynamic programming
