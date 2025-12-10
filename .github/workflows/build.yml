@@ -64,57 +64,47 @@ jobs:
             build_logs/
 
   # ==============================================================================
-  # 2. LINUX BUILD (ARM64 - QEMU)
+  # 2. LINUX BUILD (ARM64 - NATIVE)
   # ==============================================================================
   build-linux-arm64:
-    runs-on: ubuntu-24.04
-    name: Build Linux ARM64 (QEMU)
+    runs-on: ubuntu-24.04-arm
     steps:
       - uses: actions/checkout@v4
-      
-      # Setup QEMU for ARM64 emulation
-      - uses: docker/setup-qemu-action@v3
-      
-      - name: Build in ARM64 Container
-        uses: uraimo/run-on-arch-action@v2
-        id: build-arm
+
+      - name: Install System Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake libbz2-dev liblzma-dev libicu-dev zlib1g-dev
+
+      - name: Cache Boost
+        id: cache-boost-linux-arm
+        uses: actions/cache@v4
         with:
-          arch: aarch64
-          distro: ubuntu24.04
-          # Pass env vars to the container
-          env: |
-            BOOST_VERSION: ${{ env.BOOST_VERSION }}
-            BOOST_URL: ${{ env.BOOST_URL }}
-            BOOST_DIR: ${{ env.BOOST_DIR }}
-          install: |
-            apt-get update -q -y
-            apt-get install -q -y build-essential cmake libbz2-dev liblzma-dev libicu-dev zlib1g-dev wget git
-          run: |
-            # 1. Build Boost (Note: running in QEMU is slower, so we limit parallelism slightly to avoid OOM/Hang)
-            echo "Downloading Boost..."
-            wget -q $BOOST_URL
-            tar xzf $BOOST_DIR.tar.gz
-            cd $BOOST_DIR
-            
-            echo "Bootstrapping Boost..."
-            ./bootstrap.sh --prefix=/usr/local --with-libraries=filesystem,iostreams,program_options,regex
-            
-            echo "Installing Boost..."
-            ./b2 install --prefix=/usr/local link=static threading=multi variant=release -j4
-            cd ..
-            
-            # 2. Build Project
-            echo "Configuring CMake..."
-            mkdir -p build build_logs
-            cmake -S . -B build \
-              -DCMAKE_BUILD_TYPE=Release \
-              -DCMAKE_PREFIX_PATH="/usr/local" \
-              -DENABLE_OPENMP=ON \
-              -DENABLE_ZLIB=OFF \
-              -DENABLE_SANITIZERS=OFF
-            
-            echo "Building Binary..."
-            cmake --build build --config Release -j4
+          path: ${{ github.workspace }}/boost-install
+          key: ${{ runner.os }}-arm64-boost-${{ env.BOOST_VERSION }}-v15
+
+      - name: Build Boost ${{ env.BOOST_VERSION }}
+        if: steps.cache-boost-linux-arm.outputs.cache-hit != 'true'
+        run: |
+          wget ${{ env.BOOST_URL }}
+          tar xzf ${{ env.BOOST_DIR }}.tar.gz
+          cd ${{ env.BOOST_DIR }}
+          ./bootstrap.sh --prefix=${{ github.workspace }}/boost-install --with-libraries=filesystem,iostreams,program_options,regex
+          ./b2 install --prefix=${{ github.workspace }}/boost-install link=static threading=multi variant=release -j$(nproc)
+
+      - name: Configure CMake
+        run: |
+          mkdir -p build build_logs
+          cmake -S . -B build \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_PREFIX_PATH="${{ github.workspace }}/boost-install" \
+            -DENABLE_OPENMP=ON \
+            -DENABLE_ZLIB=OFF \
+            -DENABLE_SANITIZERS=OFF 2>&1 | tee build_logs/configure.log
+
+      - name: Build
+        run: |
+          cmake --build build --config Release -j$(nproc) 2>&1 | tee -a build_logs/build.log
 
       - name: Upload Artifacts (Linux-ARM64)
         uses: actions/upload-artifact@v4
@@ -122,6 +112,7 @@ jobs:
           name: progressiveMauve-Linux-ARM64
           path: |
             build/progressiveMauve
+            build_logs/
 
   # ==============================================================================
   # 3. MACOS BUILD (ARM64 / Apple Silicon)
@@ -180,7 +171,7 @@ jobs:
   # 4. MACOS BUILD (AMD64 / Intel)
   # ==============================================================================
   build-macos-intel:
-    runs-on: macos-13 # Intel Runner
+    runs-on: macos-15-intel # UPDATED: The last supported Intel image
     steps:
       - uses: actions/checkout@v4
 
@@ -194,7 +185,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ github.workspace }}/boost-install
-          key: ${{ runner.os }}-boost-${{ env.BOOST_VERSION }}-intel-v15
+          key: ${{ runner.os }}-boost-${{ env.BOOST_VERSION }}-intel-v16
 
       - name: Build Boost ${{ env.BOOST_VERSION }}
         if: steps.cache-boost-mac-intel.outputs.cache-hit != 'true'
