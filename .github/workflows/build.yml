@@ -13,7 +13,7 @@ env:
 
 jobs:
   # ==============================================================================
-  # 1. LINUX BUILD
+  # 1. LINUX BUILD (AMD64)
   # ==============================================================================
   build-linux:
     runs-on: ubuntu-24.04
@@ -55,20 +55,79 @@ jobs:
         run: |
           cmake --build build --config Release -j$(nproc) 2>&1 | tee -a build_logs/build.log
 
-      - name: Upload Artifacts (Linux)
+      - name: Upload Artifacts (Linux-AMD64)
         uses: actions/upload-artifact@v4
         with:
-          name: progressiveMauve-Linux
+          name: progressiveMauve-Linux-AMD64
           path: |
             build/progressiveMauve
             build_logs/
 
+  # ==============================================================================
+  # 2. LINUX BUILD (ARM64 - QEMU)
+  # ==============================================================================
+  build-linux-arm64:
+    runs-on: ubuntu-24.04
+    name: Build Linux ARM64 (QEMU)
+    steps:
+      - uses: actions/checkout@v4
+      
+      # Setup QEMU for ARM64 emulation
+      - uses: docker/setup-qemu-action@v3
+      
+      - name: Build in ARM64 Container
+        uses: uraimo/run-on-arch-action@v2
+        id: build-arm
+        with:
+          arch: aarch64
+          distro: ubuntu24.04
+          # Pass env vars to the container
+          env: |
+            BOOST_VERSION: ${{ env.BOOST_VERSION }}
+            BOOST_URL: ${{ env.BOOST_URL }}
+            BOOST_DIR: ${{ env.BOOST_DIR }}
+          install: |
+            apt-get update -q -y
+            apt-get install -q -y build-essential cmake libbz2-dev liblzma-dev libicu-dev zlib1g-dev wget git
+          run: |
+            # 1. Build Boost (Note: running in QEMU is slower, so we limit parallelism slightly to avoid OOM/Hang)
+            echo "Downloading Boost..."
+            wget -q $BOOST_URL
+            tar xzf $BOOST_DIR.tar.gz
+            cd $BOOST_DIR
+            
+            echo "Bootstrapping Boost..."
+            ./bootstrap.sh --prefix=/usr/local --with-libraries=filesystem,iostreams,program_options,regex
+            
+            echo "Installing Boost..."
+            ./b2 install --prefix=/usr/local link=static threading=multi variant=release -j4
+            cd ..
+            
+            # 2. Build Project
+            echo "Configuring CMake..."
+            mkdir -p build build_logs
+            cmake -S . -B build \
+              -DCMAKE_BUILD_TYPE=Release \
+              -DCMAKE_PREFIX_PATH="/usr/local" \
+              -DENABLE_OPENMP=ON \
+              -DENABLE_ZLIB=OFF \
+              -DENABLE_SANITIZERS=OFF
+            
+            echo "Building Binary..."
+            cmake --build build --config Release -j4
+
+      - name: Upload Artifacts (Linux-ARM64)
+        uses: actions/upload-artifact@v4
+        with:
+          name: progressiveMauve-Linux-ARM64
+          path: |
+            build/progressiveMauve
 
   # ==============================================================================
-  # 2. MACOS BUILD (ARM64)
+  # 3. MACOS BUILD (ARM64 / Apple Silicon)
   # ==============================================================================
-  build-macos:
-    runs-on: macos-14
+  build-macos-arm64:
+    runs-on: macos-14 # Apple Silicon Runner
     steps:
       - uses: actions/checkout@v4
 
@@ -78,14 +137,14 @@ jobs:
           brew link --force libomp
 
       - name: Cache Boost
-        id: cache-boost-mac
+        id: cache-boost-mac-arm
         uses: actions/cache@v4
         with:
           path: ${{ github.workspace }}/boost-install
           key: ${{ runner.os }}-boost-${{ env.BOOST_VERSION }}-arm64-v15
 
       - name: Build Boost ${{ env.BOOST_VERSION }}
-        if: steps.cache-boost-mac.outputs.cache-hit != 'true'
+        if: steps.cache-boost-mac-arm.outputs.cache-hit != 'true'
         run: |
           curl -L -o boost.tar.gz ${{ env.BOOST_URL }}
           tar xzf boost.tar.gz
@@ -95,7 +154,6 @@ jobs:
 
       - name: Configure CMake
         env:
-          # Only include paths in env. Flags handled by CMake.
           CXXFLAGS: "-I/opt/homebrew/opt/libomp/include"
           LDFLAGS: "-L/opt/homebrew/opt/libomp/lib"
         run: |
@@ -110,7 +168,7 @@ jobs:
         run: |
           cmake --build build --config Release -j$(sysctl -n hw.ncpu) 2>&1 | tee -a build_logs/build.log
 
-      - name: Upload Artifacts (MacOS)
+      - name: Upload Artifacts (MacOS-ARM64)
         uses: actions/upload-artifact@v4
         with:
           name: progressiveMauve-MacOS-ARM64
@@ -118,36 +176,81 @@ jobs:
             build/progressiveMauve
             build_logs/
 
+  # ==============================================================================
+  # 4. MACOS BUILD (AMD64 / Intel)
+  # ==============================================================================
+  build-macos-intel:
+    runs-on: macos-13 # Intel Runner
+    steps:
+      - uses: actions/checkout@v4
 
-# ==============================================================================
-  # 3. WINDOWS BUILD (MSVC)
+      - name: Install Dependencies
+        run: |
+          brew install cmake icu4c libomp
+          brew link --force libomp
+
+      - name: Cache Boost
+        id: cache-boost-mac-intel
+        uses: actions/cache@v4
+        with:
+          path: ${{ github.workspace }}/boost-install
+          key: ${{ runner.os }}-boost-${{ env.BOOST_VERSION }}-intel-v15
+
+      - name: Build Boost ${{ env.BOOST_VERSION }}
+        if: steps.cache-boost-mac-intel.outputs.cache-hit != 'true'
+        run: |
+          curl -L -o boost.tar.gz ${{ env.BOOST_URL }}
+          tar xzf boost.tar.gz
+          cd ${{ env.BOOST_DIR }}
+          ./bootstrap.sh --prefix=${{ github.workspace }}/boost-install --with-libraries=filesystem,iostreams,program_options,regex
+          # Note architecture=x86 for Intel
+          ./b2 install --prefix=${{ github.workspace }}/boost-install link=static threading=multi variant=release address-model=64 architecture=x86 -j$(sysctl -n hw.ncpu)
+
+      - name: Configure CMake
+        env:
+          # On Intel Macs, brew is in /usr/local
+          CXXFLAGS: "-I/usr/local/opt/libomp/include"
+          LDFLAGS: "-L/usr/local/opt/libomp/lib"
+        run: |
+          mkdir -p build build_logs
+          # Point to /usr/local/opt/icu4c
+          cmake -S . -B build \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_PREFIX_PATH="${{ github.workspace }}/boost-install;/usr/local/opt/icu4c" \
+            -DENABLE_OPENMP=ON \
+            -DENABLE_ZLIB=OFF 2>&1 | tee build_logs/configure.log
+
+      - name: Build
+        run: |
+          cmake --build build --config Release -j$(sysctl -n hw.ncpu) 2>&1 | tee -a build_logs/build.log
+
+      - name: Upload Artifacts (MacOS-Intel)
+        uses: actions/upload-artifact@v4
+        with:
+          name: progressiveMauve-MacOS-Intel
+          path: |
+            build/progressiveMauve
+            build_logs/
+
+  # ==============================================================================
+  # 5. WINDOWS BUILD (MSVC)
   # ==============================================================================
   build-windows:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
 
-      # ----------------------------------------------------------------
-      # NEW: Cache VCPKG (Saves ~20 minutes)
-      # ----------------------------------------------------------------
       - name: Cache VCPKG (ICU)
         id: cache-vcpkg
         uses: actions/cache@v4
         with:
-          # VCPKG on windows-latest is located at C:\vcpkg
-          # We cache the 'installed' folder where the compiled libs live
           path: C:\vcpkg\installed
           key: ${{ runner.os }}-vcpkg-icu-x64-static-v1
 
       - name: Install ICU via vcpkg
-        # VCPKG is smart: if the cache restored the files, this command 
-        # will see them and finish instantly.
         shell: bash
         run: vcpkg install icu:x64-windows-static
 
-      # ----------------------------------------------------------------
-      # Boost Caching & Build
-      # ----------------------------------------------------------------
       - name: Cache Boost
         id: cache-boost-win
         uses: actions/cache@v4
@@ -165,17 +268,12 @@ jobs:
           call bootstrap.bat
           b2 install --prefix=%GITHUB_WORKSPACE%\boost-install --with-filesystem --with-iostreams --with-program_options --with-regex toolset=msvc address-model=64 link=static threading=multi runtime-link=static variant=release
 
-      # ----------------------------------------------------------------
-      # CMake & Build
-      # ----------------------------------------------------------------
       - name: Configure CMake
         shell: bash
         run: |
-          # Clean previous builds to prevent cached link errors
           rm -rf build build_logs
           mkdir -p build build_logs
           
-          # Added -DBoost_USE_STATIC_RUNTIME=ON to fix the Boost detection error
           if ! cmake -S . -B build \
             -DCMAKE_TOOLCHAIN_FILE="$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" \
             -DVCPKG_TARGET_TRIPLET=x64-windows-static \
@@ -191,7 +289,6 @@ jobs:
 
       - name: Build
         shell: bash
-        # Uses 'tee' to show output live and save to file
         run: |
           cmake --build build --config Release --verbose 2>&1 | tee build_logs/build.log
 
