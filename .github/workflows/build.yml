@@ -13,7 +13,7 @@ env:
 
 jobs:
   # ==============================================================================
-  # 1. LINUX BUILD (AMD64) - CONTROL GROUP (NO CHANGES)
+  # 1. LINUX BUILD (AMD64) - CONTROL GROUP
   # ==============================================================================
   build-linux:
     runs-on: ubuntu-24.04
@@ -61,7 +61,7 @@ jobs:
             checksum.txt
 
   # ==============================================================================
-  # 2. LINUX BUILD (ARM64) - CONTROL GROUP (NO CHANGES)
+  # 2. LINUX BUILD (ARM64) - CONTROL GROUP
   # ==============================================================================
   build-linux-arm64:
     runs-on: ubuntu-24.04-arm
@@ -109,7 +109,7 @@ jobs:
             checksum.txt
 
   # ==============================================================================
-  # 3. MACOS BUILD (ARM64) - TEST 1: Recompiled Boost with -ffp-contract=off
+  # 3. MACOS BUILD (ARM64) - TEST 2: Strict Model
   # ==============================================================================
   build-macos-arm64:
     runs-on: macos-14
@@ -123,21 +123,21 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ github.workspace }}/boost-install
-          # NEW KEY: Forces recompile
-          key: ${{ runner.os }}-boost-${{ env.BOOST_VERSION }}-arm64-recompile-v1
+          # NEW KEY: Forces recompile for Test 2
+          key: ${{ runner.os }}-boost-${{ env.BOOST_VERSION }}-arm64-recompile-v2
 
       - name: Build Boost
         if: steps.cache-boost-mac-arm.outputs.cache-hit != 'true'
         run: |
           curl -L -o boost.tar.gz ${{ env.BOOST_URL }} && tar xzf boost.tar.gz && cd ${{ env.BOOST_DIR }}
           ./bootstrap.sh --prefix=${{ github.workspace }}/boost-install --with-libraries=filesystem,iostreams,program_options,regex
-          # ADDED cxxflags="-ffp-contract=off"
-          ./b2 install --prefix=${{ github.workspace }}/boost-install link=static threading=multi variant=release address-model=64 architecture=arm cxxflags="-ffp-contract=off" -j$(sysctl -n hw.ncpu)
+          # CHANGED: Using -ffp-model=strict
+          ./b2 install --prefix=${{ github.workspace }}/boost-install link=static threading=multi variant=release address-model=64 architecture=arm cxxflags="-ffp-model=strict" -j$(sysctl -n hw.ncpu)
 
       - name: Configure CMake
         env:
           # MATCHING FLAG for Mauve
-          CXXFLAGS: "-I/opt/homebrew/opt/libomp/include -ffp-contract=off"
+          CXXFLAGS: "-I/opt/homebrew/opt/libomp/include -ffp-model=strict"
           LDFLAGS: "-L/opt/homebrew/opt/libomp/lib"
         run: |
           mkdir -p build
@@ -163,7 +163,7 @@ jobs:
             checksum.txt
 
   # ==============================================================================
-  # 4. MACOS BUILD (INTEL) - TEST 1: Recompiled Boost with -ffp-contract=off
+  # 4. MACOS BUILD (INTEL) - TEST 2: Strict Model
   # ==============================================================================
   build-macos-intel:
     runs-on: macos-15-intel
@@ -177,21 +177,21 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ github.workspace }}/boost-install
-          # NEW KEY: Forces recompile
-          key: ${{ runner.os }}-boost-${{ env.BOOST_VERSION }}-intel-recompile-v1
+          # NEW KEY: Forces recompile for Test 2
+          key: ${{ runner.os }}-boost-${{ env.BOOST_VERSION }}-intel-recompile-v2
 
       - name: Build Boost
         if: steps.cache-boost-mac-intel.outputs.cache-hit != 'true'
         run: |
           curl -L -o boost.tar.gz ${{ env.BOOST_URL }} && tar xzf boost.tar.gz && cd ${{ env.BOOST_DIR }}
           ./bootstrap.sh --prefix=${{ github.workspace }}/boost-install --with-libraries=filesystem,iostreams,program_options,regex
-          # ADDED cxxflags="-ffp-contract=off"
-          ./b2 install --prefix=${{ github.workspace }}/boost-install link=static threading=multi variant=release address-model=64 architecture=x86 cxxflags="-ffp-contract=off" -j$(sysctl -n hw.ncpu)
+          # CHANGED: Using -ffp-model=strict
+          ./b2 install --prefix=${{ github.workspace }}/boost-install link=static threading=multi variant=release address-model=64 architecture=x86 cxxflags="-ffp-model=strict" -j$(sysctl -n hw.ncpu)
 
       - name: Configure CMake
         env:
           # MATCHING FLAG for Mauve
-          CXXFLAGS: "-I/usr/local/opt/libomp/include -ffp-contract=off"
+          CXXFLAGS: "-I/usr/local/opt/libomp/include -ffp-model=strict"
           LDFLAGS: "-L/usr/local/opt/libomp/lib"
         run: |
           mkdir -p build
@@ -217,7 +217,7 @@ jobs:
             checksum.txt
 
   # ==============================================================================
-  # 5. WINDOWS BUILD (MSVC) - CONTROL GROUP (NO CHANGES)
+  # 5. WINDOWS BUILD (MSVC) - CONTROL GROUP
   # ==============================================================================
   build-windows:
     runs-on: windows-latest
