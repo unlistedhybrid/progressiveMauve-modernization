@@ -13,7 +13,7 @@ env:
 
 jobs:
   # ==============================================================================
-  # 1. LINUX BUILD (AMD64)
+  # 1. LINUX BUILD (AMD64) - CONTROL GROUP (NO CHANGES)
   # ==============================================================================
   build-linux:
     runs-on: ubuntu-24.04
@@ -48,7 +48,6 @@ jobs:
         run: |
           chmod +x build/progressiveMauve
           ./build/progressiveMauve --output=linux_amd64.xmfa test_data/jp.fasta test_data/CP08.fasta
-          # Fix: Skip header (tail) AND remove Windows return chars (tr)
           tail -n +7 linux_amd64.xmfa | tr -d '\r' | sha256sum > checksum.txt
           cat checksum.txt
 
@@ -62,7 +61,7 @@ jobs:
             checksum.txt
 
   # ==============================================================================
-  # 2. LINUX BUILD (ARM64)
+  # 2. LINUX BUILD (ARM64) - CONTROL GROUP (NO CHANGES)
   # ==============================================================================
   build-linux-arm64:
     runs-on: ubuntu-24.04-arm
@@ -110,7 +109,7 @@ jobs:
             checksum.txt
 
   # ==============================================================================
-  # 3. MACOS BUILD (ARM64) - STRICT MATH
+  # 3. MACOS BUILD (ARM64) - TEST 1: Recompiled Boost with -ffp-contract=off
   # ==============================================================================
   build-macos-arm64:
     runs-on: macos-14
@@ -124,19 +123,21 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ github.workspace }}/boost-install
-          key: ${{ runner.os }}-boost-${{ env.BOOST_VERSION }}-arm64-v15
+          # NEW KEY: Forces recompile
+          key: ${{ runner.os }}-boost-${{ env.BOOST_VERSION }}-arm64-recompile-v1
 
       - name: Build Boost
         if: steps.cache-boost-mac-arm.outputs.cache-hit != 'true'
         run: |
           curl -L -o boost.tar.gz ${{ env.BOOST_URL }} && tar xzf boost.tar.gz && cd ${{ env.BOOST_DIR }}
           ./bootstrap.sh --prefix=${{ github.workspace }}/boost-install --with-libraries=filesystem,iostreams,program_options,regex
-          ./b2 install --prefix=${{ github.workspace }}/boost-install link=static threading=multi variant=release address-model=64 architecture=arm -j$(sysctl -n hw.ncpu)
+          # ADDED cxxflags="-ffp-contract=off"
+          ./b2 install --prefix=${{ github.workspace }}/boost-install link=static threading=multi variant=release address-model=64 architecture=arm cxxflags="-ffp-contract=off" -j$(sysctl -n hw.ncpu)
 
       - name: Configure CMake
         env:
-          # Strict math mode
-          CXXFLAGS: "-I/opt/homebrew/opt/libomp/include -ffp-model=strict"
+          # MATCHING FLAG for Mauve
+          CXXFLAGS: "-I/opt/homebrew/opt/libomp/include -ffp-contract=off"
           LDFLAGS: "-L/opt/homebrew/opt/libomp/lib"
         run: |
           mkdir -p build
@@ -149,7 +150,6 @@ jobs:
         run: |
           chmod +x build/progressiveMauve
           ./build/progressiveMauve --output=macos_arm64.xmfa test_data/jp.fasta test_data/CP08.fasta
-          # Use 'shasum' on mac, strict normalization
           tail -n +7 macos_arm64.xmfa | tr -d '\r' | shasum -a 256 > checksum.txt
           cat checksum.txt
 
@@ -163,7 +163,7 @@ jobs:
             checksum.txt
 
   # ==============================================================================
-  # 4. MACOS BUILD (INTEL) - STRICT MATH
+  # 4. MACOS BUILD (INTEL) - TEST 1: Recompiled Boost with -ffp-contract=off
   # ==============================================================================
   build-macos-intel:
     runs-on: macos-15-intel
@@ -177,19 +177,21 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ github.workspace }}/boost-install
-          key: ${{ runner.os }}-boost-${{ env.BOOST_VERSION }}-intel-v16
+          # NEW KEY: Forces recompile
+          key: ${{ runner.os }}-boost-${{ env.BOOST_VERSION }}-intel-recompile-v1
 
       - name: Build Boost
         if: steps.cache-boost-mac-intel.outputs.cache-hit != 'true'
         run: |
           curl -L -o boost.tar.gz ${{ env.BOOST_URL }} && tar xzf boost.tar.gz && cd ${{ env.BOOST_DIR }}
           ./bootstrap.sh --prefix=${{ github.workspace }}/boost-install --with-libraries=filesystem,iostreams,program_options,regex
-          ./b2 install --prefix=${{ github.workspace }}/boost-install link=static threading=multi variant=release address-model=64 architecture=x86 -j$(sysctl -n hw.ncpu)
+          # ADDED cxxflags="-ffp-contract=off"
+          ./b2 install --prefix=${{ github.workspace }}/boost-install link=static threading=multi variant=release address-model=64 architecture=x86 cxxflags="-ffp-contract=off" -j$(sysctl -n hw.ncpu)
 
       - name: Configure CMake
         env:
-          # Strict math mode
-          CXXFLAGS: "-I/usr/local/opt/libomp/include -ffp-model=strict"
+          # MATCHING FLAG for Mauve
+          CXXFLAGS: "-I/usr/local/opt/libomp/include -ffp-contract=off"
           LDFLAGS: "-L/usr/local/opt/libomp/lib"
         run: |
           mkdir -p build
@@ -215,7 +217,7 @@ jobs:
             checksum.txt
 
   # ==============================================================================
-  # 5. WINDOWS BUILD (MSVC)
+  # 5. WINDOWS BUILD (MSVC) - CONTROL GROUP (NO CHANGES)
   # ==============================================================================
   build-windows:
     runs-on: windows-latest
@@ -261,7 +263,6 @@ jobs:
         shell: bash
         run: |
           ./build/Release/progressiveMauve.exe --output=windows_amd64.xmfa test_data/jp.fasta test_data/CP08.fasta
-          # Normalize line endings on Windows too
           tail -n +7 windows_amd64.xmfa | tr -d '\r' | sha256sum > checksum.txt
           cat checksum.txt
 
