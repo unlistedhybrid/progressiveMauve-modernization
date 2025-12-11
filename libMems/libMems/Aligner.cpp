@@ -1145,33 +1145,35 @@ void Aligner::Recursion( MatchList& r_list, Match* r_begin, Match* r_end, boolea
 			uint search_mer_size = getDefaultSeedWeight( gap_list.seq_table[ seqI ]->length() );
 			mer_sizes.push_back( make_pair( search_mer_size, seqI ) );
 		}
-		// Sort by size (first element), maintain seqI order for ties
+		// Sort ascending. Stable sort ensures seqI order is preserved for ties.
 		std::stable_sort( mer_sizes.begin(), mer_sizes.end() );
-		
-		// Use reverse iterator to go from largest to smallest
+
+		// Iterate backwards (largest mer size first)
 		vector< pair<uint, uint> >::reverse_iterator mer_iter = mer_sizes.rbegin();
 		vector< uint > search_seqs;
-		while( mer_iter != mer_sizes.end() ){
+		
+		while( mer_iter != mer_sizes.rend() ){
 			uint prev_mer = mer_iter->first;
 			uint new_seqs = 0;
 			while( true ){
 				if( mer_iter->first < MIN_DNA_SEED_WEIGHT )
 					break;
+				
 				if( mer_iter->first == prev_mer || search_seqs.size() < 2 ){
 					search_seqs.push_back( mer_iter->second );
 					new_seqs++;
-					if( mer_iter == mer_sizes.begin() ){
-						mer_iter = mer_sizes.end();	// signify that the scan is complete
+					
+					// Advance iterator
+					mer_iter++;
+					
+					if( mer_iter == mer_sizes.rend() ){
 						break;
 					}
 					prev_mer = mer_iter->first;
-					mer_iter--;
-				}else
+				}else{
 					break;
+				}
 			}
-
-			if( search_seqs.size() < 2 )
-				break;
 			// look for MUMs
 			
 			//
