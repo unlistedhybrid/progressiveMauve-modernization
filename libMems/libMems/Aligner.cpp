@@ -1140,14 +1140,16 @@ void Aligner::Recursion( MatchList& r_list, Match* r_begin, Match* r_end, boolea
 		else
 			gap_mh.get().Clear();
 
-		multimap< uint, uint > mer_sizes;
-		// calculate potential mer sizes for searches
+		vector< pair<uint, uint> > mer_sizes;
 		for( seqI = 0; seqI < seq_count; seqI++ ){
 			uint search_mer_size = getDefaultSeedWeight( gap_list.seq_table[ seqI ]->length() );
-			mer_sizes.insert( multimap< uint, uint >::value_type( search_mer_size, seqI ) );
+			mer_sizes.push_back( make_pair( search_mer_size, seqI ) );
 		}
-		multimap< uint, uint >::iterator mer_iter = mer_sizes.end();
-		mer_iter--;
+		// Sort by size (first element), maintain seqI order for ties
+		std::stable_sort( mer_sizes.begin(), mer_sizes.end() );
+		
+		// Use reverse iterator to go from largest to smallest
+		vector< pair<uint, uint> >::reverse_iterator mer_iter = mer_sizes.rbegin();
 		vector< uint > search_seqs;
 		while( mer_iter != mer_sizes.end() ){
 			uint prev_mer = mer_iter->first;
