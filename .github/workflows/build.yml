@@ -19,12 +19,9 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
-
       - name: Install System Dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y build-essential cmake libbz2-dev liblzma-dev libicu-dev zlib1g-dev
-
+        run: sudo apt-get update && sudo apt-get install -y build-essential cmake libbz2-dev liblzma-dev libicu-dev zlib1g-dev
+      
       - name: Cache Boost
         id: cache-boost-linux
         uses: actions/cache@v4
@@ -32,62 +29,47 @@ jobs:
           path: ${{ github.workspace }}/boost-install
           key: ${{ runner.os }}-boost-${{ env.BOOST_VERSION }}-v15
 
-      - name: Build Boost ${{ env.BOOST_VERSION }}
+      - name: Build Boost
         if: steps.cache-boost-linux.outputs.cache-hit != 'true'
         run: |
-          wget ${{ env.BOOST_URL }}
-          tar xzf ${{ env.BOOST_DIR }}.tar.gz
-          cd ${{ env.BOOST_DIR }}
+          wget ${{ env.BOOST_URL }} && tar xzf ${{ env.BOOST_DIR }}.tar.gz && cd ${{ env.BOOST_DIR }}
           ./bootstrap.sh --prefix=${{ github.workspace }}/boost-install --with-libraries=filesystem,iostreams,program_options,regex
           ./b2 install --prefix=${{ github.workspace }}/boost-install link=static threading=multi variant=release -j$(nproc)
 
       - name: Configure CMake
         run: |
-          mkdir -p build build_logs
-          cmake -S . -B build \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_PREFIX_PATH="${{ github.workspace }}/boost-install" \
-            -DENABLE_OPENMP=ON \
-            -DENABLE_ZLIB=OFF \
-            -DENABLE_SANITIZERS=OFF 2>&1 | tee build_logs/configure.log
+          mkdir -p build
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH="${{ github.workspace }}/boost-install" -DENABLE_OPENMP=ON -DENABLE_ZLIB=OFF
 
       - name: Build
-        run: |
-          cmake --build build --config Release -j$(nproc) 2>&1 | tee -a build_logs/build.log
+        run: cmake --build build --config Release -j$(nproc)
 
       - name: Run Test Alignment
         run: |
           chmod +x build/progressiveMauve
-          echo "Running alignment..."
           ./build/progressiveMauve --output=linux_amd64.xmfa test_data/jp.fasta test_data/CP08.fasta
-          
-          # Skip the first 6 lines (header with filename) and hash the rest
-          tail -n +7 linux_amd64.xmfa | sha256sum > checksum.txt
-          echo "SHA256 Hash (Content Only):"
+          # Fix: Skip header (tail) AND remove Windows return chars (tr)
+          tail -n +7 linux_amd64.xmfa | tr -d '\r' | sha256sum > checksum.txt
           cat checksum.txt
 
-      - name: Upload Artifacts (Linux-AMD64)
+      - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: progressiveMauve-Linux-AMD64
           path: |
             build/progressiveMauve
-            build_logs/
             linux_amd64.xmfa
             checksum.txt
 
   # ==============================================================================
-  # 2. LINUX BUILD (ARM64 - NATIVE)
+  # 2. LINUX BUILD (ARM64)
   # ==============================================================================
   build-linux-arm64:
     runs-on: ubuntu-24.04-arm
     steps:
       - uses: actions/checkout@v4
-
       - name: Install System Dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y build-essential cmake libbz2-dev liblzma-dev libicu-dev zlib1g-dev
+        run: sudo apt-get update && sudo apt-get install -y build-essential cmake libbz2-dev liblzma-dev libicu-dev zlib1g-dev
 
       - name: Cache Boost
         id: cache-boost-linux-arm
@@ -96,62 +78,46 @@ jobs:
           path: ${{ github.workspace }}/boost-install
           key: ${{ runner.os }}-arm64-boost-${{ env.BOOST_VERSION }}-v15
 
-      - name: Build Boost ${{ env.BOOST_VERSION }}
+      - name: Build Boost
         if: steps.cache-boost-linux-arm.outputs.cache-hit != 'true'
         run: |
-          wget ${{ env.BOOST_URL }}
-          tar xzf ${{ env.BOOST_DIR }}.tar.gz
-          cd ${{ env.BOOST_DIR }}
+          wget ${{ env.BOOST_URL }} && tar xzf ${{ env.BOOST_DIR }}.tar.gz && cd ${{ env.BOOST_DIR }}
           ./bootstrap.sh --prefix=${{ github.workspace }}/boost-install --with-libraries=filesystem,iostreams,program_options,regex
           ./b2 install --prefix=${{ github.workspace }}/boost-install link=static threading=multi variant=release -j$(nproc)
 
       - name: Configure CMake
         run: |
-          mkdir -p build build_logs
-          cmake -S . -B build \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_PREFIX_PATH="${{ github.workspace }}/boost-install" \
-            -DENABLE_OPENMP=ON \
-            -DENABLE_ZLIB=OFF \
-            -DENABLE_SANITIZERS=OFF 2>&1 | tee build_logs/configure.log
+          mkdir -p build
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH="${{ github.workspace }}/boost-install" -DENABLE_OPENMP=ON -DENABLE_ZLIB=OFF
 
       - name: Build
-        run: |
-          cmake --build build --config Release -j$(nproc) 2>&1 | tee -a build_logs/build.log
+        run: cmake --build build --config Release -j$(nproc)
 
       - name: Run Test Alignment
         run: |
           chmod +x build/progressiveMauve
-          echo "Running alignment..."
           ./build/progressiveMauve --output=linux_arm64.xmfa test_data/jp.fasta test_data/CP08.fasta
-          
-          # Skip header
-          tail -n +7 linux_arm64.xmfa | sha256sum > checksum.txt
-          echo "SHA256 Hash (Content Only):"
+          tail -n +7 linux_arm64.xmfa | tr -d '\r' | sha256sum > checksum.txt
           cat checksum.txt
 
-      - name: Upload Artifacts (Linux-ARM64)
+      - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: progressiveMauve-Linux-ARM64
           path: |
             build/progressiveMauve
-            build_logs/
             linux_arm64.xmfa
             checksum.txt
 
   # ==============================================================================
-  # 3. MACOS BUILD (ARM64 / Apple Silicon)
+  # 3. MACOS BUILD (ARM64) - STRICT MATH
   # ==============================================================================
   build-macos-arm64:
     runs-on: macos-14
     steps:
       - uses: actions/checkout@v4
-
       - name: Install Dependencies
-        run: |
-          brew install cmake icu4c libomp
-          brew link --force libomp
+        run: brew install cmake icu4c libomp && brew link --force libomp
 
       - name: Cache Boost
         id: cache-boost-mac-arm
@@ -160,64 +126,51 @@ jobs:
           path: ${{ github.workspace }}/boost-install
           key: ${{ runner.os }}-boost-${{ env.BOOST_VERSION }}-arm64-v15
 
-      - name: Build Boost ${{ env.BOOST_VERSION }}
+      - name: Build Boost
         if: steps.cache-boost-mac-arm.outputs.cache-hit != 'true'
         run: |
-          curl -L -o boost.tar.gz ${{ env.BOOST_URL }}
-          tar xzf boost.tar.gz
-          cd ${{ env.BOOST_DIR }}
+          curl -L -o boost.tar.gz ${{ env.BOOST_URL }} && tar xzf boost.tar.gz && cd ${{ env.BOOST_DIR }}
           ./bootstrap.sh --prefix=${{ github.workspace }}/boost-install --with-libraries=filesystem,iostreams,program_options,regex
           ./b2 install --prefix=${{ github.workspace }}/boost-install link=static threading=multi variant=release address-model=64 architecture=arm -j$(sysctl -n hw.ncpu)
 
       - name: Configure CMake
         env:
-          CXXFLAGS: "-I/opt/homebrew/opt/libomp/include -ffp-contract=off"
+          # Strict math mode
+          CXXFLAGS: "-I/opt/homebrew/opt/libomp/include -ffp-model=strict"
           LDFLAGS: "-L/opt/homebrew/opt/libomp/lib"
         run: |
-          mkdir -p build build_logs
-          cmake -S . -B build \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_PREFIX_PATH="${{ github.workspace }}/boost-install;/opt/homebrew/opt/icu4c" \
-            -DENABLE_OPENMP=ON \
-            -DENABLE_ZLIB=OFF 2>&1 | tee build_logs/configure.log
+          mkdir -p build
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH="${{ github.workspace }}/boost-install;/opt/homebrew/opt/icu4c" -DENABLE_OPENMP=ON -DENABLE_ZLIB=OFF
 
       - name: Build
-        run: |
-          cmake --build build --config Release -j$(sysctl -n hw.ncpu) 2>&1 | tee -a build_logs/build.log
+        run: cmake --build build --config Release -j$(sysctl -n hw.ncpu)
 
       - name: Run Test Alignment
         run: |
           chmod +x build/progressiveMauve
-          echo "Running alignment..."
           ./build/progressiveMauve --output=macos_arm64.xmfa test_data/jp.fasta test_data/CP08.fasta
-          
-          # Skip header + shasum
-          tail -n +7 macos_arm64.xmfa | shasum -a 256 > checksum.txt
-          echo "SHA256 Hash (Content Only):"
+          # Use 'shasum' on mac, strict normalization
+          tail -n +7 macos_arm64.xmfa | tr -d '\r' | shasum -a 256 > checksum.txt
           cat checksum.txt
 
-      - name: Upload Artifacts (MacOS-ARM64)
+      - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: progressiveMauve-MacOS-ARM64
           path: |
             build/progressiveMauve
-            build_logs/
             macos_arm64.xmfa
             checksum.txt
 
   # ==============================================================================
-  # 4. MACOS BUILD (AMD64 / Intel)
+  # 4. MACOS BUILD (INTEL) - STRICT MATH
   # ==============================================================================
   build-macos-intel:
     runs-on: macos-15-intel
     steps:
       - uses: actions/checkout@v4
-
       - name: Install Dependencies
-        run: |
-          brew install cmake icu4c libomp
-          brew link --force libomp
+        run: brew install cmake icu4c libomp && brew link --force libomp
 
       - name: Cache Boost
         id: cache-boost-mac-intel
@@ -226,48 +179,38 @@ jobs:
           path: ${{ github.workspace }}/boost-install
           key: ${{ runner.os }}-boost-${{ env.BOOST_VERSION }}-intel-v16
 
-      - name: Build Boost ${{ env.BOOST_VERSION }}
+      - name: Build Boost
         if: steps.cache-boost-mac-intel.outputs.cache-hit != 'true'
         run: |
-          curl -L -o boost.tar.gz ${{ env.BOOST_URL }}
-          tar xzf boost.tar.gz
-          cd ${{ env.BOOST_DIR }}
+          curl -L -o boost.tar.gz ${{ env.BOOST_URL }} && tar xzf boost.tar.gz && cd ${{ env.BOOST_DIR }}
           ./bootstrap.sh --prefix=${{ github.workspace }}/boost-install --with-libraries=filesystem,iostreams,program_options,regex
           ./b2 install --prefix=${{ github.workspace }}/boost-install link=static threading=multi variant=release address-model=64 architecture=x86 -j$(sysctl -n hw.ncpu)
 
       - name: Configure CMake
         env:
-          CXXFLAGS: "-I/usr/local/opt/libomp/include -ffp-contract=off"
+          # Strict math mode
+          CXXFLAGS: "-I/usr/local/opt/libomp/include -ffp-model=strict"
           LDFLAGS: "-L/usr/local/opt/libomp/lib"
         run: |
-          mkdir -p build build_logs
-          cmake -S . -B build \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_PREFIX_PATH="${{ github.workspace }}/boost-install;/usr/local/opt/icu4c" \
-            -DENABLE_OPENMP=ON \
-            -DENABLE_ZLIB=OFF 2>&1 | tee build_logs/configure.log
+          mkdir -p build
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH="${{ github.workspace }}/boost-install;/usr/local/opt/icu4c" -DENABLE_OPENMP=ON -DENABLE_ZLIB=OFF
 
       - name: Build
-        run: |
-          cmake --build build --config Release -j$(sysctl -n hw.ncpu) 2>&1 | tee -a build_logs/build.log
+        run: cmake --build build --config Release -j$(sysctl -n hw.ncpu)
 
       - name: Run Test Alignment
         run: |
           chmod +x build/progressiveMauve
-          echo "Running alignment..."
           ./build/progressiveMauve --output=macos_intel.xmfa test_data/jp.fasta test_data/CP08.fasta
-          
-          tail -n +7 macos_intel.xmfa | shasum -a 256 > checksum.txt
-          echo "SHA256 Hash (Content Only):"
+          tail -n +7 macos_intel.xmfa | tr -d '\r' | shasum -a 256 > checksum.txt
           cat checksum.txt
 
-      - name: Upload Artifacts (MacOS-Intel)
+      - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: progressiveMauve-MacOS-Intel
           path: |
             build/progressiveMauve
-            build_logs/
             macos_intel.xmfa
             checksum.txt
 
@@ -278,15 +221,14 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Cache VCPKG (ICU)
+      - name: Cache VCPKG
         id: cache-vcpkg
         uses: actions/cache@v4
         with:
           path: C:\vcpkg\installed
           key: ${{ runner.os }}-vcpkg-icu-x64-static-v1
 
-      - name: Install ICU via vcpkg
+      - name: Install ICU
         shell: bash
         run: vcpkg install icu:x64-windows-static
 
@@ -297,56 +239,38 @@ jobs:
           path: ${{ github.workspace }}/boost-install
           key: ${{ runner.os }}-boost-${{ env.BOOST_VERSION }}-msvc-v16
 
-      - name: Build Boost ${{ env.BOOST_VERSION }}
+      - name: Build Boost
         if: steps.cache-boost-win.outputs.cache-hit != 'true'
         shell: cmd
         run: |
-          curl -L -o boost.tar.gz ${{ env.BOOST_URL }}
-          tar xzf boost.tar.gz
-          cd ${{ env.BOOST_DIR }}
+          curl -L -o boost.tar.gz ${{ env.BOOST_URL }} && tar xzf boost.tar.gz && cd ${{ env.BOOST_DIR }}
           call bootstrap.bat
           b2 install --prefix=%GITHUB_WORKSPACE%\boost-install --with-filesystem --with-iostreams --with-program_options --with-regex toolset=msvc address-model=64 link=static threading=multi runtime-link=static variant=release
 
       - name: Configure CMake
         shell: bash
         run: |
-          rm -rf build build_logs
-          mkdir -p build build_logs
-          if ! cmake -S . -B build \
-            -DCMAKE_TOOLCHAIN_FILE="$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" \
-            -DVCPKG_TARGET_TRIPLET=x64-windows-static \
-            -DCMAKE_PREFIX_PATH="${{ github.workspace }}/boost-install" \
-            -DBoost_USE_STATIC_RUNTIME=ON \
-            -DENABLE_OPENMP=ON \
-            -DENABLE_ZLIB=OFF \
-            -DCMAKE_BUILD_TYPE=Release > build_logs/configure.log 2>&1; then
-              cat build_logs/configure.log
-              exit 1
-          fi
+          mkdir -p build
+          cmake -S . -B build -DCMAKE_TOOLCHAIN_FILE="$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows-static -DCMAKE_PREFIX_PATH="${{ github.workspace }}/boost-install" -DBoost_USE_STATIC_RUNTIME=ON -DENABLE_OPENMP=ON -DENABLE_ZLIB=OFF -DCMAKE_BUILD_TYPE=Release
 
       - name: Build
         shell: bash
-        run: |
-          cmake --build build --config Release --verbose 2>&1 | tee build_logs/build.log
+        run: cmake --build build --config Release
 
       - name: Run Test Alignment
         shell: bash
         run: |
-          echo "Running alignment..."
           ./build/Release/progressiveMauve.exe --output=windows_amd64.xmfa test_data/jp.fasta test_data/CP08.fasta
-          
-          # Bash shell allows using tail even on Windows runner
-          tail -n +7 windows_amd64.xmfa | sha256sum > checksum.txt
-          echo "SHA256 Hash (Content Only):"
+          # Normalize line endings on Windows too
+          tail -n +7 windows_amd64.xmfa | tr -d '\r' | sha256sum > checksum.txt
           cat checksum.txt
 
-      - name: Upload Artifacts (Windows)
+      - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: progressiveMauve-Windows
           path: |
             build/Release/progressiveMauve.exe
-            build_logs/
             windows_amd64.xmfa
             checksum.txt
 
@@ -364,33 +288,23 @@ jobs:
 
       - name: Compare Checksums
         run: |
-          echo "Gathering Checksums (Skipped Header)..."
-          
-          LINUX_AMD64=$(awk '{print $1}' artifacts/progressiveMauve-Linux-AMD64/checksum.txt)
-          LINUX_ARM64=$(awk '{print $1}' artifacts/progressiveMauve-Linux-ARM64/checksum.txt)
-          MAC_ARM64=$(awk '{print $1}' artifacts/progressiveMauve-MacOS-ARM64/checksum.txt)
-          MAC_INTEL=$(awk '{print $1}' artifacts/progressiveMauve-MacOS-Intel/checksum.txt)
-          WIN_AMD64=$(awk '{print $1}' artifacts/progressiveMauve-Windows/checksum.txt)
+          echo "Gathering Checksums..."
+          L_AMD=$(awk '{print $1}' artifacts/progressiveMauve-Linux-AMD64/checksum.txt)
+          L_ARM=$(awk '{print $1}' artifacts/progressiveMauve-Linux-ARM64/checksum.txt)
+          M_ARM=$(awk '{print $1}' artifacts/progressiveMauve-MacOS-ARM64/checksum.txt)
+          M_INT=$(awk '{print $1}' artifacts/progressiveMauve-MacOS-Intel/checksum.txt)
+          W_AMD=$(awk '{print $1}' artifacts/progressiveMauve-Windows/checksum.txt)
 
-          echo "----------------------------------------"
-          echo "COMPARING CONTENT HASHES"
-          echo "----------------------------------------"
-          echo "Linux AMD64: $LINUX_AMD64"
-          echo "Linux ARM64: $LINUX_ARM64"
-          echo "MacOS ARM64: $MAC_ARM64"
-          echo "MacOS Intel: $MAC_INTEL"
-          echo "Windows X64: $WIN_AMD64"
-          echo "----------------------------------------"
+          echo "Linux AMD64: $L_AMD"
+          echo "Linux ARM64: $L_ARM"
+          echo "MacOS ARM64: $M_ARM"
+          echo "MacOS Intel: $M_INT"
+          echo "Windows X64: $W_AMD"
 
           FAIL=0
-          
-          if [ "$LINUX_ARM64" != "$LINUX_AMD64" ]; then echo "❌ Linux ARM64 mismatch!"; FAIL=1; fi
-          if [ "$MAC_ARM64" != "$LINUX_AMD64" ]; then echo "❌ MacOS ARM64 mismatch!"; FAIL=1; fi
-          if [ "$MAC_INTEL" != "$LINUX_AMD64" ]; then echo "❌ MacOS Intel mismatch!"; FAIL=1; fi
-          if [ "$WIN_AMD64" != "$LINUX_AMD64" ]; then echo "❌ Windows mismatch!"; FAIL=1; fi
+          if [ "$L_ARM" != "$L_AMD" ]; then echo "❌ Linux ARM mismatch"; FAIL=1; fi
+          if [ "$M_ARM" != "$L_AMD" ]; then echo "❌ Mac ARM mismatch"; FAIL=1; fi
+          if [ "$M_INT" != "$L_AMD" ]; then echo "❌ Mac Intel mismatch"; FAIL=1; fi
+          if [ "$W_AMD" != "$L_AMD" ]; then echo "❌ Windows mismatch"; FAIL=1; fi
 
-          if [ $FAIL -eq 0 ]; then
-            echo "✅ ALL PLATFORMS MATCH EXACTLY!"
-          else
-            echo "⚠️  HASH MISMATCH DETECTED"
-          fi
+          if [ $FAIL -eq 0 ]; then echo "✅ ALL MATCH!"; else echo "⚠️ MISMATCH"; fi
