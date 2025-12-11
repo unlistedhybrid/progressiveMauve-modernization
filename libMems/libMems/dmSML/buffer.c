@@ -7,6 +7,21 @@
 #include "libMems/dmSML/buffer.h"
 #include <string.h>
 
+// The standard rand() implementation differs between Linux, Windows, and Mac,
+// causing buffer sizes to differ and altering floating-point accumulation order.
+// We use a simple, portable LCG to ensure bitwise identical behavior everywhere.
+static unsigned long pm_rng_next = 1;
+
+static void pm_srand(unsigned int seed) {
+    pm_rng_next = seed;
+}
+
+static int pm_rand(void) {
+    pm_rng_next = pm_rng_next * 1103515245 + 12345;
+    return((unsigned)(pm_rng_next/65536) % 32768);
+}
+// ---------------------------------------------
+
 // portably fills an int with reasonably random bits.
 // one assumption is that MAX_RAND is bigger than 256.
 static int BigRandom() {
@@ -14,14 +29,15 @@ static int BigRandom() {
     int i, result;
     if( firsttime ) {
         firsttime = 0;
-        srand( 0 );
-        //srand( time( NULL ) );
+        // CHANGED: Use portable srand
+        pm_srand( 0 );
     }
     
     result = 0;
     for( i = 0; i < sizeof( result ); i++ ) {
         result <<= sizeof( result );
-        result ^= rand();
+        // CHANGED: Use portable rand
+        result ^= pm_rand();
     }
     // the funny test here because if result == INT_MIN on a
     // two's complement machine, -result *also* == INT_MIN.
@@ -47,7 +63,7 @@ int MakeWorkingSet( working_set_t * ws, offset_t goalsize, offset_t minrecs, off
 	    offset_t maxsize = overhead + maxrecs * sizeof( record_t );
 	    offset_t nbufs = 0;      // number of real buffers pleged to the working set
 	    offset_t maxbufs = 256;  // the max number of buffers we track (this grows if necessary)
-	    offset_t *buflist = malloc( sizeof( *buflist ) * maxbufs ); // grows when necessary
+	    offset_t *buflist = (offset_t *)malloc( sizeof( *buflist ) * maxbufs ); // grows when necessary
 	    
 	    record_t *recordptr;
 	    offset_t i;
@@ -64,7 +80,7 @@ int MakeWorkingSet( working_set_t * ws, offset_t goalsize, offset_t minrecs, off
 	        if( nbufs == maxbufs ) {
 	            // resize the array
 	            maxbufs *= 2;
-	            buflist = realloc( buflist, sizeof( *buflist ) * maxbufs );
+	            buflist = (offset_t *)realloc( buflist, sizeof( *buflist ) * maxbufs );
 	        }
 	        buflist[nbufs++] = randrecs;
 	        // update the number of bytes we've currently decided to allocate.
@@ -73,9 +89,9 @@ int MakeWorkingSet( working_set_t * ws, offset_t goalsize, offset_t minrecs, off
 		// now we have nbufs buffers, and the number of records they should
 		// store is in the buflist list.
 		// allocate one big chunk of memory
-		printf( "allocating %llu bytes for working set (%llu bufs)\n", cursize, nbufs );
+		printf( "allocating %llu bytes for working set (%llu bufs)\n", (unsigned long long)cursize, (unsigned long long)nbufs );
 
-		ws->bufs = malloc( cursize );
+		ws->bufs = (buffer_t *)malloc( cursize );
 		// if it failed to allocate try a smaller size
 		if( !ws->bufs ){
 			goalsize /= 2;
@@ -106,9 +122,6 @@ int MakeWorkingSet( working_set_t * ws, offset_t goalsize, offset_t minrecs, off
 }
 
 
-
-
-
 // Working Set support.
 // Reorganize the working set with a different distribution of buffers.
 void ReorganizeWorkingSet( working_set_t * ws, offset_t minrecs, offset_t maxrecs ) {
@@ -124,7 +137,7 @@ void ReorganizeWorkingSet( working_set_t * ws, offset_t minrecs, offset_t maxrec
     offset_t maxsize = overhead + maxrecs * sizeof( record_t );
     offset_t nbufs = 0;      // number of real buffers pledged to the working set
     offset_t maxbufs = 256;  // the max number of buffers we're tracking (this grows if necessary)
-    offset_t *buflist = malloc( sizeof( *buflist ) * maxbufs ); // grows when necessary
+    offset_t *buflist = (offset_t *)malloc( sizeof( *buflist ) * maxbufs ); // grows when necessary
     offset_t leftovers;
     record_t *recordptr;
     offset_t i;
@@ -146,7 +159,7 @@ void ReorganizeWorkingSet( working_set_t * ws, offset_t minrecs, offset_t maxrec
         if( nbufs == maxbufs ) {
             // resize the array
             maxbufs *= 2;
-            buflist = realloc( buflist, sizeof( *buflist ) * maxbufs );
+            buflist = (offset_t *)realloc( buflist, sizeof( *buflist ) * maxbufs );
         }
         buflist[nbufs++] = randrecs;
         // update the number of bytes we've currently decided to allocate.
@@ -160,7 +173,7 @@ void ReorganizeWorkingSet( working_set_t * ws, offset_t minrecs, offset_t maxrec
             if( nbufs == maxbufs ) {
                 // resize the array
                 maxbufs *= 2;
-                buflist = realloc( buflist, sizeof( *buflist ) * maxbufs );
+                buflist = (offset_t *)realloc( buflist, sizeof( *buflist ) * maxbufs );
             }
             buflist[nbufs++] = leftovers;
             cursize += overhead + leftovers * sizeof( record_t );
@@ -188,13 +201,6 @@ void ReorganizeWorkingSet( working_set_t * ws, offset_t minrecs, offset_t maxrec
     free( buflist );
     return;
 }
-
-
-
-
-
-
-
 
 
 // this updates all the IO on the working set buffers, querying those that
@@ -290,23 +296,30 @@ buffer_t * PopTail( buffer_list_t * list ) {
 
 // returns second argument
 buffer_t * RemoveItem( buffer_list_t * list, buffer_t * item ) {
-    // FIXME: handle NULL cases in a reasonable way?
+    if ( !list || !item ) {
+        return NULL;
+    }
+
     if( item == list->head ) {
         return( PopHead( list ) );
     }
-    item->next->last = item->last;
-    item->last->next = item->next;
+
+    // Standard doubly-linked list removal
+    if ( item->next ) item->next->last = item->last;
+    if ( item->last ) item->last->next = item->next;
+    
     item->next = item->last = NULL;
-    list->nitems--;
+    
+    if ( list->nitems > 0 ) {
+        list->nitems--;
+    }
+    
     if( list->nitems == 0 ) {
         list->head = NULL;
     }
+    
     return( item );
 }
-
-
-
-
 
 
 int CompareKeys_qsort_wrapper( const void *r1, const void *r2 ) {
@@ -315,20 +328,12 @@ int CompareKeys_qsort_wrapper( const void *r1, const void *r2 ) {
 
 }
 
-
-
 int CompareKeys( const record_t *r1, const record_t *r2 ) {
 
     return( COMPARE_KEYS( *r1, *r2 ) );
     //return( memcmp( r1->key, r2->key, sizeof( r1->key ) ) );
 
 }
-
-
-
-
-
-
 
 // This *must* enforce a serialized order for reading and writing, lest
 // we write sorted data out in the wrong order!
@@ -355,19 +360,6 @@ void UpdateDeviceIOExecuteState( working_set_t * ws, iodevice_t * dev ) {
                     found_buf = b;
                 }
             }
-            
-            /*
-            if( b->operation == OP_PENDING && b->device == dev ) {
-            dev->buf = b;
-            b->operation = b->file->mode == A_READ 
-            ? aRead( b->recs, sizeof( b->recs[0] ), b->numrecs, b->file )
-            : aWrite( b->recs, sizeof( b->recs[0] ), b->numrecs, b->file );
-            dev->state = DEV_BUSY;
-            //printf( "* Created operation %d on device %x\n", b->operation, b->device );
-            // found one, so quit.
-            break;
-            }
-            */
         }
         
         if( found_buf ) {
@@ -404,4 +396,3 @@ void WriteBuffer( buffer_t * buffer, offset_t num_recs, iodevice_t * dev ) {
     ReadBuffer( buffer, num_recs, dev );
     
 }
-
