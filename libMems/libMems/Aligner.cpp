@@ -1876,7 +1876,7 @@ void filterMatches( vector< LCB >& adjacencies, vector< MatchList >& lcb_list, v
 
 	// sort the LCBs themselves
 	LCBLeftEndComp llec;
-	std::sort( lcb_list.begin(), lcb_list.end(), llec );
+	std::stable_sort( lcb_list.begin(), lcb_list.end(), llec );
 
 	// calculate the LCB adjacencies
 	weights = new_weights;
@@ -2063,7 +2063,7 @@ void Aligner::RecursiveAnchorSearch( MatchList& mlist, gnSeqI minimum_weight, ve
 					new_cache[mI].second->Free();
 			}
 			new_cache.clear();
-			std::sort( search_cache.begin(), search_cache.end(), cache_comparator );
+			std::stable_sort( search_cache.begin(), search_cache.end(), cache_comparator );
 		}
 		
 		mlist.clear();
