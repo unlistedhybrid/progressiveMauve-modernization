@@ -13,11 +13,13 @@
 #include "config.h"
 #endif
 
+// MOVED UP: Must be included unconditionally so the stub class can find it
+#include "libMems/MemHash.h"
+
 #ifdef _OPENMP
 
 #include "libMUSCLE/threadstorage.h"
 #include <omp.h>
-#include "libMems/MemHash.h"
 
 namespace mems {
 
@@ -60,9 +62,16 @@ namespace mems {
  */
 class ParallelMemHash : public MemHash {
 public:
-	ParallelMemHash() : MemHash();
-	ParallelMemHash(const ParallelMemHash& mh) : MemHash(mh);
-	ParallelMemHash& operator=( const ParallelMemHash& mh ) : MemHash::operator=(mh){ return *this; }
+	// FIXED: Added empty bodies {} to constructors
+	ParallelMemHash() : MemHash() {}
+	ParallelMemHash(const ParallelMemHash& mh) : MemHash(mh) {}
+	
+	// FIXED: operator= cannot use initializer list syntax; moved call inside body
+	ParallelMemHash& operator=( const ParallelMemHash& mh ) { 
+		MemHash::operator=(mh); 
+		return *this; 
+	}
+	
 	virtual ParallelMemHash* Clone() const{ return new ParallelMemHash(*this); }
 };
 
