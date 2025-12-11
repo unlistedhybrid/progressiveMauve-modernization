@@ -55,6 +55,20 @@ jobs:
         run: |
           cmake --build build --config Release -j$(nproc) 2>&1 | tee -a build_logs/build.log
 
+      - name: Run Test Alignment
+        run: |
+          # Ensure executable permission
+          chmod +x build/progressiveMauve
+          
+          # Run alignment on test data (Assuming test_data/ exists in repo)
+          echo "Running alignment..."
+          ./build/progressiveMauve --output=linux_amd64.xmfa test_data/jp.fasta test_data/CP08.fasta
+          
+          # Calculate Hash
+          sha256sum linux_amd64.xmfa > checksum.txt
+          echo "SHA256 Hash:"
+          cat checksum.txt
+
       - name: Upload Artifacts (Linux-AMD64)
         uses: actions/upload-artifact@v4
         with:
@@ -62,6 +76,8 @@ jobs:
           path: |
             build/progressiveMauve
             build_logs/
+            linux_amd64.xmfa
+            checksum.txt
 
   # ==============================================================================
   # 2. LINUX BUILD (ARM64 - NATIVE)
@@ -106,6 +122,16 @@ jobs:
         run: |
           cmake --build build --config Release -j$(nproc) 2>&1 | tee -a build_logs/build.log
 
+      - name: Run Test Alignment
+        run: |
+          chmod +x build/progressiveMauve
+          echo "Running alignment..."
+          ./build/progressiveMauve --output=linux_arm64.xmfa test_data/jp.fasta test_data/CP08.fasta
+          
+          sha256sum linux_arm64.xmfa > checksum.txt
+          echo "SHA256 Hash:"
+          cat checksum.txt
+
       - name: Upload Artifacts (Linux-ARM64)
         uses: actions/upload-artifact@v4
         with:
@@ -113,12 +139,14 @@ jobs:
           path: |
             build/progressiveMauve
             build_logs/
+            linux_arm64.xmfa
+            checksum.txt
 
   # ==============================================================================
   # 3. MACOS BUILD (ARM64 / Apple Silicon)
   # ==============================================================================
   build-macos-arm64:
-    runs-on: macos-14 # Apple Silicon Runner
+    runs-on: macos-14
     steps:
       - uses: actions/checkout@v4
 
@@ -159,6 +187,17 @@ jobs:
         run: |
           cmake --build build --config Release -j$(sysctl -n hw.ncpu) 2>&1 | tee -a build_logs/build.log
 
+      - name: Run Test Alignment
+        run: |
+          chmod +x build/progressiveMauve
+          echo "Running alignment..."
+          ./build/progressiveMauve --output=macos_arm64.xmfa test_data/jp.fasta test_data/CP08.fasta
+          
+          # macOS uses 'shasum -a 256'
+          shasum -a 256 macos_arm64.xmfa > checksum.txt
+          echo "SHA256 Hash:"
+          cat checksum.txt
+
       - name: Upload Artifacts (MacOS-ARM64)
         uses: actions/upload-artifact@v4
         with:
@@ -166,12 +205,14 @@ jobs:
           path: |
             build/progressiveMauve
             build_logs/
+            macos_arm64.xmfa
+            checksum.txt
 
   # ==============================================================================
   # 4. MACOS BUILD (AMD64 / Intel)
   # ==============================================================================
   build-macos-intel:
-    runs-on: macos-15-intel # UPDATED: The last supported Intel image
+    runs-on: macos-15-intel
     steps:
       - uses: actions/checkout@v4
 
@@ -194,17 +235,14 @@ jobs:
           tar xzf boost.tar.gz
           cd ${{ env.BOOST_DIR }}
           ./bootstrap.sh --prefix=${{ github.workspace }}/boost-install --with-libraries=filesystem,iostreams,program_options,regex
-          # Note architecture=x86 for Intel
           ./b2 install --prefix=${{ github.workspace }}/boost-install link=static threading=multi variant=release address-model=64 architecture=x86 -j$(sysctl -n hw.ncpu)
 
       - name: Configure CMake
         env:
-          # On Intel Macs, brew is in /usr/local
           CXXFLAGS: "-I/usr/local/opt/libomp/include"
           LDFLAGS: "-L/usr/local/opt/libomp/lib"
         run: |
           mkdir -p build build_logs
-          # Point to /usr/local/opt/icu4c
           cmake -S . -B build \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_PREFIX_PATH="${{ github.workspace }}/boost-install;/usr/local/opt/icu4c" \
@@ -215,6 +253,16 @@ jobs:
         run: |
           cmake --build build --config Release -j$(sysctl -n hw.ncpu) 2>&1 | tee -a build_logs/build.log
 
+      - name: Run Test Alignment
+        run: |
+          chmod +x build/progressiveMauve
+          echo "Running alignment..."
+          ./build/progressiveMauve --output=macos_intel.xmfa test_data/jp.fasta test_data/CP08.fasta
+          
+          shasum -a 256 macos_intel.xmfa > checksum.txt
+          echo "SHA256 Hash:"
+          cat checksum.txt
+
       - name: Upload Artifacts (MacOS-Intel)
         uses: actions/upload-artifact@v4
         with:
@@ -222,6 +270,8 @@ jobs:
           path: |
             build/progressiveMauve
             build_logs/
+            macos_intel.xmfa
+            checksum.txt
 
   # ==============================================================================
   # 5. WINDOWS BUILD (MSVC)
@@ -264,7 +314,6 @@ jobs:
         run: |
           rm -rf build build_logs
           mkdir -p build build_logs
-          
           if ! cmake -S . -B build \
             -DCMAKE_TOOLCHAIN_FILE="$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" \
             -DVCPKG_TARGET_TRIPLET=x64-windows-static \
@@ -273,7 +322,6 @@ jobs:
             -DENABLE_OPENMP=ON \
             -DENABLE_ZLIB=OFF \
             -DCMAKE_BUILD_TYPE=Release > build_logs/configure.log 2>&1; then
-              echo "CMake Configuration Failed. Here is the log:"
               cat build_logs/configure.log
               exit 1
           fi
@@ -283,6 +331,16 @@ jobs:
         run: |
           cmake --build build --config Release --verbose 2>&1 | tee build_logs/build.log
 
+      - name: Run Test Alignment
+        shell: bash
+        run: |
+          echo "Running alignment..."
+          ./build/Release/progressiveMauve.exe --output=windows_amd64.xmfa test_data/jp.fasta test_data/CP08.fasta
+          
+          sha256sum windows_amd64.xmfa > checksum.txt
+          echo "SHA256 Hash:"
+          cat checksum.txt
+
       - name: Upload Artifacts (Windows)
         uses: actions/upload-artifact@v4
         with:
@@ -290,3 +348,53 @@ jobs:
           path: |
             build/Release/progressiveMauve.exe
             build_logs/
+            windows_amd64.xmfa
+            checksum.txt
+
+  # ==============================================================================
+  # 6. COMPARE HASHES (NEW)
+  # ==============================================================================
+  compare-hashes:
+    needs: [build-linux, build-linux-arm64, build-macos-arm64, build-macos-intel, build-windows]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Compare Checksums
+        run: |
+          echo "Gathering Checksums..."
+          
+          # Extract just the hash string from each file
+          LINUX_AMD64=$(awk '{print $1}' artifacts/progressiveMauve-Linux-AMD64/checksum.txt)
+          LINUX_ARM64=$(awk '{print $1}' artifacts/progressiveMauve-Linux-ARM64/checksum.txt)
+          MAC_ARM64=$(awk '{print $1}' artifacts/progressiveMauve-MacOS-ARM64/checksum.txt)
+          MAC_INTEL=$(awk '{print $1}' artifacts/progressiveMauve-MacOS-Intel/checksum.txt)
+          WIN_AMD64=$(awk '{print $1}' artifacts/progressiveMauve-Windows/checksum.txt)
+
+          echo "----------------------------------------"
+          echo "COMPARING OUTPUT HASHES"
+          echo "----------------------------------------"
+          echo "Linux AMD64: $LINUX_AMD64"
+          echo "Linux ARM64: $LINUX_ARM64"
+          echo "MacOS ARM64: $MAC_ARM64"
+          echo "MacOS Intel: $MAC_INTEL"
+          echo "Windows X64: $WIN_AMD64"
+          echo "----------------------------------------"
+
+          # Check if all hashes match Linux AMD64 (Reference)
+          FAIL=0
+          
+          if [ "$LINUX_ARM64" != "$LINUX_AMD64" ]; then echo "❌ Linux ARM64 mismatch!"; FAIL=1; fi
+          if [ "$MAC_ARM64" != "$LINUX_AMD64" ]; then echo "❌ MacOS ARM64 mismatch!"; FAIL=1; fi
+          if [ "$MAC_INTEL" != "$LINUX_AMD64" ]; then echo "❌ MacOS Intel mismatch!"; FAIL=1; fi
+          if [ "$WIN_AMD64" != "$LINUX_AMD64" ]; then echo "❌ Windows mismatch!"; FAIL=1; fi
+
+          if [ $FAIL -eq 0 ]; then
+            echo "✅ ALL PLATFORMS MATCH EXACTLY!"
+          else
+            echo "⚠️  HASH MISMATCH DETECTED"
+            # We don't exit 1 here so you can still inspect artifacts, but you could force failure if desired.
+          fi
