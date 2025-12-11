@@ -23,6 +23,15 @@ static const double LARGE_D = 3.0;
 
 static double CalibrationFactor = JTT_CalibrationFactor;
 
+// --- FIX: DETERSMINISTIC MATH ---
+// Platforms (Mac vs Linux) have slightly different log() implementations.
+// We round to 10 decimal places to eliminate ULP (Unit in Last Place) differences.
+static double SafeLog(double x) {
+    double val = log(x);
+    double scale = 1e10;
+    return floor(val * scale + 0.5) / scale;
+}
+// --------------------------------
 
 // Similarity score
 static double Sigma(const MSA &msa, unsigned SeqIndex1, unsigned SeqIndex2,
@@ -86,7 +95,8 @@ double GetScoreDist(const MSA &msa, unsigned SeqIndex1, unsigned SeqIndex2)
 		if (Ratio < 0.001)
 			d = LARGE_D;
 		else
-			d =	-log(Ratio);
+            // CHANGED: Use SafeLog instead of log
+			d =	-SafeLog(Ratio);
 		}
 	return d*CalibrationFactor;
 	}
@@ -128,4 +138,4 @@ void DistPWScoreDist(const SeqVect &v, DistFunc &DF)
 
 	SetSeqWeightMethod(SeqWeightSave);
 	}
-} 
+}
