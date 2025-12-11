@@ -57,16 +57,13 @@ jobs:
 
       - name: Run Test Alignment
         run: |
-          # Ensure executable permission
           chmod +x build/progressiveMauve
-          
-          # Run alignment on test data (Assuming test_data/ exists in repo)
           echo "Running alignment..."
           ./build/progressiveMauve --output=linux_amd64.xmfa test_data/jp.fasta test_data/CP08.fasta
           
-          # Calculate Hash
-          sha256sum linux_amd64.xmfa > checksum.txt
-          echo "SHA256 Hash:"
+          # Skip the first 6 lines (header with filename) and hash the rest
+          tail -n +7 linux_amd64.xmfa | sha256sum > checksum.txt
+          echo "SHA256 Hash (Content Only):"
           cat checksum.txt
 
       - name: Upload Artifacts (Linux-AMD64)
@@ -128,8 +125,9 @@ jobs:
           echo "Running alignment..."
           ./build/progressiveMauve --output=linux_arm64.xmfa test_data/jp.fasta test_data/CP08.fasta
           
-          sha256sum linux_arm64.xmfa > checksum.txt
-          echo "SHA256 Hash:"
+          # Skip header
+          tail -n +7 linux_arm64.xmfa | sha256sum > checksum.txt
+          echo "SHA256 Hash (Content Only):"
           cat checksum.txt
 
       - name: Upload Artifacts (Linux-ARM64)
@@ -173,7 +171,7 @@ jobs:
 
       - name: Configure CMake
         env:
-          CXXFLAGS: "-I/opt/homebrew/opt/libomp/include"
+          CXXFLAGS: "-I/opt/homebrew/opt/libomp/include -ffp-contract=off"
           LDFLAGS: "-L/opt/homebrew/opt/libomp/lib"
         run: |
           mkdir -p build build_logs
@@ -193,9 +191,9 @@ jobs:
           echo "Running alignment..."
           ./build/progressiveMauve --output=macos_arm64.xmfa test_data/jp.fasta test_data/CP08.fasta
           
-          # macOS uses 'shasum -a 256'
-          shasum -a 256 macos_arm64.xmfa > checksum.txt
-          echo "SHA256 Hash:"
+          # Skip header + shasum
+          tail -n +7 macos_arm64.xmfa | shasum -a 256 > checksum.txt
+          echo "SHA256 Hash (Content Only):"
           cat checksum.txt
 
       - name: Upload Artifacts (MacOS-ARM64)
@@ -239,7 +237,7 @@ jobs:
 
       - name: Configure CMake
         env:
-          CXXFLAGS: "-I/usr/local/opt/libomp/include"
+          CXXFLAGS: "-I/usr/local/opt/libomp/include -ffp-contract=off"
           LDFLAGS: "-L/usr/local/opt/libomp/lib"
         run: |
           mkdir -p build build_logs
@@ -259,8 +257,8 @@ jobs:
           echo "Running alignment..."
           ./build/progressiveMauve --output=macos_intel.xmfa test_data/jp.fasta test_data/CP08.fasta
           
-          shasum -a 256 macos_intel.xmfa > checksum.txt
-          echo "SHA256 Hash:"
+          tail -n +7 macos_intel.xmfa | shasum -a 256 > checksum.txt
+          echo "SHA256 Hash (Content Only):"
           cat checksum.txt
 
       - name: Upload Artifacts (MacOS-Intel)
@@ -337,8 +335,9 @@ jobs:
           echo "Running alignment..."
           ./build/Release/progressiveMauve.exe --output=windows_amd64.xmfa test_data/jp.fasta test_data/CP08.fasta
           
-          sha256sum windows_amd64.xmfa > checksum.txt
-          echo "SHA256 Hash:"
+          # Bash shell allows using tail even on Windows runner
+          tail -n +7 windows_amd64.xmfa | sha256sum > checksum.txt
+          echo "SHA256 Hash (Content Only):"
           cat checksum.txt
 
       - name: Upload Artifacts (Windows)
@@ -352,7 +351,7 @@ jobs:
             checksum.txt
 
   # ==============================================================================
-  # 6. COMPARE HASHES (NEW)
+  # 6. COMPARE HASHES
   # ==============================================================================
   compare-hashes:
     needs: [build-linux, build-linux-arm64, build-macos-arm64, build-macos-intel, build-windows]
@@ -365,9 +364,8 @@ jobs:
 
       - name: Compare Checksums
         run: |
-          echo "Gathering Checksums..."
+          echo "Gathering Checksums (Skipped Header)..."
           
-          # Extract just the hash string from each file
           LINUX_AMD64=$(awk '{print $1}' artifacts/progressiveMauve-Linux-AMD64/checksum.txt)
           LINUX_ARM64=$(awk '{print $1}' artifacts/progressiveMauve-Linux-ARM64/checksum.txt)
           MAC_ARM64=$(awk '{print $1}' artifacts/progressiveMauve-MacOS-ARM64/checksum.txt)
@@ -375,7 +373,7 @@ jobs:
           WIN_AMD64=$(awk '{print $1}' artifacts/progressiveMauve-Windows/checksum.txt)
 
           echo "----------------------------------------"
-          echo "COMPARING OUTPUT HASHES"
+          echo "COMPARING CONTENT HASHES"
           echo "----------------------------------------"
           echo "Linux AMD64: $LINUX_AMD64"
           echo "Linux ARM64: $LINUX_ARM64"
@@ -384,7 +382,6 @@ jobs:
           echo "Windows X64: $WIN_AMD64"
           echo "----------------------------------------"
 
-          # Check if all hashes match Linux AMD64 (Reference)
           FAIL=0
           
           if [ "$LINUX_ARM64" != "$LINUX_AMD64" ]; then echo "❌ Linux ARM64 mismatch!"; FAIL=1; fi
@@ -396,5 +393,4 @@ jobs:
             echo "✅ ALL PLATFORMS MATCH EXACTLY!"
           else
             echo "⚠️  HASH MISMATCH DETECTED"
-            # We don't exit 1 here so you can still inspect artifacts, but you could force failure if desired.
           fi
