@@ -32,8 +32,7 @@ public:
 };
 typedef LcbTrackingMatch< mems::AbstractMatch* > TrackingMatch;
 
-/** 
- * This class is used to track relationships between LCBs during the LCB determination process.
+/** * This class is used to track relationships between LCBs during the LCB determination process.
  */
 template <class MatchType>
 class TrackingLCB
@@ -88,7 +87,14 @@ class MoveScoreHeapComparator
 public:
 	bool operator()( const std::pair< double, size_t >& a, const std::pair< double, size_t >& b ) const
 	{
-		return a.first < b.first;	// want to order by > instead of <
+		// FIX: TIE-BREAKER FOR DETERMINISTIC HEAP ORDER
+		// If scores are identical, std::make_heap behavior is undefined across platforms.
+		// We force a deterministic order by checking the index (second) if scores match.
+		if (a.first != b.first)
+			return a.first < b.first;
+		
+		// Use index as tie-breaker
+		return a.second > b.second;
 	}
 };
 
@@ -114,9 +120,9 @@ void initTrackingMatchLCBTracking(
 
 
 /** removes an LCB from an LCB list and coalesces surrounding LCBs.  Returns the number of LCBs removed 
- *  After LCBs are removed, the adjacency list should be processed with filterLCBs()
- *  @param	id_remaps	This is populated with a list of LCB ids that were deleted or coalesced and now have a new LCB id
- *                      for each coalesced LCB, an entry of the form <old id, new id> is added, deleted LCBs have
+ * After LCBs are removed, the adjacency list should be processed with filterLCBs()
+ * @param	id_remaps	This is populated with a list of LCB ids that were deleted or coalesced and now have a new LCB id
+ * for each coalesced LCB, an entry of the form <old id, new id> is added, deleted LCBs have
  *						entries of the form <deleted, -1>.  Entries appear in the order operations were performed
  *						and the function undoLcbRemoval() can undo these operations in reverse order
  */
@@ -311,7 +317,7 @@ void computeLCBAdjacencies_v3( const std::vector< MatchVector >& lcb_list, std::
 }
 
 /**
- *  Redesign to be more intuitive.  left_adjacency is always left, regardless of LCB orientation
+ * Redesign to be more intuitive.  left_adjacency is always left, regardless of LCB orientation
  */
 inline
 void computeLCBAdjacencies_v3( mems::IntervalList& iv_list, std::vector< double >& weights, std::vector< mems::LCB >& adjacencies ){
@@ -870,4 +876,3 @@ struct AlnProgressTracker
 }	// namespace mems
 
 #endif // __greedyBreakpointElimination_h__
-
