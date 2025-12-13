@@ -112,7 +112,7 @@ jobs:
             checksum.txt
 
   # ==============================================================================
-  # 3. MACOS BUILD (ARM64) - Standard Mode (OpenMP ON, Fast Math)
+  # 3. MACOS BUILD (ARM64) - STATIC OpenMP
   # ==============================================================================
   build-macos-arm64:
     runs-on: macos-14
@@ -133,16 +133,15 @@ jobs:
         run: |
           curl -L -o boost.tar.gz ${{ env.BOOST_URL }} && tar xzf boost.tar.gz && cd ${{ env.BOOST_DIR }}
           ./bootstrap.sh --prefix=${{ github.workspace }}/boost-install --with-libraries=filesystem,iostreams,program_options,regex
-          # Standard build (No strict flags)
           ./b2 install --prefix=${{ github.workspace }}/boost-install link=static threading=multi variant=release address-model=64 architecture=arm -j$(sysctl -n hw.ncpu)
 
       - name: Configure CMake
         env:
+          # LINK STATICALLY: Point LDFLAGS to the .a file directly
           CXXFLAGS: "-I/opt/homebrew/opt/libomp/include"
-          LDFLAGS: "-L/opt/homebrew/opt/libomp/lib"
+          LDFLAGS: "/opt/homebrew/opt/libomp/lib/libomp.a"
         run: |
           mkdir -p build
-          # Standard build (OpenMP ON)
           cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH="${{ github.workspace }}/boost-install;/opt/homebrew/opt/icu4c" -DENABLE_OPENMP=ON -DENABLE_ZLIB=OFF
 
       - name: Build
@@ -152,7 +151,6 @@ jobs:
         run: |
           chmod +x build/progressiveMauve
           ./build/progressiveMauve --output=macos_arm64.xmfa test_data/jp.fasta test_data/CP08.fasta
-          # Use shasum on Mac
           tail -n +7 macos_arm64.xmfa | tr -d '\r' | shasum -a 256 > checksum.txt
           echo "SHA256 Hash (Content Only):"
           cat checksum.txt
@@ -167,7 +165,7 @@ jobs:
             checksum.txt
 
   # ==============================================================================
-  # 4. MACOS BUILD (INTEL) - Standard Mode (OpenMP ON, Fast Math)
+  # 4. MACOS BUILD (INTEL) - STATIC OpenMP
   # ==============================================================================
   build-macos-intel:
     runs-on: macos-15-intel
@@ -188,16 +186,15 @@ jobs:
         run: |
           curl -L -o boost.tar.gz ${{ env.BOOST_URL }} && tar xzf boost.tar.gz && cd ${{ env.BOOST_DIR }}
           ./bootstrap.sh --prefix=${{ github.workspace }}/boost-install --with-libraries=filesystem,iostreams,program_options,regex
-          # Standard build (No strict flags)
           ./b2 install --prefix=${{ github.workspace }}/boost-install link=static threading=multi variant=release address-model=64 architecture=x86 -j$(sysctl -n hw.ncpu)
 
       - name: Configure CMake
         env:
+          # LINK STATICALLY: Point LDFLAGS to the .a file directly (Intel path)
           CXXFLAGS: "-I/usr/local/opt/libomp/include"
-          LDFLAGS: "-L/usr/local/opt/libomp/lib"
+          LDFLAGS: "/usr/local/opt/libomp/lib/libomp.a"
         run: |
           mkdir -p build
-          # Standard build (OpenMP ON)
           cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH="${{ github.workspace }}/boost-install;/usr/local/opt/icu4c" -DENABLE_OPENMP=ON -DENABLE_ZLIB=OFF
 
       - name: Build
@@ -243,7 +240,8 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ github.workspace }}/boost-install
-          key: ${{ runner.os }}-boost-${{ env.BOOST_VERSION }}-msvc-v16
+          # Updated to v17 for consistency
+          key: ${{ runner.os }}-boost-${{ env.BOOST_VERSION }}-msvc-v17
 
       - name: Build Boost
         if: steps.cache-boost-win.outputs.cache-hit != 'true'
@@ -257,7 +255,6 @@ jobs:
         shell: bash
         run: |
           mkdir -p build
-          # Removed /fp:strict, restored standard flags
           cmake -S . -B build -DCMAKE_TOOLCHAIN_FILE="$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows-static -DCMAKE_PREFIX_PATH="${{ github.workspace }}/boost-install" -DBoost_USE_STATIC_RUNTIME=ON -DENABLE_OPENMP=ON -DENABLE_ZLIB=OFF -DCMAKE_BUILD_TYPE=Release
 
       - name: Build
@@ -322,4 +319,5 @@ jobs:
             echo "✅ SUCCESS! All platforms produce identical alignments."
           else
             echo "⚠️  MISMATCH Detected."
+            exit 1
           fi
