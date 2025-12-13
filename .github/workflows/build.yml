@@ -48,7 +48,6 @@ jobs:
         run: |
           chmod +x build/progressiveMauve
           ./build/progressiveMauve --output=linux_amd64.xmfa test_data/jp.fasta test_data/CP08.fasta
-          # Verify consistency: Skip header (7 lines) + Remove Windows Return chars
           tail -n +7 linux_amd64.xmfa | tr -d '\r' | sha256sum > checksum.txt
           echo "SHA256 Hash (Content Only):"
           cat checksum.txt
@@ -112,7 +111,7 @@ jobs:
             checksum.txt
 
   # ==============================================================================
-  # 3. MACOS BUILD (ARM64) - STATIC OpenMP
+  # 3. MACOS BUILD (ARM64) - FIXED STATIC OPENMP
   # ==============================================================================
   build-macos-arm64:
     runs-on: macos-14
@@ -137,11 +136,11 @@ jobs:
 
       - name: Configure CMake
         env:
-          # Only set CXXFLAGS for headers. Linker flags are handled by CMake variables below.
           CXXFLAGS: "-I/opt/homebrew/opt/libomp/include"
+          # FIX: Add -L search path so linker finds libraries, AND point explicitly to static lib
+          LDFLAGS: "-L/opt/homebrew/opt/libomp/lib"
         run: |
           mkdir -p build
-          # Manually define OpenMP libraries to force static linking and avoid 'library not found'
           cmake -S . -B build \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_PREFIX_PATH="${{ github.workspace }}/boost-install;/opt/homebrew/opt/icu4c" \
@@ -171,7 +170,7 @@ jobs:
             checksum.txt
 
   # ==============================================================================
-  # 4. MACOS BUILD (INTEL) - STATIC OpenMP
+  # 4. MACOS BUILD (INTEL) - STANDARD (Reverted per request)
   # ==============================================================================
   build-macos-intel:
     runs-on: macos-15-intel
@@ -196,9 +195,8 @@ jobs:
 
       - name: Configure CMake
         env:
-          # LINK STATICALLY: Point LDFLAGS to the .a file directly (Intel path)
           CXXFLAGS: "-I/usr/local/opt/libomp/include"
-          LDFLAGS: "/usr/local/opt/libomp/lib/libomp.a"
+          LDFLAGS: "-L/usr/local/opt/libomp/lib"
         run: |
           mkdir -p build
           cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH="${{ github.workspace }}/boost-install;/usr/local/opt/icu4c" -DENABLE_OPENMP=ON -DENABLE_ZLIB=OFF
@@ -246,7 +244,6 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ github.workspace }}/boost-install
-          # Updated to v17 for consistency
           key: ${{ runner.os }}-boost-${{ env.BOOST_VERSION }}-msvc-v17
 
       - name: Build Boost
