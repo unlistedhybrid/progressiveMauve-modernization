@@ -137,12 +137,18 @@ jobs:
 
       - name: Configure CMake
         env:
-          # LINK STATICALLY: Point LDFLAGS to the .a file directly
+          # Only set CXXFLAGS for headers. Linker flags are handled by CMake variables below.
           CXXFLAGS: "-I/opt/homebrew/opt/libomp/include"
-          LDFLAGS: "/opt/homebrew/opt/libomp/lib/libomp.a"
         run: |
           mkdir -p build
-          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH="${{ github.workspace }}/boost-install;/opt/homebrew/opt/icu4c" -DENABLE_OPENMP=ON -DENABLE_ZLIB=OFF
+          # Manually define OpenMP libraries to force static linking and avoid 'library not found'
+          cmake -S . -B build \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_PREFIX_PATH="${{ github.workspace }}/boost-install;/opt/homebrew/opt/icu4c" \
+            -DENABLE_OPENMP=ON \
+            -DENABLE_ZLIB=OFF \
+            -DOpenMP_CXX_LIBRARIES="/opt/homebrew/opt/libomp/lib/libomp.a" \
+            -DOpenMP_C_LIBRARIES="/opt/homebrew/opt/libomp/lib/libomp.a"
 
       - name: Build
         run: cmake --build build --config Release -j$(sysctl -n hw.ncpu)
