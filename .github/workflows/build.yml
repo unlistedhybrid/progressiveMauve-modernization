@@ -324,3 +324,62 @@ jobs:
             echo "⚠️  MISMATCH Detected."
             exit 1
           fi
+  # ==============================================================================
+  # 7. CREATE RELEASE AND UPLOAD ARCHIVES
+  # ==============================================================================
+  create-release:
+    needs: [compare-hashes]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Package Binaries
+        run: |
+          mkdir release_assets
+          
+          # 1. Linux AMD64 (.tar.gz)
+          cp artifacts/progressiveMauve-Linux-AMD64/progressiveMauve .
+          chmod +x progressiveMauve
+          tar -czf release_assets/progressiveMauve-v2.5.0-linux-x86_64.tar.gz progressiveMauve
+          
+          # 2. Linux ARM64 (.tar.gz)
+          cp artifacts/progressiveMauve-Linux-ARM64/progressiveMauve .
+          chmod +x progressiveMauve
+          tar -czf release_assets/progressiveMauve-v2.5.0-linux-arm64.tar.gz progressiveMauve
+          
+          # 3. MacOS ARM64 (.tar.gz)
+          cp artifacts/progressiveMauve-MacOS-ARM64/progressiveMauve .
+          chmod +x progressiveMauve
+          tar -czf release_assets/progressiveMauve-v2.5.0-macos-arm64.tar.gz progressiveMauve
+          
+          # 4. MacOS Intel (.tar.gz)
+          cp artifacts/progressiveMauve-MacOS-Intel/progressiveMauve .
+          chmod +x progressiveMauve
+          tar -czf release_assets/progressiveMauve-v2.5.0-macos-intel.tar.gz progressiveMauve
+          
+          # 5. Windows (.zip) - No chmod needed
+          cp artifacts/progressiveMauve-Windows/progressiveMauve.exe .
+          zip release_assets/progressiveMauve-v2.5.0-windows-x64.zip progressiveMauve.exe
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release_assets/*
+          name: progressiveMauve v2.5.0
+          body: |
+            ### progressiveMauve v2.5.0 Modernization Release
+            This release modernizes the source code for modern compilers (C++17) and platforms while preserving algorithmic behavior and output compatibility.
+            
+            **Key Changes:**
+            - Verified bit-for-bit identical results across Intel/AMD and ARM architectures and across operating systems.
+            - Resolved memory safety and type-mismatch warnings (MSVC/Clang/GCC).
+            - Updated to Boost 1.89.0.
+            - Fixed platform-specific I/O and preprocessor conflicts.
+          draft: false
+          prerelease: false
