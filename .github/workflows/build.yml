@@ -342,40 +342,50 @@ jobs:
         with:
           path: artifacts
 
+      - name: Display structure of downloaded files
+        run: ls -R artifacts
+
       - name: Package Binaries
         run: |
           mkdir release_assets
           
-          # 1. Linux AMD64 (.tar.gz) - chmod +x applied
-          cp artifacts/progressiveMauve-Linux-AMD64/progressiveMauve .
+          # 1. Linux AMD64 (.tar.gz)
+          # Path includes 'build/' because upload preserved structure
+          cp artifacts/progressiveMauve-Linux-AMD64/build/progressiveMauve .
           chmod +x progressiveMauve
           tar -czf release_assets/progressiveMauve-v2.5.0-linux-x86_64.tar.gz progressiveMauve
+          rm progressiveMauve
           
-          # 2. Linux ARM64 (.tar.gz) - chmod +x applied
-          cp artifacts/progressiveMauve-Linux-ARM64/progressiveMauve .
+          # 2. Linux ARM64 (.tar.gz)
+          cp artifacts/progressiveMauve-Linux-ARM64/build/progressiveMauve .
           chmod +x progressiveMauve
           tar -czf release_assets/progressiveMauve-v2.5.0-linux-arm64.tar.gz progressiveMauve
+          rm progressiveMauve
           
-          # 3. MacOS ARM64 (.tar.gz) - chmod +x applied
-          cp artifacts/progressiveMauve-MacOS-ARM64/progressiveMauve .
+          # 3. MacOS ARM64 (.tar.gz)
+          cp artifacts/progressiveMauve-MacOS-ARM64/build/progressiveMauve .
           chmod +x progressiveMauve
           tar -czf release_assets/progressiveMauve-v2.5.0-macos-arm64.tar.gz progressiveMauve
+          rm progressiveMauve
           
-          # 4. MacOS Intel (.tar.gz) - chmod +x applied
-          cp artifacts/progressiveMauve-MacOS-Intel/progressiveMauve .
+          # 4. MacOS Intel (.tar.gz)
+          cp artifacts/progressiveMauve-MacOS-Intel/build/progressiveMauve .
           chmod +x progressiveMauve
           tar -czf release_assets/progressiveMauve-v2.5.0-macos-intel.tar.gz progressiveMauve
+          rm progressiveMauve
           
-          # 5. Windows (.zip) - NO chmod, uses zip
-          cp artifacts/progressiveMauve-Windows/progressiveMauve.exe .
+          # 5. Windows (.zip)
+          # Path includes 'build/Release/' for Windows
+          cp artifacts/progressiveMauve-Windows/build/Release/progressiveMauve.exe .
           zip release_assets/progressiveMauve-v2.5.0-windows-x64.zip progressiveMauve.exe
+          rm progressiveMauve.exe
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           files: release_assets/*
           name: progressiveMauve v2.5.0
-          tag_name: v2.5.0   # Explicitly set tag ensures it attaches to the right place
+          tag_name: v2.5.0
           body: |
             ### progressiveMauve v2.5.0 Modernization Release
             This release modernizes the source code for modern compilers (C++17) and platforms while preserving algorithmic behavior and output compatibility.
