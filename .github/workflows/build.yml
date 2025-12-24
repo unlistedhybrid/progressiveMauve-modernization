@@ -3,8 +3,10 @@ name: Build ProgressiveMauve Multi-Platform
 on:
   push:
     branches: [ "main", "master" ]
+    tags: [ "v*" ]
   pull_request:
     branches: [ "main", "master" ]
+  workflow_dispatch:
 
 env:
   BOOST_VERSION: 1.89.0
@@ -329,10 +331,11 @@ jobs:
   # ==============================================================================
   create-release:
     needs: [compare-hashes]
-    if: startsWith(github.ref, 'refs/tags/v')
+    # Run if it's a tag push OR a manual dispatch
+    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: write # Required to create the release
     steps:
       - name: Download all artifacts
         uses: actions/download-artifact@v4
@@ -343,27 +346,27 @@ jobs:
         run: |
           mkdir release_assets
           
-          # 1. Linux AMD64 (.tar.gz)
+          # 1. Linux AMD64 (.tar.gz) - chmod +x applied
           cp artifacts/progressiveMauve-Linux-AMD64/progressiveMauve .
           chmod +x progressiveMauve
           tar -czf release_assets/progressiveMauve-v2.5.0-linux-x86_64.tar.gz progressiveMauve
           
-          # 2. Linux ARM64 (.tar.gz)
+          # 2. Linux ARM64 (.tar.gz) - chmod +x applied
           cp artifacts/progressiveMauve-Linux-ARM64/progressiveMauve .
           chmod +x progressiveMauve
           tar -czf release_assets/progressiveMauve-v2.5.0-linux-arm64.tar.gz progressiveMauve
           
-          # 3. MacOS ARM64 (.tar.gz)
+          # 3. MacOS ARM64 (.tar.gz) - chmod +x applied
           cp artifacts/progressiveMauve-MacOS-ARM64/progressiveMauve .
           chmod +x progressiveMauve
           tar -czf release_assets/progressiveMauve-v2.5.0-macos-arm64.tar.gz progressiveMauve
           
-          # 4. MacOS Intel (.tar.gz)
+          # 4. MacOS Intel (.tar.gz) - chmod +x applied
           cp artifacts/progressiveMauve-MacOS-Intel/progressiveMauve .
           chmod +x progressiveMauve
           tar -czf release_assets/progressiveMauve-v2.5.0-macos-intel.tar.gz progressiveMauve
           
-          # 5. Windows (.zip)
+          # 5. Windows (.zip) - NO chmod, uses zip
           cp artifacts/progressiveMauve-Windows/progressiveMauve.exe .
           zip release_assets/progressiveMauve-v2.5.0-windows-x64.zip progressiveMauve.exe
 
@@ -372,6 +375,7 @@ jobs:
         with:
           files: release_assets/*
           name: progressiveMauve v2.5.0
+          tag_name: v2.5.0   # Explicitly set tag ensures it attaches to the right place
           body: |
             ### progressiveMauve v2.5.0 Modernization Release
             This release modernizes the source code for modern compilers (C++17) and platforms while preserving algorithmic behavior and output compatibility.
