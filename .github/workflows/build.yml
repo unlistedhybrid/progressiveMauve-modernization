@@ -363,7 +363,7 @@ jobs:
           chmod +x progressiveMauve
           tar -czf release_assets/progressiveMauve-v2.5.0-macos-intel.tar.gz progressiveMauve
           
-          # 5. Windows (.zip) - No chmod needed
+          # 5. Windows (.zip)
           cp artifacts/progressiveMauve-Windows/progressiveMauve.exe .
           zip release_assets/progressiveMauve-v2.5.0-windows-x64.zip progressiveMauve.exe
 
@@ -376,10 +376,10 @@ jobs:
             ### progressiveMauve v2.5.0 Modernization Release
             This release modernizes the source code for modern compilers (C++17) and platforms while preserving algorithmic behavior and output compatibility.
             
-            **Key Changes:**
-            - Verified bit-for-bit identical results across Intel/AMD and ARM architectures and across operating systems.
-            - Resolved memory safety and type-mismatch warnings (MSVC/Clang/GCC).
-            - Updated to Boost 1.89.0.
-            - Fixed platform-specific I/O and preprocessor conflicts.
+            **Key Updates:**
+            - **Cross-Platform Determinism**: Verified bit-for-bit identical results across Intel/AMD and ARM architectures.
+            - **Modern Compiler Support**: Full compatibility with C++17, MSVC 2022, and modern Clang/GCC.
+            - **Dependency Updates**: Updated to Boost 1.89.0.
+            - **Bug Fixes**: Resolved memory safety warnings, type-mismatches in `printf`, and preprocessor macro conflicts.
           draft: false
           prerelease: false
