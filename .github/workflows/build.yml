@@ -337,6 +337,9 @@ jobs:
     permissions:
       contents: write # Required to create the release
     steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
@@ -348,37 +351,47 @@ jobs:
       - name: Package Binaries
         run: |
           mkdir release_assets
+          mkdir package_temp
           
           # 1. Linux AMD64 (.tar.gz)
-          # Path includes 'build/' because upload preserved structure
-          cp artifacts/progressiveMauve-Linux-AMD64/build/progressiveMauve .
-          chmod +x progressiveMauve
-          tar -czf release_assets/progressiveMauve-v2.5.0-linux-x86_64.tar.gz progressiveMauve
-          rm progressiveMauve
+          mkdir -p package_temp/progressiveMauve-v2.5.0-linux-x86_64
+          cp artifacts/progressiveMauve-Linux-AMD64/build/progressiveMauve package_temp/progressiveMauve-v2.5.0-linux-x86_64/
+          cp README.md COPYING package_temp/progressiveMauve-v2.5.0-linux-x86_64/
+          chmod +x package_temp/progressiveMauve-v2.5.0-linux-x86_64/progressiveMauve
+          tar -czf release_assets/progressiveMauve-v2.5.0-linux-x86_64.tar.gz -C package_temp progressiveMauve-v2.5.0-linux-x86_64
+          rm -rf package_temp/progressiveMauve-v2.5.0-linux-x86_64
           
           # 2. Linux ARM64 (.tar.gz)
-          cp artifacts/progressiveMauve-Linux-ARM64/build/progressiveMauve .
-          chmod +x progressiveMauve
-          tar -czf release_assets/progressiveMauve-v2.5.0-linux-arm64.tar.gz progressiveMauve
-          rm progressiveMauve
+          mkdir -p package_temp/progressiveMauve-v2.5.0-linux-arm64
+          cp artifacts/progressiveMauve-Linux-ARM64/build/progressiveMauve package_temp/progressiveMauve-v2.5.0-linux-arm64/
+          cp README.md COPYING package_temp/progressiveMauve-v2.5.0-linux-arm64/
+          chmod +x package_temp/progressiveMauve-v2.5.0-linux-arm64/progressiveMauve
+          tar -czf release_assets/progressiveMauve-v2.5.0-linux-arm64.tar.gz -C package_temp progressiveMauve-v2.5.0-linux-arm64
+          rm -rf package_temp/progressiveMauve-v2.5.0-linux-arm64
           
           # 3. MacOS ARM64 (.tar.gz)
-          cp artifacts/progressiveMauve-MacOS-ARM64/build/progressiveMauve .
-          chmod +x progressiveMauve
-          tar -czf release_assets/progressiveMauve-v2.5.0-macos-arm64.tar.gz progressiveMauve
-          rm progressiveMauve
+          mkdir -p package_temp/progressiveMauve-v2.5.0-macos-arm64
+          cp artifacts/progressiveMauve-MacOS-ARM64/build/progressiveMauve package_temp/progressiveMauve-v2.5.0-macos-arm64/
+          cp README.md COPYING package_temp/progressiveMauve-v2.5.0-macos-arm64/
+          chmod +x package_temp/progressiveMauve-v2.5.0-macos-arm64/progressiveMauve
+          tar -czf release_assets/progressiveMauve-v2.5.0-macos-arm64.tar.gz -C package_temp progressiveMauve-v2.5.0-macos-arm64
+          rm -rf package_temp/progressiveMauve-v2.5.0-macos-arm64
           
           # 4. MacOS Intel (.tar.gz)
-          cp artifacts/progressiveMauve-MacOS-Intel/build/progressiveMauve .
-          chmod +x progressiveMauve
-          tar -czf release_assets/progressiveMauve-v2.5.0-macos-intel.tar.gz progressiveMauve
-          rm progressiveMauve
+          mkdir -p package_temp/progressiveMauve-v2.5.0-macos-intel
+          cp artifacts/progressiveMauve-MacOS-Intel/build/progressiveMauve package_temp/progressiveMauve-v2.5.0-macos-intel/
+          cp README.md COPYING package_temp/progressiveMauve-v2.5.0-macos-intel/
+          chmod +x package_temp/progressiveMauve-v2.5.0-macos-intel/progressiveMauve
+          tar -czf release_assets/progressiveMauve-v2.5.0-macos-intel.tar.gz -C package_temp progressiveMauve-v2.5.0-macos-intel
+          rm -rf package_temp/progressiveMauve-v2.5.0-macos-intel
           
           # 5. Windows (.zip)
-          # Path includes 'build/Release/' for Windows
-          cp artifacts/progressiveMauve-Windows/build/Release/progressiveMauve.exe .
-          zip release_assets/progressiveMauve-v2.5.0-windows-x64.zip progressiveMauve.exe
-          rm progressiveMauve.exe
+          mkdir -p package_temp/progressiveMauve-v2.5.0-windows-x64
+          cp artifacts/progressiveMauve-Windows/build/Release/progressiveMauve.exe package_temp/progressiveMauve-v2.5.0-windows-x64/
+          cp README.md COPYING package_temp/progressiveMauve-v2.5.0-windows-x64/
+          cd package_temp && zip -r ../release_assets/progressiveMauve-v2.5.0-windows-x64.zip progressiveMauve-v2.5.0-windows-x64
+          cd ..
+          rm -rf package_temp
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
